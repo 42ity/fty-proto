@@ -1,0 +1,14 @@
+<project
+    name = "biosproto"
+    description = "Core protocols for BIOS"
+    script = "zproject.gsl"
+    email = "bios@eaton.com"
+    >
+    <include filename = "license.xml" />
+    <version major = "0" minor = "1" patch = "0" />
+    <use project = "czmq" />
+    <use project = "malamute" />
+
+    <class name = "bios_proto">BIOS protocol</class>
+
+</project>
