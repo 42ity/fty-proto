@@ -35,7 +35,7 @@ int metric_send (
         const char *element_dest
         ) {
 
-    if (!cl || !type || !element_src || !value || !unit) {
+    if (!dest || !type || !element_src || !value || !unit) {
         return -1;
     }
     // timestamp is positive, -1 means current timestamp
@@ -49,7 +49,7 @@ int metric_send (
 
     int r;
     if (zsock_is (dest))
-        r = zsock_sendx ((zsock_t)dest, subject, type, element_src, value, unit, stimestamp, element_dest, NULL);
+        r = zstr_sendx ((zsock_t*)dest, subject, type, element_src, value, unit, stimestamp, element_dest, NULL);
     else
         r = mlm_client_sendx ((mlm_client_t*)dest, subject, type, element_src, value, unit, stimestamp, element_dest, NULL);
 
