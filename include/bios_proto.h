@@ -1,6 +1,6 @@
 /*  =========================================================================
     bios_proto - Core BIOS protocols
-
+    
     Codec header for bios_proto.
 
     ** WARNING *************************************************************
@@ -12,26 +12,26 @@
      * The XML model used for this code generation: bios_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2015 Eaton
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
+    Copyright (C) 2014 - 2015 Eaton                                        
+                                                                           
+    This program is free software; you can redistribute it and/or modify   
+    it under the terms of the GNU General Public License as published by   
+    the Free Software Foundation; either version 2 of the License, or      
+    (at your option) any later version.                                    
+                                                                           
+    This program is distributed in the hope that it will be useful,        
+    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+    GNU General Public License for more details.                           
+                                                                           
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
     =========================================================================
 */
 
-#ifndef BIOS_PROTO_H_INCLUDED
-#define BIOS_PROTO_H_INCLUDED
+#ifndef __BIOS_PROTO_H_INCLUDED__
+#define __BIOS_PROTO_H_INCLUDED__
 
 /*  These are the bios_proto messages:
 
@@ -41,22 +41,33 @@
 
 MVY: To see if we can handle the need for ymsg wrapper by header
      Field aux is going to be added in each message
-        aux                 hash
-        type                string
+
+Comment (KHR): My opinion is that we should add aux into messages where it
+     is needed/makes sense (i.e. we have use case). Adding anything to
+     messages/protocol because what-if is future proofing and that never works
+     (and goes against the principle of PROBLEM-statement oriented approach). 
+
+    In METRIC message we can have the element-dest optional field simply by
+    having an empty string when no element-dest is present.
+        aux                 hash        
+        type                string      
         Type of metric send (temperature, humidity, power.load, ...)
-
-        element_src         string
+    
+        element_src         string      
         Name of source element to which metrics are bind to.
-
-        value               string
+    
+        value               string      
         Value of metric as plain string
-
-        unit                string
+    
+        unit                string      
         Unit of metric (C, F or K for temperature)
-
-        time                number 8
+    
+        time                number 8    
         Metric date/time, -1 will be replaced by actual time on receiving side.
-
+    
+        element_dest        string      
+        Name of the destination element or empty string in case of no destination element.
+    
 */
 
 #define BIOS_PROTO_VERSION                  1
@@ -93,7 +104,7 @@ bool
     is_bios_proto (zmsg_t *msg_p);
 
 //  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
-//  the message could not be parsed, or was NULL. Destroys msg and
+//  the message could not be parsed, or was NULL. Destroys msg and 
 //  nullifies the msg reference.
 bios_proto_t *
     bios_proto_decode (zmsg_t **msg_p);
@@ -103,12 +114,12 @@ bios_proto_t *
 zmsg_t *
     bios_proto_encode (bios_proto_t **self_p);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a bios_proto from the socket. Returns new object, 
 //  or NULL if error. Will block if there's no message waiting.
 bios_proto_t *
     bios_proto_recv (void *input);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a bios_proto from the socket. Returns new object, 
 //  or NULL either if there was no input waiting, or the recv was interrupted.
 bios_proto_t *
     bios_proto_recv_nowait (void *input);
@@ -121,7 +132,7 @@ int
 int
     bios_proto_send_again (bios_proto_t *self, void *output);
 
-//  Encode the METRIC
+//  Encode the METRIC 
 zmsg_t *
     bios_proto_encode_metric (
         zhash_t *aux,
@@ -129,7 +140,8 @@ zmsg_t *
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time);
+        uint64_t time,
+        const char *element_dest);
 
 
 //  Send the METRIC to the output in one step
@@ -141,8 +153,9 @@ int
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time);
-
+        uint64_t time,
+        const char *element_dest);
+    
 //  Duplicate the bios_proto message
 bios_proto_t *
     bios_proto_dup (bios_proto_t *self);
@@ -174,7 +187,7 @@ zhash_t *
 //  Set the aux field, transferring ownership from caller
 void
     bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p);
-
+    
 //  Get/set a value in the aux dictionary
 const char *
     bios_proto_aux_string (bios_proto_t *self,
@@ -218,8 +231,14 @@ uint64_t
 void
     bios_proto_set_time (bios_proto_t *self, uint64_t time);
 
-//  Self test of this class
+//  Get/set the element_dest field
+const char *
+    bios_proto_element_dest (bios_proto_t *self);
 void
+    bios_proto_set_element_dest (bios_proto_t *self, const char *format, ...);
+
+//  Self test of this class
+int
     bios_proto_test (bool verbose);
 //  @end
 
