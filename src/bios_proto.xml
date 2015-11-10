@@ -1,0 +1,46 @@
+<class
+    name = "bios_proto"
+    signature = "0"
+    title = "Core BIOS protocols"
+    script = "zproto_codec_c_v1"
+    package_dir = "../include"
+    source_dir = "."
+    >
+TODO THERE WILL BE SOME DESCRPTION
+
+<include filename = "../license.xml" />
+
+<define name = "VERSION" value = "1" />
+
+MVY: To see if we can handle the need for ymsg wrapper by header
+     Field aux is going to be added in each message
+<header>
+    <field name = "aux" type = "hash"/>
+</header>
+
+<message
+    name = "METRIC"
+    id = "1"
+    digest = "B90F4926D4662B319C0EC113794B0F27D9336A23"
+    >
+    <field name = "type" type = "string">
+        Type of metric send (temperature, humidity, power.load, ...)
+    </field>
+    <field name = "element_src" type = "string">
+        Name of source element to which metrics are bind to.
+    </field>
+    <field name = "value" type = "string">
+        Value of metric as plain string
+    </field>
+    <field name = "unit" type = "string">
+        Unit of metric (C, F or K for temperature)
+    </field>
+    <field name = "time" type = "number" size = "8">
+        Metric date/time, -1 will be replaced by actual time on receiving side.
+    </field>
+    <field name = "element_dest" type = "string">
+        Optional destination element, for metrics like network capacity between two hosts.
+    </field>
+</message>
+
+</class>

@@ -1,0 +1,30 @@
+The following ABNF grammar defines the Core BIOS protocols:
+
+    bios_proto      = *( METRIC )
+
+    ;  No description
+
+    METRIC          = signature %d1 aux type element_src value unit time element_dest
+    signature       = %xAA %xA0             ; two octets
+    aux             = hash                  ;
+    type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
+    element_src     = string                ; Name of source element to which metrics are bind to.
+    value           = string                ; Value of metric as plain string
+    unit            = string                ; Unit of metric (C, F or K for temperature)
+    time            = number-8              ; Metric date/time, -1 will be replaced by actual time on receiving side.
+    element_dest    = string                ; Optional destination element, for metrics like network capacity between two hosts.
+
+    ; A list of name/value pairs
+    hash            = hash-count *( hash-name hash-value )
+    hash-count      = number-4
+    hash-value      = longstr
+    hash-name       = string
+
+    ; Strings are always length + text contents
+    string          = number-1 *VCHAR
+    longstr         = number-4 *VCHAR
+
+    ; Numbers are unsigned integers in network byte order
+    number-1        = 1OCTET
+    number-4        = 4OCTET
+    number-8        = 8OCTET
