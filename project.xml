@@ -11,4 +11,6 @@
 
     <class name = "bios_proto">BIOS protocol</class>
 
+    <model name = "bios_proto" codec="zproto_codec_c_v1" />
+
 </project>

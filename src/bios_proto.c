@@ -1,191 +1,1033 @@
+/*  =========================================================================
+    bios_proto - Core BIOS protocols
+
+    Codec class for bios_proto.
+
+    ** WARNING *************************************************************
+    THIS SOURCE FILE IS 100% GENERATED. If you edit this file, you will lose
+    your changes at the next build cycle. This is great for temporary printf
+    statements. DO NOT MAKE ANY CHANGES YOU WISH TO KEEP. The correct places
+    for commits are:
+
+     * The XML model used for this code generation: bios_proto.xml, or
+     * The code generation script that built this file: zproto_codec_c_v1
+    ************************************************************************
+    Copyright (C) 2014 - 2015 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    =========================================================================
+*/
+
 /*
- *
- * Copyright (C) 2015 Eaton
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- */
+@header
+    bios_proto - Core BIOS protocols
+@discuss
+@end
+*/
 
-// implements new BIOS protocols
+#include "../include/bios_proto.h"
 
-#include "bios_proto.h"
+//  Structure of our class
 
-#include <stdio.h>
-#include <string.h>
+struct _bios_proto_t {
+    zframe_t *routing_id;               //  Routing_id from ROUTER, if any
+    int id;                             //  bios_proto message ID
+    byte *needle;                       //  Read/write pointer for serialization
+    byte *ceiling;                      //  Valid upper limit for read pointer
+    zhash_t *aux;                       //  aux
+    size_t aux_bytes;                   //  aux
+    char *type;                         //  Type of metric send (temperature, humidity, power.load, ...)
+    char *element_src;                  //  Name of source element to which metrics are bind to.
+    char *value;                        //  Value of metric as plain string
+    char *unit;                         //  Unit of metric (C, F or K for temperature)
+    uint64_t time;                      //  Metric date/time, -1 will be replaced by actual time on receiving side.
+    char *element_dest;                 //  Optional destination element, for metrics like network capacity between two hosts.
+};
 
-int metric_send (
-        void *dest,
-        const char *type,
-        const char *element_src,
-        const char *value,
-        const char *unit,
-        int64_t   timestamp,
-        const char *element_dest
-        ) {
+//  --------------------------------------------------------------------------
+//  Network data encoding macros
 
-    if (!dest || !type || !element_src || !value || !unit) {
-        return -1;
+//  Put a block of octets to the frame
+#define PUT_OCTETS(host,size) { \
+    memcpy (self->needle, (host), size); \
+    self->needle += size; \
+}
+
+//  Get a block of octets from the frame
+#define GET_OCTETS(host,size) { \
+    if (self->needle + size > self->ceiling) \
+        goto malformed; \
+    memcpy ((host), self->needle, size); \
+    self->needle += size; \
+}
+
+//  Put a 1-byte number to the frame
+#define PUT_NUMBER1(host) { \
+    *(byte *) self->needle = (host); \
+    self->needle++; \
+}
+
+//  Put a 2-byte number to the frame
+#define PUT_NUMBER2(host) { \
+    self->needle [0] = (byte) (((host) >> 8)  & 255); \
+    self->needle [1] = (byte) (((host))       & 255); \
+    self->needle += 2; \
+}
+
+//  Put a 4-byte number to the frame
+#define PUT_NUMBER4(host) { \
+    self->needle [0] = (byte) (((host) >> 24) & 255); \
+    self->needle [1] = (byte) (((host) >> 16) & 255); \
+    self->needle [2] = (byte) (((host) >> 8)  & 255); \
+    self->needle [3] = (byte) (((host))       & 255); \
+    self->needle += 4; \
+}
+
+//  Put a 8-byte number to the frame
+#define PUT_NUMBER8(host) { \
+    self->needle [0] = (byte) (((host) >> 56) & 255); \
+    self->needle [1] = (byte) (((host) >> 48) & 255); \
+    self->needle [2] = (byte) (((host) >> 40) & 255); \
+    self->needle [3] = (byte) (((host) >> 32) & 255); \
+    self->needle [4] = (byte) (((host) >> 24) & 255); \
+    self->needle [5] = (byte) (((host) >> 16) & 255); \
+    self->needle [6] = (byte) (((host) >> 8)  & 255); \
+    self->needle [7] = (byte) (((host))       & 255); \
+    self->needle += 8; \
+}
+
+//  Get a 1-byte number from the frame
+#define GET_NUMBER1(host) { \
+    if (self->needle + 1 > self->ceiling) \
+        goto malformed; \
+    (host) = *(byte *) self->needle; \
+    self->needle++; \
+}
+
+//  Get a 2-byte number from the frame
+#define GET_NUMBER2(host) { \
+    if (self->needle + 2 > self->ceiling) \
+        goto malformed; \
+    (host) = ((uint16_t) (self->needle [0]) << 8) \
+           +  (uint16_t) (self->needle [1]); \
+    self->needle += 2; \
+}
+
+//  Get a 4-byte number from the frame
+#define GET_NUMBER4(host) { \
+    if (self->needle + 4 > self->ceiling) \
+        goto malformed; \
+    (host) = ((uint32_t) (self->needle [0]) << 24) \
+           + ((uint32_t) (self->needle [1]) << 16) \
+           + ((uint32_t) (self->needle [2]) << 8) \
+           +  (uint32_t) (self->needle [3]); \
+    self->needle += 4; \
+}
+
+//  Get a 8-byte number from the frame
+#define GET_NUMBER8(host) { \
+    if (self->needle + 8 > self->ceiling) \
+        goto malformed; \
+    (host) = ((uint64_t) (self->needle [0]) << 56) \
+           + ((uint64_t) (self->needle [1]) << 48) \
+           + ((uint64_t) (self->needle [2]) << 40) \
+           + ((uint64_t) (self->needle [3]) << 32) \
+           + ((uint64_t) (self->needle [4]) << 24) \
+           + ((uint64_t) (self->needle [5]) << 16) \
+           + ((uint64_t) (self->needle [6]) << 8) \
+           +  (uint64_t) (self->needle [7]); \
+    self->needle += 8; \
+}
+
+//  Put a string to the frame
+#define PUT_STRING(host) { \
+    size_t string_size = strlen (host); \
+    PUT_NUMBER1 (string_size); \
+    memcpy (self->needle, (host), string_size); \
+    self->needle += string_size; \
+}
+
+//  Get a string from the frame
+#define GET_STRING(host) { \
+    size_t string_size; \
+    GET_NUMBER1 (string_size); \
+    if (self->needle + string_size > (self->ceiling)) \
+        goto malformed; \
+    (host) = (char *) malloc (string_size + 1); \
+    memcpy ((host), self->needle, string_size); \
+    (host) [string_size] = 0; \
+    self->needle += string_size; \
+}
+
+//  Put a long string to the frame
+#define PUT_LONGSTR(host) { \
+    size_t string_size = strlen (host); \
+    PUT_NUMBER4 (string_size); \
+    memcpy (self->needle, (host), string_size); \
+    self->needle += string_size; \
+}
+
+//  Get a long string from the frame
+#define GET_LONGSTR(host) { \
+    size_t string_size; \
+    GET_NUMBER4 (string_size); \
+    if (self->needle + string_size > (self->ceiling)) \
+        goto malformed; \
+    (host) = (char *) malloc (string_size + 1); \
+    memcpy ((host), self->needle, string_size); \
+    (host) [string_size] = 0; \
+    self->needle += string_size; \
+}
+
+
+//  --------------------------------------------------------------------------
+//  Create a new bios_proto
+
+bios_proto_t *
+bios_proto_new (int id)
+{
+    bios_proto_t *self = (bios_proto_t *) zmalloc (sizeof (bios_proto_t));
+    self->id = id;
+    return self;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Destroy the bios_proto
+
+void
+bios_proto_destroy (bios_proto_t **self_p)
+{
+    assert (self_p);
+    if (*self_p) {
+        bios_proto_t *self = *self_p;
+
+        //  Free class properties
+        zframe_destroy (&self->routing_id);
+        zhash_destroy (&self->aux);
+        free (self->type);
+        free (self->element_src);
+        free (self->value);
+        free (self->unit);
+        free (self->element_dest);
+
+        //  Free object itself
+        free (self);
+        *self_p = NULL;
     }
-    // timestamp is positive, -1 means current timestamp
-    if ( timestamp < -1 ) {
-        return -2;
+}
+
+//  Parse a zmsg_t and decides whether it is bios_proto. Returns
+//  true if it is, false otherwise. Doesn't destroy or modify the
+//  original message.
+bool
+is_bios_proto (zmsg_t *msg)
+{
+    if (msg == NULL)
+        return false;
+
+    zframe_t *frame = zmsg_first (msg);
+    if (frame == NULL)
+        return false;
+
+    //  Get and check protocol signature
+    bios_proto_t *self = bios_proto_new (0);
+    self->needle = zframe_data (frame);
+    self->ceiling = self->needle + zframe_size (frame);
+    uint16_t signature;
+    GET_NUMBER2 (signature);
+    if (signature != (0xAAA0 | 0))
+        goto fail;             //  Invalid signature
+
+    //  Get message id and parse per message type
+    GET_NUMBER1 (self->id);
+
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            bios_proto_destroy (&self);
+            return true;
+        default:
+            goto fail;
     }
+    fail:
+    malformed:
+        bios_proto_destroy (&self);
+        return false;
+}
 
-    char *subject, *stimestamp;
-    asprintf (&subject, "%s@%s", type, element_src);
-    asprintf (&stimestamp, "%"PRIi64, timestamp);
+//  --------------------------------------------------------------------------
+//  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
+//  the message could not be parsed, or was NULL. Destroys msg and
+//  nullifies the msg reference.
 
-    int r;
-    if (zsock_is (dest))
-        r = zstr_sendx ((zsock_t*)dest, subject, type, element_src, value, unit, stimestamp, element_dest, NULL);
+bios_proto_t *
+bios_proto_decode (zmsg_t **msg_p)
+{
+    assert (msg_p);
+    zmsg_t *msg = *msg_p;
+    if (msg == NULL)
+        return NULL;
+
+    bios_proto_t *self = bios_proto_new (0);
+    //  Read and parse command in frame
+    zframe_t *frame = zmsg_pop (msg);
+    if (!frame)
+        goto empty;             //  Malformed or empty
+
+    //  Get and check protocol signature
+    self->needle = zframe_data (frame);
+    self->ceiling = self->needle + zframe_size (frame);
+    uint16_t signature;
+    GET_NUMBER2 (signature);
+    if (signature != (0xAAA0 | 0))
+        goto empty;             //  Invalid signature
+
+    //  Get message id and parse per message type
+    GET_NUMBER1 (self->id);
+
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            {
+                size_t hash_size;
+                GET_NUMBER4 (hash_size);
+                self->aux = zhash_new ();
+                zhash_autofree (self->aux);
+                while (hash_size--) {
+                    char *key, *value;
+                    GET_STRING (key);
+                    GET_LONGSTR (value);
+                    zhash_insert (self->aux, key, value);
+                    free (key);
+                    free (value);
+                }
+            }
+            GET_STRING (self->type);
+            GET_STRING (self->element_src);
+            GET_STRING (self->value);
+            GET_STRING (self->unit);
+            GET_NUMBER8 (self->time);
+            GET_STRING (self->element_dest);
+            break;
+
+        default:
+            goto malformed;
+    }
+    //  Successful return
+    zframe_destroy (&frame);
+    zmsg_destroy (msg_p);
+    return self;
+
+    //  Error returns
+    malformed:
+        zsys_error ("malformed message '%d'\n", self->id);
+    empty:
+        zframe_destroy (&frame);
+        zmsg_destroy (msg_p);
+        bios_proto_destroy (&self);
+        return (NULL);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Encode bios_proto into zmsg and destroy it. Returns a newly created
+//  object or NULL if error. Use when not in control of sending the message.
+
+zmsg_t *
+bios_proto_encode (bios_proto_t **self_p)
+{
+    assert (self_p);
+    assert (*self_p);
+
+    bios_proto_t *self = *self_p;
+    zmsg_t *msg = zmsg_new ();
+
+    size_t frame_size = 2 + 1;          //  Signature and message ID
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            //  aux is an array of key=value strings
+            frame_size += 4;    //  Size is 4 octets
+            if (self->aux) {
+                self->aux_bytes = 0;
+                //  Add up size of dictionary contents
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    self->aux_bytes += 1 + strlen ((const char *) zhash_cursor (self->aux));
+                    self->aux_bytes += 4 + strlen (item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            frame_size += self->aux_bytes;
+            //  type is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->type)
+                frame_size += strlen (self->type);
+            //  element_src is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->element_src)
+                frame_size += strlen (self->element_src);
+            //  value is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->value)
+                frame_size += strlen (self->value);
+            //  unit is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->unit)
+                frame_size += strlen (self->unit);
+            //  time is a 8-byte integer
+            frame_size += 8;
+            //  element_dest is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->element_dest)
+                frame_size += strlen (self->element_dest);
+            break;
+
+        default:
+            zsys_error ("bad message type '%d', not sent\n", self->id);
+            //  No recovery, this is a fatal application error
+            assert (false);
+    }
+    //  Now serialize message into the frame
+    zframe_t *frame = zframe_new (NULL, frame_size);
+    self->needle = zframe_data (frame);
+    PUT_NUMBER2 (0xAAA0 | 0);
+    PUT_NUMBER1 (self->id);
+
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            if (self->aux) {
+                PUT_NUMBER4 (zhash_size (self->aux));
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    PUT_STRING ((const char *) zhash_cursor ((zhash_t *) self->aux));
+                    PUT_LONGSTR (item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            else
+                PUT_NUMBER4 (0);    //  Empty dictionary
+            if (self->type) {
+                PUT_STRING (self->type);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            if (self->element_src) {
+                PUT_STRING (self->element_src);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            if (self->value) {
+                PUT_STRING (self->value);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            if (self->unit) {
+                PUT_STRING (self->unit);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            PUT_NUMBER8 (self->time);
+            if (self->element_dest) {
+                PUT_STRING (self->element_dest);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            break;
+
+    }
+    //  Now send the data frame
+    if (zmsg_append (msg, &frame)) {
+        zmsg_destroy (&msg);
+        bios_proto_destroy (self_p);
+        return NULL;
+    }
+    //  Destroy bios_proto object
+    bios_proto_destroy (self_p);
+    return msg;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Receive and parse a bios_proto from the socket. Returns new object or
+//  NULL if error. Will block if there's no message waiting.
+
+bios_proto_t *
+bios_proto_recv (void *input)
+{
+    assert (input);
+    zmsg_t *msg = zmsg_recv (input);
+    if (!msg)
+        return NULL;            //  Interrupted
+
+    //  If message came from a router socket, first frame is routing_id
+    zframe_t *routing_id = NULL;
+    if (zsock_type (zsock_resolve (input)) == ZMQ_ROUTER) {
+        routing_id = zmsg_pop (msg);
+        //  If message was not valid, forget about it
+        if (!routing_id || !zmsg_next (msg))
+            return NULL;        //  Malformed or empty
+    }
+    bios_proto_t *bios_proto = bios_proto_decode (&msg);
+    if (bios_proto && zsock_type (zsock_resolve (input)) == ZMQ_ROUTER)
+        bios_proto->routing_id = routing_id;
+
+    return bios_proto;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Receive and parse a bios_proto from the socket. Returns new object,
+//  or NULL either if there was no input waiting, or the recv was interrupted.
+
+bios_proto_t *
+bios_proto_recv_nowait (void *input)
+{
+    assert (input);
+    zmsg_t *msg = zmsg_recv_nowait (input);
+    if (!msg)
+        return NULL;            //  Interrupted
+    //  If message came from a router socket, first frame is routing_id
+    zframe_t *routing_id = NULL;
+    if (zsock_type (zsock_resolve (input)) == ZMQ_ROUTER) {
+        routing_id = zmsg_pop (msg);
+        //  If message was not valid, forget about it
+        if (!routing_id || !zmsg_next (msg))
+            return NULL;        //  Malformed or empty
+    }
+    bios_proto_t *bios_proto = bios_proto_decode (&msg);
+    if (bios_proto && zsock_type (zsock_resolve (input)) == ZMQ_ROUTER)
+        bios_proto->routing_id = routing_id;
+
+    return bios_proto;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Send the bios_proto to the socket, and destroy it
+//  Returns 0 if OK, else -1
+
+int
+bios_proto_send (bios_proto_t **self_p, void *output)
+{
+    assert (self_p);
+    assert (*self_p);
+    assert (output);
+
+    //  Save routing_id if any, as encode will destroy it
+    bios_proto_t *self = *self_p;
+    zframe_t *routing_id = self->routing_id;
+    self->routing_id = NULL;
+
+    //  Encode bios_proto message to a single zmsg
+    zmsg_t *msg = bios_proto_encode (self_p);
+
+    //  If we're sending to a ROUTER, send the routing_id first
+    if (zsock_type (zsock_resolve (output)) == ZMQ_ROUTER) {
+        assert (routing_id);
+        zmsg_prepend (msg, &routing_id);
+    }
     else
-        r = mlm_client_sendx ((mlm_client_t*)dest, subject, type, element_src, value, unit, stimestamp, element_dest, NULL);
+        zframe_destroy (&routing_id);
 
-    zstr_free (&subject);
-    zstr_free (&stimestamp);
-    return r;
+    if (msg && zmsg_send (&msg, output) == 0)
+        return 0;
+    else
+        return -1;              //  Failed to encode, or send
 }
 
-int metric_decode (
-        zmsg_t **msg_p,
-        char **type,
-        char **element_src,
-        char **value,
-        char **unit,
-        int64_t   *timestamp,
-        char **element_dest
-        ) {
 
-    if (!msg_p || !*msg_p || !type || !element_src || !value || !unit || !timestamp) {
-        return -1;
-    }
+//  --------------------------------------------------------------------------
+//  Send the bios_proto to the output, and do not destroy it
 
-    zmsg_t *msg = *msg_p;
-    if ( ( zmsg_size(msg) < 5 ) || ( zmsg_size(msg) > 6 ) ) {
-        zmsg_destroy (&msg);
-        return -2;
-    }
-    *type = zmsg_popstr (msg);
-    *element_src = zmsg_popstr (msg);
-    *value = zmsg_popstr (msg);
-    *unit = zmsg_popstr (msg);
-
-    char *stme = zmsg_popstr (msg);
-    char *endptr;
-    errno = 0;
-    long int foo = strtol (stme, &endptr, 10);
-    if (errno != 0) {
-        *timestamp = -1;
-    }
-    else {
-        *timestamp = foo;
-    }
-    errno = 0;
-    zstr_free (&stme);
-
-    if (*timestamp == -1) {
-        *timestamp = time (NULL);
-    }
-
-    if (element_dest)
-    {
-        if ( zmsg_size(msg) != 1 ) {
-            zmsg_destroy (&msg);
-            return -2;
-        }
-        *element_dest = zmsg_popstr(msg);
-    }
-
-    zmsg_destroy (&msg);
-    return 0;
-}
-
-int alert_send (
-        mlm_client_t *cl,
-        const char *rule_name,
-        const char *element_name,
-        int64_t timestamp,
-        const char *state,
-        const char *severity,
-        const char *description
-        )
+int
+bios_proto_send_again (bios_proto_t *self, void *output)
 {
-    if (!cl || !rule_name || !element_name || !state || !severity || !description) {
-        return -1;
-    }
-    // timestamp is positive, -1 means current timestamp
-    if ( timestamp < -1 ) {
-        return -2;
-    }
-
-    char *subject, *stimestamp;
-    asprintf (&subject, "%s/%s@%s", rule_name, severity, element_name);
-    asprintf (&stimestamp, "%"PRIi64, timestamp);
-
-    int r = mlm_client_sendx (cl, subject, rule_name, element_name, stimestamp, state, severity, description, NULL);
-
-    zstr_free (&subject);
-    zstr_free (&stimestamp);
-    return r;
-
+    assert (self);
+    assert (output);
+    self = bios_proto_dup (self);
+    return bios_proto_send (&self, output);
 }
 
-int alert_decode (
-        zmsg_t **msg_p,
-        char **rule_name,
-        char **element_name,
-        int64_t *timestamp,
-        char **state,
-        char **severity,
-        char **description
-        )
+
+//  --------------------------------------------------------------------------
+//  Encode METRIC message
+
+zmsg_t *
+bios_proto_encode_metric (
+    zhash_t *aux,
+    const char *type,
+    const char *element_src,
+    const char *value,
+    const char *unit,
+    uint64_t time,
+    const char *element_dest)
 {
-    if (!msg_p || !*msg_p || !rule_name || !element_name || !state || !severity || !timestamp || !description) {
-        return -1;
+    bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
+    zhash_t *aux_copy = zhash_dup (aux);
+    bios_proto_set_aux (self, &aux_copy);
+    bios_proto_set_type (self, "%s", type);
+    bios_proto_set_element_src (self, "%s", element_src);
+    bios_proto_set_value (self, "%s", value);
+    bios_proto_set_unit (self, "%s", unit);
+    bios_proto_set_time (self, time);
+    bios_proto_set_element_dest (self, "%s", element_dest);
+    return bios_proto_encode (&self);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Send the METRIC to the socket in one step
+
+int
+bios_proto_send_metric (
+    void *output,
+    zhash_t *aux,
+    const char *type,
+    const char *element_src,
+    const char *value,
+    const char *unit,
+    uint64_t time,
+    const char *element_dest)
+{
+    bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
+    zhash_t *aux_copy = zhash_dup (aux);
+    bios_proto_set_aux (self, &aux_copy);
+    bios_proto_set_type (self, type);
+    bios_proto_set_element_src (self, element_src);
+    bios_proto_set_value (self, value);
+    bios_proto_set_unit (self, unit);
+    bios_proto_set_time (self, time);
+    bios_proto_set_element_dest (self, element_dest);
+    return bios_proto_send (&self, output);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Duplicate the bios_proto message
+
+bios_proto_t *
+bios_proto_dup (bios_proto_t *self)
+{
+    if (!self)
+        return NULL;
+
+    bios_proto_t *copy = bios_proto_new (self->id);
+    if (self->routing_id)
+        copy->routing_id = zframe_dup (self->routing_id);
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            copy->aux = self->aux? zhash_dup (self->aux): NULL;
+            copy->type = self->type? strdup (self->type): NULL;
+            copy->element_src = self->element_src? strdup (self->element_src): NULL;
+            copy->value = self->value? strdup (self->value): NULL;
+            copy->unit = self->unit? strdup (self->unit): NULL;
+            copy->time = self->time;
+            copy->element_dest = self->element_dest? strdup (self->element_dest): NULL;
+            break;
+
+    }
+    return copy;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Print contents of message to stdout
+
+void
+bios_proto_print (bios_proto_t *self)
+{
+    assert (self);
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            zsys_debug ("BIOS_PROTO_METRIC:");
+            zsys_debug ("    aux=");
+            if (self->aux) {
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    zsys_debug ("        %s=%s", zhash_cursor (self->aux), item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            else
+                zsys_debug ("(NULL)");
+            if (self->type)
+                zsys_debug ("    type='%s'", self->type);
+            else
+                zsys_debug ("    type=");
+            if (self->element_src)
+                zsys_debug ("    element_src='%s'", self->element_src);
+            else
+                zsys_debug ("    element_src=");
+            if (self->value)
+                zsys_debug ("    value='%s'", self->value);
+            else
+                zsys_debug ("    value=");
+            if (self->unit)
+                zsys_debug ("    unit='%s'", self->unit);
+            else
+                zsys_debug ("    unit=");
+            zsys_debug ("    time=%ld", (long) self->time);
+            if (self->element_dest)
+                zsys_debug ("    element_dest='%s'", self->element_dest);
+            else
+                zsys_debug ("    element_dest=");
+            break;
+
+    }
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the message routing_id
+
+zframe_t *
+bios_proto_routing_id (bios_proto_t *self)
+{
+    assert (self);
+    return self->routing_id;
+}
+
+void
+bios_proto_set_routing_id (bios_proto_t *self, zframe_t *routing_id)
+{
+    if (self->routing_id)
+        zframe_destroy (&self->routing_id);
+    self->routing_id = zframe_dup (routing_id);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the bios_proto id
+
+int
+bios_proto_id (bios_proto_t *self)
+{
+    assert (self);
+    return self->id;
+}
+
+void
+bios_proto_set_id (bios_proto_t *self, int id)
+{
+    self->id = id;
+}
+
+//  --------------------------------------------------------------------------
+//  Return a printable command string
+
+const char *
+bios_proto_command (bios_proto_t *self)
+{
+    assert (self);
+    switch (self->id) {
+        case BIOS_PROTO_METRIC:
+            return ("METRIC");
+            break;
+    }
+    return "?";
+}
+
+//  --------------------------------------------------------------------------
+//  Get the aux field without transferring ownership
+
+zhash_t *
+bios_proto_aux (bios_proto_t *self)
+{
+    assert (self);
+    return self->aux;
+}
+
+//  Get the aux field and transfer ownership to caller
+
+zhash_t *
+bios_proto_get_aux (bios_proto_t *self)
+{
+    zhash_t *aux = self->aux;
+    self->aux = NULL;
+    return aux;
+}
+
+//  Set the aux field, transferring ownership from caller
+
+void
+bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p)
+{
+    assert (self);
+    assert (aux_p);
+    zhash_destroy (&self->aux);
+    self->aux = *aux_p;
+    *aux_p = NULL;
+}
+
+//  --------------------------------------------------------------------------
+//  Get/set a value in the aux dictionary
+
+const char *
+bios_proto_aux_string (bios_proto_t *self, const char *key, const char *default_value)
+{
+    assert (self);
+    const char *value = NULL;
+    if (self->aux)
+        value = (const char *) (zhash_lookup (self->aux, key));
+    if (!value)
+        value = default_value;
+
+    return value;
+}
+
+uint64_t
+bios_proto_aux_number (bios_proto_t *self, const char *key, uint64_t default_value)
+{
+    assert (self);
+    uint64_t value = default_value;
+    char *string = NULL;
+    if (self->aux)
+        string = (char *) (zhash_lookup (self->aux, key));
+    if (string)
+        value = atol (string);
+
+    return value;
+}
+
+void
+bios_proto_aux_insert (bios_proto_t *self, const char *key, const char *format, ...)
+{
+    //  Format into newly allocated string
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    char *string = zsys_vprintf (format, argptr);
+    va_end (argptr);
+
+    //  Store string in hash table
+    if (!self->aux) {
+        self->aux = zhash_new ();
+        zhash_autofree (self->aux);
+    }
+    zhash_update (self->aux, key, string);
+    free (string);
+}
+
+size_t
+bios_proto_aux_size (bios_proto_t *self)
+{
+    return zhash_size (self->aux);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the type field
+
+const char *
+bios_proto_type (bios_proto_t *self)
+{
+    assert (self);
+    return self->type;
+}
+
+void
+bios_proto_set_type (bios_proto_t *self, const char *format, ...)
+{
+    //  Format type from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->type);
+    self->type = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the element_src field
+
+const char *
+bios_proto_element_src (bios_proto_t *self)
+{
+    assert (self);
+    return self->element_src;
+}
+
+void
+bios_proto_set_element_src (bios_proto_t *self, const char *format, ...)
+{
+    //  Format element_src from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->element_src);
+    self->element_src = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the value field
+
+const char *
+bios_proto_value (bios_proto_t *self)
+{
+    assert (self);
+    return self->value;
+}
+
+void
+bios_proto_set_value (bios_proto_t *self, const char *format, ...)
+{
+    //  Format value from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->value);
+    self->value = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the unit field
+
+const char *
+bios_proto_unit (bios_proto_t *self)
+{
+    assert (self);
+    return self->unit;
+}
+
+void
+bios_proto_set_unit (bios_proto_t *self, const char *format, ...)
+{
+    //  Format unit from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->unit);
+    self->unit = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the time field
+
+uint64_t
+bios_proto_time (bios_proto_t *self)
+{
+    assert (self);
+    return self->time;
+}
+
+void
+bios_proto_set_time (bios_proto_t *self, uint64_t time)
+{
+    assert (self);
+    self->time = time;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the element_dest field
+
+const char *
+bios_proto_element_dest (bios_proto_t *self)
+{
+    assert (self);
+    return self->element_dest;
+}
+
+void
+bios_proto_set_element_dest (bios_proto_t *self, const char *format, ...)
+{
+    //  Format element_dest from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->element_dest);
+    self->element_dest = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
+
+//  --------------------------------------------------------------------------
+//  Selftest
+
+void
+bios_proto_test (bool verbose)
+{
+    printf (" * bios_proto: ");
+
+    //  Silence an "unused" warning by "using" the verbose variable
+    if (verbose) {;}
+
+    //  @selftest
+    //  Simple create/destroy test
+    bios_proto_t *self = bios_proto_new (0);
+    assert (self);
+    bios_proto_destroy (&self);
+
+    //  Create pair of sockets we can send through
+    zsock_t *input = zsock_new (ZMQ_ROUTER);
+    assert (input);
+    zsock_connect (input, "inproc://selftest-bios_proto");
+
+    zsock_t *output = zsock_new (ZMQ_DEALER);
+    assert (output);
+    zsock_bind (output, "inproc://selftest-bios_proto");
+
+    //  Encode/send/decode and verify each message type
+    int instance;
+    bios_proto_t *copy;
+    self = bios_proto_new (BIOS_PROTO_METRIC);
+
+    //  Check that _dup works on empty message
+    copy = bios_proto_dup (self);
+    assert (copy);
+    bios_proto_destroy (&copy);
+
+    bios_proto_aux_insert (self, "Name", "Brutus");
+    bios_proto_aux_insert (self, "Age", "%d", 43);
+    bios_proto_set_type (self, "Life is short but Now lasts for ever");
+    bios_proto_set_element_src (self, "Life is short but Now lasts for ever");
+    bios_proto_set_value (self, "Life is short but Now lasts for ever");
+    bios_proto_set_unit (self, "Life is short but Now lasts for ever");
+    bios_proto_set_time (self, 123);
+    bios_proto_set_element_dest (self, "Life is short but Now lasts for ever");
+    //  Send twice from same object
+    bios_proto_send_again (self, output);
+    bios_proto_send (&self, output);
+
+    for (instance = 0; instance < 2; instance++) {
+        self = bios_proto_recv (input);
+        assert (self);
+        assert (bios_proto_routing_id (self));
+
+        assert (bios_proto_aux_size (self) == 2);
+        assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
+        assert (bios_proto_aux_number (self, "Age", 0) == 43);
+        assert (streq (bios_proto_type (self), "Life is short but Now lasts for ever"));
+        assert (streq (bios_proto_element_src (self), "Life is short but Now lasts for ever"));
+        assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
+        assert (streq (bios_proto_unit (self), "Life is short but Now lasts for ever"));
+        assert (bios_proto_time (self) == 123);
+        assert (streq (bios_proto_element_dest (self), "Life is short but Now lasts for ever"));
+        bios_proto_destroy (&self);
     }
 
-    zmsg_t *msg = *msg_p;
-    if ( zmsg_size(msg) != 6 ) {
-        zmsg_destroy (&msg);
-        return -2;
-    }
-    *rule_name = zmsg_popstr (msg);
-    *element_name = zmsg_popstr (msg);
+    zsock_destroy (&input);
+    zsock_destroy (&output);
+    //  @end
 
-    char *stme = zmsg_popstr (msg);
-    char *endptr;
-    errno = 0;
-    long int foo = strtol (stme, &endptr, 10);
-    if (errno != 0) {
-        *timestamp = -1;
-    }
-    else {
-        *timestamp = foo;
-    }
-    errno = 0;
-    zstr_free (&stme);
-
-    if (*timestamp == -1) {
-        *timestamp = time (NULL);
-    }
-
-    *state = zmsg_popstr (msg);
-    *severity = zmsg_popstr (msg);
-    *description = zmsg_popstr (msg);
-
-    zmsg_destroy (&msg);
-    return 0;
-
+    printf ("OK\n");
 }
