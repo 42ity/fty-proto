@@ -53,7 +53,6 @@ struct _bios_proto_t {
     char *value;                        //  Value of metric as plain string
     char *unit;                         //  Unit of metric (C, F or K for temperature)
     uint64_t time;                      //  Metric date/time, -1 will be replaced by actual time on receiving side.
-    char *element_dest;                 //  Optional destination element, for metrics like network capacity between two hosts.
 };
 
 //  --------------------------------------------------------------------------
@@ -221,7 +220,6 @@ bios_proto_destroy (bios_proto_t **self_p)
         free (self->element_src);
         free (self->value);
         free (self->unit);
-        free (self->element_dest);
 
         //  Free object itself
         free (self);
@@ -318,7 +316,6 @@ bios_proto_decode (zmsg_t **msg_p)
             GET_STRING (self->value);
             GET_STRING (self->unit);
             GET_NUMBER8 (self->time);
-            GET_STRING (self->element_dest);
             break;
 
         default:
@@ -387,10 +384,6 @@ bios_proto_encode (bios_proto_t **self_p)
                 frame_size += strlen (self->unit);
             //  time is a 8-byte integer
             frame_size += 8;
-            //  element_dest is a string with 1-byte length
-            frame_size++;       //  Size is one octet
-            if (self->element_dest)
-                frame_size += strlen (self->element_dest);
             break;
 
         default:
@@ -438,11 +431,6 @@ bios_proto_encode (bios_proto_t **self_p)
             else
                 PUT_NUMBER1 (0);    //  Empty string
             PUT_NUMBER8 (self->time);
-            if (self->element_dest) {
-                PUT_STRING (self->element_dest);
-            }
-            else
-                PUT_NUMBER1 (0);    //  Empty string
             break;
 
     }
@@ -570,8 +558,7 @@ bios_proto_encode_metric (
     const char *element_src,
     const char *value,
     const char *unit,
-    uint64_t time,
-    const char *element_dest)
+    uint64_t time)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -581,7 +568,6 @@ bios_proto_encode_metric (
     bios_proto_set_value (self, "%s", value);
     bios_proto_set_unit (self, "%s", unit);
     bios_proto_set_time (self, time);
-    bios_proto_set_element_dest (self, "%s", element_dest);
     return bios_proto_encode (&self);
 }
 
@@ -597,8 +583,7 @@ bios_proto_send_metric (
     const char *element_src,
     const char *value,
     const char *unit,
-    uint64_t time,
-    const char *element_dest)
+    uint64_t time)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -608,7 +593,6 @@ bios_proto_send_metric (
     bios_proto_set_value (self, value);
     bios_proto_set_unit (self, unit);
     bios_proto_set_time (self, time);
-    bios_proto_set_element_dest (self, element_dest);
     return bios_proto_send (&self, output);
 }
 
@@ -633,7 +617,6 @@ bios_proto_dup (bios_proto_t *self)
             copy->value = self->value? strdup (self->value): NULL;
             copy->unit = self->unit? strdup (self->unit): NULL;
             copy->time = self->time;
-            copy->element_dest = self->element_dest? strdup (self->element_dest): NULL;
             break;
 
     }
@@ -678,10 +661,6 @@ bios_proto_print (bios_proto_t *self)
             else
                 zsys_debug ("    unit=");
             zsys_debug ("    time=%ld", (long) self->time);
-            if (self->element_dest)
-                zsys_debug ("    element_dest='%s'", self->element_dest);
-            else
-                zsys_debug ("    element_dest=");
             break;
 
     }
@@ -936,29 +915,6 @@ bios_proto_set_time (bios_proto_t *self, uint64_t time)
 }
 
 
-//  --------------------------------------------------------------------------
-//  Get/set the element_dest field
-
-const char *
-bios_proto_element_dest (bios_proto_t *self)
-{
-    assert (self);
-    return self->element_dest;
-}
-
-void
-bios_proto_set_element_dest (bios_proto_t *self, const char *format, ...)
-{
-    //  Format element_dest from provided arguments
-    assert (self);
-    va_list argptr;
-    va_start (argptr, format);
-    free (self->element_dest);
-    self->element_dest = zsys_vprintf (format, argptr);
-    va_end (argptr);
-}
-
-
 
 //  --------------------------------------------------------------------------
 //  Selftest
@@ -1003,7 +959,6 @@ bios_proto_test (bool verbose)
     bios_proto_set_value (self, "Life is short but Now lasts for ever");
     bios_proto_set_unit (self, "Life is short but Now lasts for ever");
     bios_proto_set_time (self, 123);
-    bios_proto_set_element_dest (self, "Life is short but Now lasts for ever");
     //  Send twice from same object
     bios_proto_send_again (self, output);
     bios_proto_send (&self, output);
@@ -1021,7 +976,6 @@ bios_proto_test (bool verbose)
         assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
         assert (streq (bios_proto_unit (self), "Life is short but Now lasts for ever"));
         assert (bios_proto_time (self) == 123);
-        assert (streq (bios_proto_element_dest (self), "Life is short but Now lasts for ever"));
         bios_proto_destroy (&self);
     }
 
