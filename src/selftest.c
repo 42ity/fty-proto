@@ -41,8 +41,15 @@ s_test_metrics (zactor_t *server)
 
     // METRICS stream: Test case: send all values
     // send
-    zmsg_t *msg = bios_proto_encode_metric (NULL, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1, "ELEMENT_DEST");
+    zhash_t *aux = zhash_new ();
+    assert (aux);
+    r = zhash_insert (aux, BIOS_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
+    assert (r == 0);
+
+    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1);
     assert (msg);
+    zhash_destroy (&aux);
+
     r = mlm_client_send (producer, "TYPE@ELEMENT_SRC", &msg);
     assert (r == 0);
 
@@ -57,6 +64,9 @@ s_test_metrics (zactor_t *server)
     assert (recv);
 
     assert (streq (bios_proto_value (recv), "VALUE"));
+    assert (streq (
+                bios_proto_aux_string (recv, BIOS_PROTO_METRIC_ELEMENT_DEST, "N/A"),
+                "ELEMENT_DEST"));
 
     bios_proto_destroy (&recv);
     mlm_client_destroy (&producer);

@@ -57,12 +57,10 @@ MVY: To see if we can handle the need for ymsg wrapper by header
         time                number 8
         Metric date/time, -1 will be replaced by actual time on receiving side.
 
-        element_dest        string
-        Optional destination element, for metrics like network capacity between two hosts.
-
 */
 
 #define BIOS_PROTO_VERSION                  1
+#define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 
 #define BIOS_PROTO_METRIC                   1
 
@@ -131,8 +129,7 @@ zmsg_t *
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time,
-        const char *element_dest);
+        uint64_t time);
 
 
 //  Send the METRIC to the output in one step
@@ -144,8 +141,7 @@ int
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time,
-        const char *element_dest);
+        uint64_t time);
 
 //  Duplicate the bios_proto message
 bios_proto_t *
@@ -221,12 +217,6 @@ uint64_t
     bios_proto_time (bios_proto_t *self);
 void
     bios_proto_set_time (bios_proto_t *self, uint64_t time);
-
-//  Get/set the element_dest field
-const char *
-    bios_proto_element_dest (bios_proto_t *self);
-void
-    bios_proto_set_element_dest (bios_proto_t *self, const char *format, ...);
 
 //  Self test of this class
 void

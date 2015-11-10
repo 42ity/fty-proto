@@ -11,6 +11,7 @@ TODO THERE WILL BE SOME DESCRPTION
 <include filename = "../license.xml" />
 
 <define name = "VERSION" value = "1" />
+<define name = "METRIC_ELEMENT_DEST" value = "&quot;element-dest&quot;" />
 
 MVY: To see if we can handle the need for ymsg wrapper by header
      Field aux is going to be added in each message
@@ -37,9 +38,6 @@ MVY: To see if we can handle the need for ymsg wrapper by header
     </field>
     <field name = "time" type = "number" size = "8">
         Metric date/time, -1 will be replaced by actual time on receiving side.
-    </field>
-    <field name = "element_dest" type = "string">
-        Optional destination element, for metrics like network capacity between two hosts.
     </field>
 </message>
 

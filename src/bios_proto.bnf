@@ -4,7 +4,7 @@ The following ABNF grammar defines the Core BIOS protocols:
 
     ;  No description
 
-    METRIC          = signature %d1 aux type element_src value unit time element_dest
+    METRIC          = signature %d1 aux type element_src value unit time
     signature       = %xAA %xA0             ; two octets
     aux             = hash                  ;
     type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
@@ -12,7 +12,6 @@ The following ABNF grammar defines the Core BIOS protocols:
     value           = string                ; Value of metric as plain string
     unit            = string                ; Unit of metric (C, F or K for temperature)
     time            = number-8              ; Metric date/time, -1 will be replaced by actual time on receiving side.
-    element_dest    = string                ; Optional destination element, for metrics like network capacity between two hosts.
 
     ; A list of name/value pairs
     hash            = hash-count *( hash-name hash-value )
