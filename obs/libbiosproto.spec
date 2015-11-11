@@ -12,6 +12,7 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
+%global soname %{name}0
 Name:           libbiosproto
 Version:        0.0.1
 Release:        1
@@ -30,21 +31,21 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 %description
 Core protocols for BIOS
 
-%package 0
+%package -n %{soname}
 Summary:        Shared library for BIOS core protocols
 
-%description 0
+%description -n %{soname}
 BIOS core protocols.
 This package contains shared library.
 
-%files 0
+%files -n %{soname}
 %defattr(-,root,root)
 %doc COPYING
 %{_libdir}/%{name}.so.*
 
 %package devel
 Summary:        Devel files for BIOS core protocols
-Requires:   %{name}0 = %{version}
+Requires:   %{soname} = %{version}
 
 %description devel
 Core protocols for BIOS.
@@ -69,7 +70,8 @@ make %{?_smp_mflags}
 make install DESTDIR=%{buildroot} %{?_smp_mflags}
 find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
 
-%post 0 -p /sbin/ldconfig
+%post -n %{soname} -p /sbin/ldconfig
 
-%postun 0 -p /sbin/ldconfig
+%postun -n %{soname} -p /sbin/ldconfig
 
+%changelog
