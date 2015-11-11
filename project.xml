@@ -10,6 +10,7 @@
     <use project = "malamute" />
 
     <class name = "bios_proto">BIOS protocol</class>
+    <class name = "selftest" private="1">Selftest</class>
 
     <model name = "bios_proto" codec="zproto_codec_c_v1" />
 
