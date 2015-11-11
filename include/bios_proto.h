@@ -1,6 +1,6 @@
 /*  =========================================================================
     bios_proto - Core BIOS protocols
-
+    
     Codec header for bios_proto.
 
     ** WARNING *************************************************************
@@ -12,21 +12,21 @@
      * The XML model used for this code generation: bios_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2015 Eaton
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
+    Copyright (C) 2014 - 2015 Eaton                                        
+                                                                           
+    This program is free software; you can redistribute it and/or modify   
+    it under the terms of the GNU General Public License as published by   
+    the Free Software Foundation; either version 2 of the License, or      
+    (at your option) any later version.                                    
+                                                                           
+    This program is distributed in the hope that it will be useful,        
+    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+    GNU General Public License for more details.                           
+                                                                           
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
     =========================================================================
 */
 
@@ -41,28 +41,58 @@
 
 MVY: To see if we can handle the need for ymsg wrapper by header
      Field aux is going to be added in each message
-        aux                 hash
-        type                string
+        aux                 hash        
+        type                string      
         Type of metric send (temperature, humidity, power.load, ...)
-
-        element_src         string
+    
+        element_src         string      
         Name of source element to which metrics are bind to.
-
-        value               string
+    
+        value               string      
         Value of metric as plain string
-
-        unit                string
+    
+        unit                string      
         Unit of metric (C, F or K for temperature)
-
-        time                number 8
+    
+        time                number 8    
         Metric date/time, -1 will be replaced by actual time on receiving side.
+    
 
+    ALERT - TODO THERE WILL BE SOME DESCRPTION
+
+
+
+MVY: To see if we can handle the need for ymsg wrapper by header
+     Field aux is going to be added in each message
+        aux                 hash        
+        rule                string      
+        a rule name, that triggers this alert
+    
+        element_src         string      
+        name of the element, where alert was detected. Most of the time is would be asset element name
+    
+        state               string      
+        state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
+    
+        severity            string      
+        severity of the alert. Possible values are INFO/WARNING/CRITICAL
+    
+        description         string      
+        a description of the alert
+    
+        time                number 8    
+        ALERT date/time, -1 will be replaced by actual time on receiving side by current time.
+    
+        action              string      
+        list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+    
 */
 
 #define BIOS_PROTO_VERSION                  1
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 
 #define BIOS_PROTO_METRIC                   1
+#define BIOS_PROTO_ALERT                    2
 
 #include <czmq.h>
 
@@ -93,7 +123,7 @@ bool
     is_bios_proto (zmsg_t *msg_p);
 
 //  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
-//  the message could not be parsed, or was NULL. Destroys msg and
+//  the message could not be parsed, or was NULL. Destroys msg and 
 //  nullifies the msg reference.
 bios_proto_t *
     bios_proto_decode (zmsg_t **msg_p);
@@ -103,12 +133,12 @@ bios_proto_t *
 zmsg_t *
     bios_proto_encode (bios_proto_t **self_p);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a bios_proto from the socket. Returns new object, 
 //  or NULL if error. Will block if there's no message waiting.
 bios_proto_t *
     bios_proto_recv (void *input);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a bios_proto from the socket. Returns new object, 
 //  or NULL either if there was no input waiting, or the recv was interrupted.
 bios_proto_t *
     bios_proto_recv_nowait (void *input);
@@ -121,7 +151,7 @@ int
 int
     bios_proto_send_again (bios_proto_t *self, void *output);
 
-//  Encode the METRIC
+//  Encode the METRIC 
 zmsg_t *
     bios_proto_encode_metric (
         zhash_t *aux,
@@ -130,6 +160,18 @@ zmsg_t *
         const char *value,
         const char *unit,
         uint64_t time);
+
+//  Encode the ALERT 
+zmsg_t *
+    bios_proto_encode_alert (
+        zhash_t *aux,
+        const char *rule,
+        const char *element_src,
+        const char *state,
+        const char *severity,
+        const char *description,
+        uint64_t time,
+        const char *action);
 
 
 //  Send the METRIC to the output in one step
@@ -142,7 +184,20 @@ int
         const char *value,
         const char *unit,
         uint64_t time);
-
+    
+//  Send the ALERT to the output in one step
+//  WARNING, this call will fail if output is of type ZMQ_ROUTER.
+int
+    bios_proto_send_alert (void *output,
+        zhash_t *aux,
+        const char *rule,
+        const char *element_src,
+        const char *state,
+        const char *severity,
+        const char *description,
+        uint64_t time,
+        const char *action);
+    
 //  Duplicate the bios_proto message
 bios_proto_t *
     bios_proto_dup (bios_proto_t *self);
@@ -174,7 +229,7 @@ zhash_t *
 //  Set the aux field, transferring ownership from caller
 void
     bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p);
-
+    
 //  Get/set a value in the aux dictionary
 const char *
     bios_proto_aux_string (bios_proto_t *self,
@@ -218,8 +273,38 @@ uint64_t
 void
     bios_proto_set_time (bios_proto_t *self, uint64_t time);
 
-//  Self test of this class
+//  Get/set the rule field
+const char *
+    bios_proto_rule (bios_proto_t *self);
 void
+    bios_proto_set_rule (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the state field
+const char *
+    bios_proto_state (bios_proto_t *self);
+void
+    bios_proto_set_state (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the severity field
+const char *
+    bios_proto_severity (bios_proto_t *self);
+void
+    bios_proto_set_severity (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the description field
+const char *
+    bios_proto_description (bios_proto_t *self);
+void
+    bios_proto_set_description (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the action field
+const char *
+    bios_proto_action (bios_proto_t *self);
+void
+    bios_proto_set_action (bios_proto_t *self, const char *format, ...);
+
+//  Self test of this class
+int
     bios_proto_test (bool verbose);
 //  @end
 
