@@ -105,4 +105,5 @@ selftest_test(bool verbose) {
     s_test_metrics(server);
 
     zactor_destroy (&server);
+    return 0;
 }
