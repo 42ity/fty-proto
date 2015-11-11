@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+libbiosproto - Core protocols for BIOS
+
+
+SYNOPSIS
+--------
+----
+#include <libbiosproto.h>
+
+cc ['flags'] 'files' -lbiosproto ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.
