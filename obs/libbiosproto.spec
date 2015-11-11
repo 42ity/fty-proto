@@ -19,16 +19,19 @@ License:        GPLv2+
 Summary:        BIOS core protocols
 Url:            http://eaton.com/
 Group:          System/Libraries
-Source0:        libbiosproto-%{version}.tar.gz
+Source:         libbiosproto-%{version}.tar.gz
 BuildRequires:  pkg-config
 BuildRequires:  malamute-devel
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  libtool
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
 Core protocols for BIOS
 
 %package 0
-Summary:        BIOS core protocols
+Summary:        Shared library for BIOS core protocols
 
 %description 0
 BIOS core protocols.
@@ -40,6 +43,7 @@ This package contains shared library.
 %{_libdir}/%{name}.so.*
 
 %package devel
+Summary:        Devel files for BIOS core protocols
 Requires:   %{name}0 = %{version}
 
 %description devel
@@ -57,14 +61,15 @@ This package contains development files.
 %setup -q
 
 %build
+./autogen.sh
 %configure
 make %{?_smp_mflags}
 
 %install
 make install DESTDIR=%{buildroot} %{?_smp_mflags}
-find %{buildroot} -name '*.la' -or -name '*.a' -delete
+find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
 
-%post -n %{name}0 -p /sbin/ldconfig
+%post 0 -p /sbin/ldconfig
 
-%postun -n %{name}0 -p /sbin/ldconfig
+%postun 0 -p /sbin/ldconfig
 
