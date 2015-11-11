@@ -43,10 +43,10 @@ s_test_metrics (zactor_t *server)
     // send
     zhash_t *aux = zhash_new ();
     assert (aux);
-    r = zhash_insert (aux, "TEST", "test string");
+    r = zhash_insert (aux, BIOS_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
     assert (r == 0);
 
-    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1, "ELEMENT_DEST");
+    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1);
     assert (msg);
     zhash_destroy (&aux);
 
@@ -64,33 +64,9 @@ s_test_metrics (zactor_t *server)
     assert (recv);
 
     assert (streq (bios_proto_value (recv), "VALUE"));
-    assert (streq (bios_proto_element_dest (recv), "ELEMENT_DEST"));
     assert (streq (
-                bios_proto_aux_string (recv, "TEST", "N/A"),
-                "test string"));
-    bios_proto_destroy (&recv);
-
-    // send 2 - empty element_dest and null aux
-    msg = bios_proto_encode_metric (NULL, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1, NULL);
-    assert (msg);
-
-    r = mlm_client_send (producer, "TYPE@ELEMENT_SRC", &msg);
-    assert (r == 0);   
-    // recv 2
-    msg = mlm_client_recv (consumer);
-    assert (msg);
-
-    subject = mlm_client_subject (consumer);
-    assert (streq (subject, "TYPE@ELEMENT_SRC"));
-
-    recv = bios_proto_decode (&msg);
-    assert (recv);
-
-    assert (streq (bios_proto_value (recv), "VALUE"));
-    assert (streq (bios_proto_element_dest (recv), "(null)"));
-    assert (streq (
-                bios_proto_aux_string (recv, "TEST", "N/A"),
-                "N/A"));
+                bios_proto_aux_string (recv, BIOS_PROTO_METRIC_ELEMENT_DEST, "N/A"),
+                "ELEMENT_DEST"));
 
     bios_proto_destroy (&recv);
     mlm_client_destroy (&producer);
