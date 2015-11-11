@@ -15,17 +15,6 @@ TODO THERE WILL BE SOME DESCRPTION
 
 MVY: To see if we can handle the need for ymsg wrapper by header
      Field aux is going to be added in each message
-
-Comment (KHR): My opinion is that we should add aux into messages where it
-     is needed/makes sense (i.e. we have use case). Adding anything to
-     messages/protocol because what-if is future proofing and that never works
-     (and goes against the principle of PROBLEM-statement oriented approach). 
-
-    In METRIC message we can have the element-dest optional field simply by
-    having an empty string when no element-dest is present.
-
-
-
 <header>
     <field name = "aux" type = "hash"/>
 </header>
@@ -49,9 +38,6 @@ Comment (KHR): My opinion is that we should add aux into messages where it
     </field>
     <field name = "time" type = "number" size = "8">
         Metric date/time, -1 will be replaced by actual time on receiving side.
-    </field>
-    <field name = "element-dest" type = "string">
-        Name of the destination element or empty string in case of no destination element.
     </field>
 </message>
 
