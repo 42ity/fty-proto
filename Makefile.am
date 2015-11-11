@@ -14,16 +14,10 @@ AM_CPPFLAGS = \
     ${malamute_CFLAGS} \
     -I$(srcdir)/include
 
-project_libs = \
-    ${libzmq_LIBS} \
-    ${czmq_LIBS} \
-    ${malamute_LIBS}
+project_libs = ${libzmq_LIBS} ${czmq_LIBS} ${malamute_LIBS}
 
-SUBDIRS =
-DIST_SUBDIRS =
-SUBDIRS += doc
-DIST_SUBDIRS += doc
-
+SUBDIRS = doc
+DIST_SUBDIRS = doc
 lib_LTLIBRARIES =
 bin_PROGRAMS =
 noinst_PROGRAMS =
@@ -32,6 +26,7 @@ noinst_LTLIBRARIES =
 TESTS =
 
 EXTRA_DIST = \
+    src/selftest.h \
     src/biosproto_classes.h \
     README.md \
     version.sh
