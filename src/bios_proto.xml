@@ -22,7 +22,6 @@ MVY: To see if we can handle the need for ymsg wrapper by header
 <message
     name = "METRIC"
     id = "1"
-    digest = "B90F4926D4662B319C0EC113794B0F27D9336A23"
     >
     <field name = "type" type = "string">
         Type of metric send (temperature, humidity, power.load, ...)
@@ -40,5 +39,33 @@ MVY: To see if we can handle the need for ymsg wrapper by header
         Metric date/time, -1 will be replaced by actual time on receiving side.
     </field>
 </message>
+
+<message
+    name = "ALERT"
+    id = "2"
+    >
+    <field name = "rule" type = "string">
+        a rule name, that triggers this alert
+    </field>
+    <field name = "element_src" type = "string">
+        name of the element, where alert was detected. Most of the time is would be asset element name
+    </field>
+    <field name = "state" type = "string">
+        state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
+    </field>
+    <field name = "severity" type = "string">
+        severity of the alert. Possible values are INFO/WARNING/CRITICAL
+    </field>
+    <field name = "description" type = "string">
+        a description of the alert
+    </field>
+    <field name = "time" type = "number" size = "8">
+        ALERT date/time, -1 will be replaced by actual time on receiving side by current time.
+    </field>
+    <field name = "action" type = "string">
+        list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+    </field>
+</message>
+
 
 </class>
