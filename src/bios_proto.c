@@ -12,21 +12,21 @@
      * The XML model used for this code generation: bios_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2015 Eaton
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
+    Copyright (C) 2014 - 2015 Eaton                                        
+                                                                           
+    This program is free software; you can redistribute it and/or modify   
+    it under the terms of the GNU General Public License as published by   
+    the Free Software Foundation; either version 2 of the License, or      
+    (at your option) any later version.                                    
+                                                                           
+    This program is distributed in the hope that it will be useful,        
+    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+    GNU General Public License for more details.                           
+                                                                           
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
     =========================================================================
 */
 
@@ -46,13 +46,15 @@ struct _bios_proto_t {
     int id;                             //  bios_proto message ID
     byte *needle;                       //  Read/write pointer for serialization
     byte *ceiling;                      //  Valid upper limit for read pointer
-    zhash_t *aux;                       //  aux
-    size_t aux_bytes;                   //  aux
-    char *type;                         //  Type of metric send (temperature, humidity, power.load, ...)
-    char *element_src;                  //  Name of source element to which metrics are bind to.
-    char *value;                        //  Value of metric as plain string
-    char *unit;                         //  Unit of metric (C, F or K for temperature)
-    uint64_t time;                      //  Metric date/time, -1 will be replaced by actual time on receiving side.
+    zhash_t *aux;                       //  
+    size_t aux_bytes;                   //  Size of dictionary content
+    char *type;                         // Type of metric send (temperature, humidity, power.load, ...)
+    char *element_src;                  // Name of source element to which metrics are bind to.
+    char *value;                        // Value of metric as plain string
+    char *unit;                         // Unit of metric (C, F or K for temperature)
+    uint64_t time;                      // Metric date/time, -1 will be replaced by actual time on receiving side.
+    char *element_dest;                 // Name of the destination element or empty string in case of no destination element.
+    
 };
 
 //  --------------------------------------------------------------------------
@@ -220,6 +222,7 @@ bios_proto_destroy (bios_proto_t **self_p)
         free (self->element_src);
         free (self->value);
         free (self->unit);
+        free (self->element_dest);
 
         //  Free object itself
         free (self);
@@ -237,8 +240,6 @@ is_bios_proto (zmsg_t *msg)
         return false;
 
     zframe_t *frame = zmsg_first (msg);
-    if (frame == NULL)
-        return false;
 
     //  Get and check protocol signature
     bios_proto_t *self = bios_proto_new (0);
@@ -267,7 +268,7 @@ is_bios_proto (zmsg_t *msg)
 
 //  --------------------------------------------------------------------------
 //  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
-//  the message could not be parsed, or was NULL. Destroys msg and
+//  the message could not be parsed, or was NULL. Destroys msg and 
 //  nullifies the msg reference.
 
 bios_proto_t *
@@ -277,11 +278,11 @@ bios_proto_decode (zmsg_t **msg_p)
     zmsg_t *msg = *msg_p;
     if (msg == NULL)
         return NULL;
-
+        
     bios_proto_t *self = bios_proto_new (0);
     //  Read and parse command in frame
     zframe_t *frame = zmsg_pop (msg);
-    if (!frame)
+    if (!frame) 
         goto empty;             //  Malformed or empty
 
     //  Get and check protocol signature
@@ -316,6 +317,7 @@ bios_proto_decode (zmsg_t **msg_p)
             GET_STRING (self->value);
             GET_STRING (self->unit);
             GET_NUMBER8 (self->time);
+            GET_STRING (self->element_dest);
             break;
 
         default:
@@ -346,7 +348,7 @@ bios_proto_encode (bios_proto_t **self_p)
 {
     assert (self_p);
     assert (*self_p);
-
+    
     bios_proto_t *self = *self_p;
     zmsg_t *msg = zmsg_new ();
 
@@ -384,8 +386,12 @@ bios_proto_encode (bios_proto_t **self_p)
                 frame_size += strlen (self->unit);
             //  time is a 8-byte integer
             frame_size += 8;
+            //  element_dest is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->element_dest)
+                frame_size += strlen (self->element_dest);
             break;
-
+            
         default:
             zsys_error ("bad message type '%d', not sent\n", self->id);
             //  No recovery, this is a fatal application error
@@ -431,6 +437,11 @@ bios_proto_encode (bios_proto_t **self_p)
             else
                 PUT_NUMBER1 (0);    //  Empty string
             PUT_NUMBER8 (self->time);
+            if (self->element_dest) {
+                PUT_STRING (self->element_dest);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
             break;
 
     }
@@ -460,14 +471,14 @@ bios_proto_recv (void *input)
 
     //  If message came from a router socket, first frame is routing_id
     zframe_t *routing_id = NULL;
-    if (zsock_type (zsock_resolve (input)) == ZMQ_ROUTER) {
+    if (zsocket_type (zsock_resolve (input)) == ZMQ_ROUTER) {
         routing_id = zmsg_pop (msg);
         //  If message was not valid, forget about it
         if (!routing_id || !zmsg_next (msg))
             return NULL;        //  Malformed or empty
     }
     bios_proto_t *bios_proto = bios_proto_decode (&msg);
-    if (bios_proto && zsock_type (zsock_resolve (input)) == ZMQ_ROUTER)
+    if (bios_proto && zsocket_type (zsock_resolve (input)) == ZMQ_ROUTER)
         bios_proto->routing_id = routing_id;
 
     return bios_proto;
@@ -487,14 +498,14 @@ bios_proto_recv_nowait (void *input)
         return NULL;            //  Interrupted
     //  If message came from a router socket, first frame is routing_id
     zframe_t *routing_id = NULL;
-    if (zsock_type (zsock_resolve (input)) == ZMQ_ROUTER) {
+    if (zsocket_type (zsock_resolve (input)) == ZMQ_ROUTER) {
         routing_id = zmsg_pop (msg);
         //  If message was not valid, forget about it
         if (!routing_id || !zmsg_next (msg))
             return NULL;        //  Malformed or empty
     }
     bios_proto_t *bios_proto = bios_proto_decode (&msg);
-    if (bios_proto && zsock_type (zsock_resolve (input)) == ZMQ_ROUTER)
+    if (bios_proto && zsocket_type (zsock_resolve (input)) == ZMQ_ROUTER)
         bios_proto->routing_id = routing_id;
 
     return bios_proto;
@@ -519,15 +530,15 @@ bios_proto_send (bios_proto_t **self_p, void *output)
 
     //  Encode bios_proto message to a single zmsg
     zmsg_t *msg = bios_proto_encode (self_p);
-
+    
     //  If we're sending to a ROUTER, send the routing_id first
-    if (zsock_type (zsock_resolve (output)) == ZMQ_ROUTER) {
+    if (zsocket_type (zsock_resolve (output)) == ZMQ_ROUTER) {
         assert (routing_id);
         zmsg_prepend (msg, &routing_id);
     }
     else
         zframe_destroy (&routing_id);
-
+        
     if (msg && zmsg_send (&msg, output) == 0)
         return 0;
     else
@@ -551,14 +562,15 @@ bios_proto_send_again (bios_proto_t *self, void *output)
 //  --------------------------------------------------------------------------
 //  Encode METRIC message
 
-zmsg_t *
+zmsg_t * 
 bios_proto_encode_metric (
     zhash_t *aux,
     const char *type,
     const char *element_src,
     const char *value,
     const char *unit,
-    uint64_t time)
+    uint64_t time,
+    const char *element_dest)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -568,6 +580,7 @@ bios_proto_encode_metric (
     bios_proto_set_value (self, "%s", value);
     bios_proto_set_unit (self, "%s", unit);
     bios_proto_set_time (self, time);
+    bios_proto_set_element_dest (self, "%s", element_dest);
     return bios_proto_encode (&self);
 }
 
@@ -583,7 +596,8 @@ bios_proto_send_metric (
     const char *element_src,
     const char *value,
     const char *unit,
-    uint64_t time)
+    uint64_t time,
+    const char *element_dest)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -593,6 +607,7 @@ bios_proto_send_metric (
     bios_proto_set_value (self, value);
     bios_proto_set_unit (self, unit);
     bios_proto_set_time (self, time);
+    bios_proto_set_element_dest (self, element_dest);
     return bios_proto_send (&self, output);
 }
 
@@ -605,7 +620,7 @@ bios_proto_dup (bios_proto_t *self)
 {
     if (!self)
         return NULL;
-
+        
     bios_proto_t *copy = bios_proto_new (self->id);
     if (self->routing_id)
         copy->routing_id = zframe_dup (self->routing_id);
@@ -617,6 +632,7 @@ bios_proto_dup (bios_proto_t *self)
             copy->value = self->value? strdup (self->value): NULL;
             copy->unit = self->unit? strdup (self->unit): NULL;
             copy->time = self->time;
+            copy->element_dest = self->element_dest? strdup (self->element_dest): NULL;
             break;
 
     }
@@ -661,8 +677,12 @@ bios_proto_print (bios_proto_t *self)
             else
                 zsys_debug ("    unit=");
             zsys_debug ("    time=%ld", (long) self->time);
+            if (self->element_dest)
+                zsys_debug ("    element_dest='%s'", self->element_dest);
+            else
+                zsys_debug ("    element_dest=");
             break;
-
+            
     }
 }
 
@@ -915,11 +935,34 @@ bios_proto_set_time (bios_proto_t *self, uint64_t time)
 }
 
 
+//  --------------------------------------------------------------------------
+//  Get/set the element_dest field
+
+const char *
+bios_proto_element_dest (bios_proto_t *self)
+{
+    assert (self);
+    return self->element_dest;
+}
+
+void
+bios_proto_set_element_dest (bios_proto_t *self, const char *format, ...)
+{
+    //  Format element_dest from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->element_dest);
+    self->element_dest = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
 
 //  --------------------------------------------------------------------------
 //  Selftest
 
-void
+int
 bios_proto_test (bool verbose)
 {
     printf (" * bios_proto: ");
@@ -946,7 +989,7 @@ bios_proto_test (bool verbose)
     int instance;
     bios_proto_t *copy;
     self = bios_proto_new (BIOS_PROTO_METRIC);
-
+    
     //  Check that _dup works on empty message
     copy = bios_proto_dup (self);
     assert (copy);
@@ -959,6 +1002,7 @@ bios_proto_test (bool verbose)
     bios_proto_set_value (self, "Life is short but Now lasts for ever");
     bios_proto_set_unit (self, "Life is short but Now lasts for ever");
     bios_proto_set_time (self, 123);
+    bios_proto_set_element_dest (self, "Life is short but Now lasts for ever");
     //  Send twice from same object
     bios_proto_send_again (self, output);
     bios_proto_send (&self, output);
@@ -967,7 +1011,7 @@ bios_proto_test (bool verbose)
         self = bios_proto_recv (input);
         assert (self);
         assert (bios_proto_routing_id (self));
-
+        
         assert (bios_proto_aux_size (self) == 2);
         assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
         assert (bios_proto_aux_number (self, "Age", 0) == 43);
@@ -976,6 +1020,7 @@ bios_proto_test (bool verbose)
         assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
         assert (streq (bios_proto_unit (self), "Life is short but Now lasts for ever"));
         assert (bios_proto_time (self) == 123);
+        assert (streq (bios_proto_element_dest (self), "Life is short but Now lasts for ever"));
         bios_proto_destroy (&self);
     }
 
@@ -984,4 +1029,5 @@ bios_proto_test (bool verbose)
     //  @end
 
     printf ("OK\n");
+    return 0;
 }
