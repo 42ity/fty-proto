@@ -86,6 +86,23 @@ MVY: To see if we can handle the need for ymsg wrapper by header
         action              string      
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
     
+
+    DATA - TODO THERE WILL BE SOME DESCRPTION
+
+
+
+MVY: To see if we can handle the need for ymsg wrapper by header
+     Field aux is going to be added in each message
+        aux                 hash        
+        type                string      
+        Type of data beeing send (for example "CONFIGURE"). Value is mandatory.
+    
+        key                 string      
+        Data identifier (for example "smtp"). Value is optional.
+    
+        value               string      
+        Data (for example "1.2.3.4", but it could be json for more complex structure or base64 encoded binary stream). Value is mandatory.
+    
 */
 
 #define BIOS_PROTO_VERSION                  1
@@ -93,6 +110,7 @@ MVY: To see if we can handle the need for ymsg wrapper by header
 
 #define BIOS_PROTO_METRIC                   1
 #define BIOS_PROTO_ALERT                    2
+#define BIOS_PROTO_DATA                     3
 
 #include <czmq.h>
 
@@ -173,6 +191,14 @@ zmsg_t *
         uint64_t time,
         const char *action);
 
+//  Encode the DATA 
+zmsg_t *
+    bios_proto_encode_data (
+        zhash_t *aux,
+        const char *type,
+        const char *key,
+        const char *value);
+
 
 //  Send the METRIC to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -197,6 +223,15 @@ int
         const char *description,
         uint64_t time,
         const char *action);
+    
+//  Send the DATA to the output in one step
+//  WARNING, this call will fail if output is of type ZMQ_ROUTER.
+int
+    bios_proto_send_data (void *output,
+        zhash_t *aux,
+        const char *type,
+        const char *key,
+        const char *value);
     
 //  Duplicate the bios_proto message
 bios_proto_t *
@@ -302,6 +337,12 @@ const char *
     bios_proto_action (bios_proto_t *self);
 void
     bios_proto_set_action (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the key field
+const char *
+    bios_proto_key (bios_proto_t *self);
+void
+    bios_proto_set_key (bios_proto_t *self, const char *format, ...);
 
 //  Self test of this class
 int

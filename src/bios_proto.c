@@ -58,6 +58,7 @@ struct _bios_proto_t {
     char *severity;                     //  severity of the alert. Possible values are INFO/WARNING/CRITICAL
     char *description;                  //  a description of the alert
     char *action;                       //  list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+    char *key;                          //  Data identifier (for example "smtp"). Value is optional.
 };
 
 //  --------------------------------------------------------------------------
@@ -230,6 +231,7 @@ bios_proto_destroy (bios_proto_t **self_p)
         free (self->severity);
         free (self->description);
         free (self->action);
+        free (self->key);
 
         //  Free object itself
         free (self);
@@ -265,6 +267,7 @@ is_bios_proto (zmsg_t *msg)
     switch (self->id) {
         case BIOS_PROTO_METRIC:
         case BIOS_PROTO_ALERT:
+        case BIOS_PROTO_DATA:
             bios_proto_destroy (&self);
             return true;
         default:
@@ -351,6 +354,26 @@ bios_proto_decode (zmsg_t **msg_p)
             GET_STRING (self->description);
             GET_NUMBER8 (self->time);
             GET_STRING (self->action);
+            break;
+
+        case BIOS_PROTO_DATA:
+            {
+                size_t hash_size;
+                GET_NUMBER4 (hash_size);
+                self->aux = zhash_new ();
+                zhash_autofree (self->aux);
+                while (hash_size--) {
+                    char *key, *value;
+                    GET_STRING (key);
+                    GET_LONGSTR (value);
+                    zhash_insert (self->aux, key, value);
+                    free (key);
+                    free (value);
+                }
+            }
+            GET_STRING (self->type);
+            GET_STRING (self->key);
+            GET_STRING (self->value);
             break;
 
         default:
@@ -463,6 +486,34 @@ bios_proto_encode (bios_proto_t **self_p)
                 frame_size += strlen (self->action);
             break;
             
+        case BIOS_PROTO_DATA:
+            //  aux is an array of key=value strings
+            frame_size += 4;    //  Size is 4 octets
+            if (self->aux) {
+                self->aux_bytes = 0;
+                //  Add up size of dictionary contents
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    self->aux_bytes += 1 + strlen ((const char *) zhash_cursor (self->aux));
+                    self->aux_bytes += 4 + strlen (item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            frame_size += self->aux_bytes;
+            //  type is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->type)
+                frame_size += strlen (self->type);
+            //  key is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->key)
+                frame_size += strlen (self->key);
+            //  value is a string with 1-byte length
+            frame_size++;       //  Size is one octet
+            if (self->value)
+                frame_size += strlen (self->value);
+            break;
+            
         default:
             zsys_error ("bad message type '%d', not sent\n", self->id);
             //  No recovery, this is a fatal application error
@@ -550,6 +601,35 @@ bios_proto_encode (bios_proto_t **self_p)
             PUT_NUMBER8 (self->time);
             if (self->action) {
                 PUT_STRING (self->action);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            break;
+
+        case BIOS_PROTO_DATA:
+            if (self->aux) {
+                PUT_NUMBER4 (zhash_size (self->aux));
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    PUT_STRING ((const char *) zhash_cursor ((zhash_t *) self->aux));
+                    PUT_LONGSTR (item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            else
+                PUT_NUMBER4 (0);    //  Empty dictionary
+            if (self->type) {
+                PUT_STRING (self->type);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            if (self->key) {
+                PUT_STRING (self->key);
+            }
+            else
+                PUT_NUMBER1 (0);    //  Empty string
+            if (self->value) {
+                PUT_STRING (self->value);
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
@@ -723,6 +803,26 @@ bios_proto_encode_alert (
 
 
 //  --------------------------------------------------------------------------
+//  Encode DATA message
+
+zmsg_t * 
+bios_proto_encode_data (
+    zhash_t *aux,
+    const char *type,
+    const char *key,
+    const char *value)
+{
+    bios_proto_t *self = bios_proto_new (BIOS_PROTO_DATA);
+    zhash_t *aux_copy = zhash_dup (aux);
+    bios_proto_set_aux (self, &aux_copy);
+    bios_proto_set_type (self, "%s", type);
+    bios_proto_set_key (self, "%s", key);
+    bios_proto_set_value (self, "%s", value);
+    return bios_proto_encode (&self);
+}
+
+
+//  --------------------------------------------------------------------------
 //  Send the METRIC to the socket in one step
 
 int
@@ -777,6 +877,27 @@ bios_proto_send_alert (
 
 
 //  --------------------------------------------------------------------------
+//  Send the DATA to the socket in one step
+
+int
+bios_proto_send_data (
+    void *output,
+    zhash_t *aux,
+    const char *type,
+    const char *key,
+    const char *value)
+{
+    bios_proto_t *self = bios_proto_new (BIOS_PROTO_DATA);
+    zhash_t *aux_copy = zhash_dup (aux);
+    bios_proto_set_aux (self, &aux_copy);
+    bios_proto_set_type (self, type);
+    bios_proto_set_key (self, key);
+    bios_proto_set_value (self, value);
+    return bios_proto_send (&self, output);
+}
+
+
+//  --------------------------------------------------------------------------
 //  Duplicate the bios_proto message
 
 bios_proto_t *
@@ -807,6 +928,13 @@ bios_proto_dup (bios_proto_t *self)
             copy->description = self->description? strdup (self->description): NULL;
             copy->time = self->time;
             copy->action = self->action? strdup (self->action): NULL;
+            break;
+
+        case BIOS_PROTO_DATA:
+            copy->aux = self->aux? zhash_dup (self->aux): NULL;
+            copy->type = self->type? strdup (self->type): NULL;
+            copy->key = self->key? strdup (self->key): NULL;
+            copy->value = self->value? strdup (self->value): NULL;
             break;
 
     }
@@ -892,6 +1020,32 @@ bios_proto_print (bios_proto_t *self)
                 zsys_debug ("    action=");
             break;
             
+        case BIOS_PROTO_DATA:
+            zsys_debug ("BIOS_PROTO_DATA:");
+            zsys_debug ("    aux=");
+            if (self->aux) {
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    zsys_debug ("        %s=%s", zhash_cursor (self->aux), item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            else
+                zsys_debug ("(NULL)");
+            if (self->type)
+                zsys_debug ("    type='%s'", self->type);
+            else
+                zsys_debug ("    type=");
+            if (self->key)
+                zsys_debug ("    key='%s'", self->key);
+            else
+                zsys_debug ("    key=");
+            if (self->value)
+                zsys_debug ("    value='%s'", self->value);
+            else
+                zsys_debug ("    value=");
+            break;
+            
     }
 }
 
@@ -944,6 +1098,9 @@ bios_proto_command (bios_proto_t *self)
             break;
         case BIOS_PROTO_ALERT:
             return ("ALERT");
+            break;
+        case BIOS_PROTO_DATA:
+            return ("DATA");
             break;
     }
     return "?";
@@ -1262,6 +1419,29 @@ bios_proto_set_action (bios_proto_t *self, const char *format, ...)
 }
 
 
+//  --------------------------------------------------------------------------
+//  Get/set the key field
+
+const char *
+bios_proto_key (bios_proto_t *self)
+{
+    assert (self);
+    return self->key;
+}
+
+void
+bios_proto_set_key (bios_proto_t *self, const char *format, ...)
+{
+    //  Format key from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    free (self->key);
+    self->key = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+
 
 //  --------------------------------------------------------------------------
 //  Selftest
@@ -1360,6 +1540,35 @@ bios_proto_test (bool verbose)
         assert (streq (bios_proto_description (self), "Life is short but Now lasts for ever"));
         assert (bios_proto_time (self) == 123);
         assert (streq (bios_proto_action (self), "Life is short but Now lasts for ever"));
+        bios_proto_destroy (&self);
+    }
+    self = bios_proto_new (BIOS_PROTO_DATA);
+    
+    //  Check that _dup works on empty message
+    copy = bios_proto_dup (self);
+    assert (copy);
+    bios_proto_destroy (&copy);
+
+    bios_proto_aux_insert (self, "Name", "Brutus");
+    bios_proto_aux_insert (self, "Age", "%d", 43);
+    bios_proto_set_type (self, "Life is short but Now lasts for ever");
+    bios_proto_set_key (self, "Life is short but Now lasts for ever");
+    bios_proto_set_value (self, "Life is short but Now lasts for ever");
+    //  Send twice from same object
+    bios_proto_send_again (self, output);
+    bios_proto_send (&self, output);
+
+    for (instance = 0; instance < 2; instance++) {
+        self = bios_proto_recv (input);
+        assert (self);
+        assert (bios_proto_routing_id (self));
+        
+        assert (bios_proto_aux_size (self) == 2);
+        assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
+        assert (bios_proto_aux_number (self, "Age", 0) == 43);
+        assert (streq (bios_proto_type (self), "Life is short but Now lasts for ever"));
+        assert (streq (bios_proto_key (self), "Life is short but Now lasts for ever"));
+        assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
         bios_proto_destroy (&self);
     }
 
