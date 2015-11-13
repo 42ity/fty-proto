@@ -67,5 +67,20 @@ MVY: To see if we can handle the need for ymsg wrapper by header
     </field>
 </message>
 
+<message
+    name = "DATA"
+    id = "3"
+    >
+    <field name = "type" type = "string">
+        Type of data beeing send (for example "CONFIGURE"). Value is mandatory.
+    </field>
+    <field name = "key" type = "string">
+        Data identifier (for example "smtp"). Value is optional.
+    </field>
+    <field name = "value" type = "string">
+        Data (for example "1.2.3.4", but it could be json for more complex structure or base64 encoded binary stream). Value is mandatory.
+    </field>
+</message>
+
 
 </class>
