@@ -46,8 +46,19 @@ src_libbiosproto_la_LIBADD = ${project_libs}
 check_PROGRAMS += src/biosproto_selftest
 src_biosproto_selftest_CPPFLAGS = ${src_libbiosproto_la_CPPFLAGS}
 src_biosproto_selftest_LDADD = ${program_libs}
-src_biosproto_selftest_SOURCES = src/biosproto_selftest.c
 
+if WITH_GENERATE_METRIC
+bin_PROGRAMS += src/generate_metric
+src_generate_metric_CPPFLAGS = ${AM_CPPFLAGS}
+src_generate_metric_LDADD = ${program_libs}
+src_generate_metric_SOURCES = src/generate_metric.c
+endif
+if WITH_GET_METRICS
+bin_PROGRAMS += src/get_metrics
+src_get_metrics_CPPFLAGS = ${AM_CPPFLAGS}
+src_get_metrics_LDADD = ${program_libs}
+src_get_metrics_SOURCES = src/get_metrics.c
+endif
 
 
 # define custom target for all products of /src

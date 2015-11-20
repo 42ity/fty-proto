@@ -318,6 +318,26 @@ AM_CONDITIONAL(ON_ANDROID, test "x$biosproto_on_android" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$biosproto_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$biosproto_build_doc" = "xyes")
 
+# Check for generate_metric intent
+AC_ARG_WITH([generate_metric],
+    AS_HELP_STRING([--with-generate_metric],
+        [Compile and install the generate_metric program [default=yes].]),
+    [with_generate_metric=$withval],
+    [with_generate_metric=yes])
+
+AM_CONDITIONAL([WITH_GENERATE_METRIC], [test x$with_generate_metric != xno])
+AM_COND_IF([WITH_GENERATE_METRIC], [AC_MSG_NOTICE([WITH_GENERATE_METRIC defined])])
+
+# Check for get_metrics intent
+AC_ARG_WITH([get_metrics],
+    AS_HELP_STRING([--with-get_metrics],
+        [Compile and install the get_metrics program [default=yes].]),
+    [with_get_metrics=$withval],
+    [with_get_metrics=yes])
+
+AM_CONDITIONAL([WITH_GET_METRICS], [test x$with_get_metrics != xno])
+AM_COND_IF([WITH_GET_METRICS], [AC_MSG_NOTICE([WITH_GET_METRICS defined])])
+
 # Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset getifaddrs)
