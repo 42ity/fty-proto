@@ -1,13 +1,12 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
 override_dh_strip:
 	dh_strip --dbg-package=libbiosproto-dbg
 
+override_dh_auto_test:
+	echo "Skipped for now"
 %:
 	dh $@ --with=autoreconf
 
-.PHONY: override_dh_auto_configure override_dh_strip
+.PHONY: override_dh_strip override_dh_auto_test
