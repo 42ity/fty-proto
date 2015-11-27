@@ -66,6 +66,12 @@ This package contains development files.
 %configure
 make %{?_smp_mflags}
 
+%files
+%doc README.md
+%doc COPYING
+%{_bindir}/generate_metric
+%{_bindir}/get_metrics
+
 %install
 make install DESTDIR=%{buildroot} %{?_smp_mflags}
 find %{buildroot} -name '*.la' -or -name '*.a' | xargs rm -f
