@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     const char* endpoint = (argc == 3) ? argv[2] : "ipc://@/malamute";
     mlm_client_t *consumer = mlm_client_new();
     mlm_client_connect(consumer, endpoint, 5000, "metrics_getter");
-    mlm_client_set_consumer(consumer, "METRICS", (argc == 2) ? argv[2] : ".*");
+    mlm_client_set_consumer(consumer, "METRICS", (argc == 2) ? argv[1] : ".*");
     while(!zsys_interrupted) {
         // Get message
         zmsg_t *msg = mlm_client_recv(consumer);
