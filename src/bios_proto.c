@@ -1446,7 +1446,7 @@ bios_proto_set_key (bios_proto_t *self, const char *format, ...)
 //  --------------------------------------------------------------------------
 //  Selftest
 
-int
+void
 bios_proto_test (bool verbose)
 {
     printf (" * bios_proto: ");
@@ -1577,5 +1577,4 @@ bios_proto_test (bool verbose)
     //  @end
 
     printf ("OK\n");
-    return 0;
 }
