@@ -345,7 +345,7 @@ void
     bios_proto_set_key (bios_proto_t *self, const char *format, ...);
 
 //  Self test of this class
-int
+void
     bios_proto_test (bool verbose);
 //  @end
 
