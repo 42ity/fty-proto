@@ -91,9 +91,9 @@
 */
 
 #define BIOS_PROTO_VERSION                  1
-#define BIOS_PROTO_STREAM_METRICS           "metrics"
-#define BIOS_PROTO_STREAM_ALERTS            "alerts"
-#define BIOS_PROTO_STREAM_ASSETS            "assets"
+#define BIOS_PROTO_STREAM_METRICS           "METRICS"
+#define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
+#define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 #define BIOS_PROTO_ASSET_TYPE               "type"
 #define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
