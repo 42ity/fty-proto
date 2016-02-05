@@ -1,6 +1,6 @@
 /*  =========================================================================
     bios_proto - Core BIOS protocols
-    
+
     Codec header for bios_proto.
 
     ** WARNING *************************************************************
@@ -87,21 +87,21 @@ MVY: To see if we can handle the need for ymsg wrapper by header
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
     
 
-    DATA - TODO THERE WILL BE SOME DESCRPTION
+    ASSET - TODO THERE WILL BE SOME DESCRPTION
 
 
 
 MVY: To see if we can handle the need for ymsg wrapper by header
      Field aux is going to be added in each message
         aux                 hash        
-        type                string      
-        Type of data beeing send (for example "CONFIGURE"). Value is mandatory.
+        name                string      
+        Unique name of asset.
     
-        key                 string      
-        Data identifier (for example "smtp"). Value is optional.
+        operation           string      
+        What have hapened with asset (create|update|delete).
     
-        value               string      
-        Data (for example "1.2.3.4", but it could be json for more complex structure or base64 encoded binary stream). Value is mandatory.
+        ext                 hash        
+        Additional extended information for assets.
     
 */
 
@@ -110,7 +110,7 @@ MVY: To see if we can handle the need for ymsg wrapper by header
 
 #define BIOS_PROTO_METRIC                   1
 #define BIOS_PROTO_ALERT                    2
-#define BIOS_PROTO_DATA                     3
+#define BIOS_PROTO_ASSET                    3
 
 #include <czmq.h>
 
@@ -141,7 +141,7 @@ bool
     is_bios_proto (zmsg_t *msg_p);
 
 //  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
-//  the message could not be parsed, or was NULL. Destroys msg and 
+//  the message could not be parsed, or was NULL. Destroys msg and
 //  nullifies the msg reference.
 bios_proto_t *
     bios_proto_decode (zmsg_t **msg_p);
@@ -151,12 +151,12 @@ bios_proto_t *
 zmsg_t *
     bios_proto_encode (bios_proto_t **self_p);
 
-//  Receive and parse a bios_proto from the socket. Returns new object, 
+//  Receive and parse a bios_proto from the socket. Returns new object,
 //  or NULL if error. Will block if there's no message waiting.
 bios_proto_t *
     bios_proto_recv (void *input);
 
-//  Receive and parse a bios_proto from the socket. Returns new object, 
+//  Receive and parse a bios_proto from the socket. Returns new object,
 //  or NULL either if there was no input waiting, or the recv was interrupted.
 bios_proto_t *
     bios_proto_recv_nowait (void *input);
@@ -169,7 +169,7 @@ int
 int
     bios_proto_send_again (bios_proto_t *self, void *output);
 
-//  Encode the METRIC 
+//  Encode the METRIC
 zmsg_t *
     bios_proto_encode_metric (
         zhash_t *aux,
@@ -179,7 +179,7 @@ zmsg_t *
         const char *unit,
         uint64_t time);
 
-//  Encode the ALERT 
+//  Encode the ALERT
 zmsg_t *
     bios_proto_encode_alert (
         zhash_t *aux,
@@ -191,13 +191,13 @@ zmsg_t *
         uint64_t time,
         const char *action);
 
-//  Encode the DATA 
+//  Encode the ASSET
 zmsg_t *
-    bios_proto_encode_data (
+    bios_proto_encode_asset (
         zhash_t *aux,
-        const char *type,
-        const char *key,
-        const char *value);
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
 
 
 //  Send the METRIC to the output in one step
@@ -210,7 +210,7 @@ int
         const char *value,
         const char *unit,
         uint64_t time);
-    
+
 //  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
@@ -223,16 +223,16 @@ int
         const char *description,
         uint64_t time,
         const char *action);
-    
-//  Send the DATA to the output in one step
+
+//  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    bios_proto_send_data (void *output,
+    bios_proto_send_asset (void *output,
         zhash_t *aux,
-        const char *type,
-        const char *key,
-        const char *value);
-    
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
+
 //  Duplicate the bios_proto message
 bios_proto_t *
     bios_proto_dup (bios_proto_t *self);
@@ -264,7 +264,7 @@ zhash_t *
 //  Set the aux field, transferring ownership from caller
 void
     bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p);
-    
+
 //  Get/set a value in the aux dictionary
 const char *
     bios_proto_aux_string (bios_proto_t *self,
@@ -338,11 +338,40 @@ const char *
 void
     bios_proto_set_action (bios_proto_t *self, const char *format, ...);
 
-//  Get/set the key field
+//  Get/set the name field
 const char *
-    bios_proto_key (bios_proto_t *self);
+    bios_proto_name (bios_proto_t *self);
 void
-    bios_proto_set_key (bios_proto_t *self, const char *format, ...);
+    bios_proto_set_name (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the operation field
+const char *
+    bios_proto_operation (bios_proto_t *self);
+void
+    bios_proto_set_operation (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the ext field
+zhash_t *
+    bios_proto_ext (bios_proto_t *self);
+//  Get the ext field and transfer ownership to caller
+zhash_t *
+    bios_proto_get_ext (bios_proto_t *self);
+//  Set the ext field, transferring ownership from caller
+void
+    bios_proto_set_ext (bios_proto_t *self, zhash_t **ext_p);
+
+//  Get/set a value in the ext dictionary
+const char *
+    bios_proto_ext_string (bios_proto_t *self,
+        const char *key, const char *default_value);
+uint64_t
+    bios_proto_ext_number (bios_proto_t *self,
+        const char *key, uint64_t default_value);
+void
+    bios_proto_ext_insert (bios_proto_t *self,
+        const char *key, const char *format, ...);
+size_t
+    bios_proto_ext_size (bios_proto_t *self);
 
 //  Self test of this class
 void
