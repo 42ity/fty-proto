@@ -6,7 +6,13 @@
     package_dir = "../include"
     source_dir = "."
     >
-TODO THERE WILL BE SOME DESCRPTION
+    BIOS core protocols
+
+    The software maintains three main types of information divided to three streams
+
+    1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+    2. Stream: METRICS - dynamic information about metric data coming from varous devices
+    3. Stream: ALERTS - information about alerts produced for given asset based on metric information
 
 <include filename = "../license.xml" />
 
