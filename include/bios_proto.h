@@ -36,11 +36,6 @@
 /*  These are the bios_proto messages:
 
     METRIC - TODO THERE WILL BE SOME DESCRPTION
-
-
-
-MVY: To see if we can handle the need for ymsg wrapper by header
-     Field aux is going to be added in each message
         aux                 hash        
         type                string      
         Type of metric send (temperature, humidity, power.load, ...)
@@ -59,11 +54,6 @@ MVY: To see if we can handle the need for ymsg wrapper by header
     
 
     ALERT - TODO THERE WILL BE SOME DESCRPTION
-
-
-
-MVY: To see if we can handle the need for ymsg wrapper by header
-     Field aux is going to be added in each message
         aux                 hash        
         rule                string      
         a rule name, that triggers this alert
@@ -88,11 +78,6 @@ MVY: To see if we can handle the need for ymsg wrapper by header
     
 
     ASSET - TODO THERE WILL BE SOME DESCRPTION
-
-
-
-MVY: To see if we can handle the need for ymsg wrapper by header
-     Field aux is going to be added in each message
         aux                 hash        
         name                string      
         Unique name of asset.
@@ -106,7 +91,15 @@ MVY: To see if we can handle the need for ymsg wrapper by header
 */
 
 #define BIOS_PROTO_VERSION                  1
+#define BIOS_PROTO_STREAM_METRICS           "metrics"
+#define BIOS_PROTO_STREAM_ALERTS            "alerts"
+#define BIOS_PROTO_STREAM_ASSETS            "assets"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
+#define BIOS_PROTO_ASSET_TYPE               "type"
+#define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
+#define BIOS_PROTO_ASSET_STATUS             "status"
+#define BIOS_PROTO_ASSET_PRIORITY           "priority"
+#define BIOS_PROTO_ASSET_PARENT             "parent"
 
 #define BIOS_PROTO_METRIC                   1
 #define BIOS_PROTO_ALERT                    2

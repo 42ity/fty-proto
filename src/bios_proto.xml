@@ -11,10 +11,19 @@ TODO THERE WILL BE SOME DESCRPTION
 <include filename = "../license.xml" />
 
 <define name = "VERSION" value = "1" />
+
+<define name = "STREAM_METRICS" value = "&quot;METRICS&quot;" />
+<define name = "STREAM_ALERTS" value = "&quot;ALERTS&quot;" />
+<define name = "STREAM_ASSETS" value = "&quot;ASSETS&quot;" />
+
 <define name = "METRIC_ELEMENT_DEST" value = "&quot;element-dest&quot;" />
 
-MVY: To see if we can handle the need for ymsg wrapper by header
-     Field aux is going to be added in each message
+<define name = "ASSET_TYPE" value = "&quot;type&quot;" />
+<define name = "ASSET_SUBTYPE" value = "&quot;subtype&quot;" />
+<define name = "ASSET_STATUS" value = "&quot;status&quot;" />
+<define name = "ASSET_PRIORITY" value = "&quot;priority&quot;" />
+<define name = "ASSET_PARENT" value = "&quot;parent&quot;" />
+
 <header>
     <field name = "aux" type = "hash"/>
 </header>
