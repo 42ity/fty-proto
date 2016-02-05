@@ -1,6 +1,6 @@
 The following ABNF grammar defines the Core BIOS protocols:
 
-    bios_proto      = *( METRIC | ALERT | DATA )
+    bios_proto      = *( METRIC | ALERT | ASSET )
 
     ;  No description                                                        
 
@@ -27,11 +27,11 @@ The following ABNF grammar defines the Core BIOS protocols:
 
     ;  No description                                                        
 
-    DATA            = signature %d3 aux type key value
+    ASSET           = signature %d3 aux name operation ext
     aux             = hash                  ; 
-    type            = string                ; Type of data beeing send (for example "CONFIGURE"). Value is mandatory.
-    key             = string                ; Data identifier (for example "smtp"). Value is optional.
-    value           = string                ; Data (for example "1.2.3.4", but it could be json for more complex structure or base64 encoded binary stream). Value is mandatory.
+    name            = string                ; Unique name of asset.
+    operation       = string                ; What have hapened with asset (create|update|delete).
+    ext             = hash                  ; Additional extended information for assets.
 
     ; A list of name/value pairs
     hash            = hash-count *( hash-name hash-value )
