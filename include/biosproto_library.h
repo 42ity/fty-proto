@@ -1,5 +1,5 @@
 /*  =========================================================================
-    biosproto - BIOSPROTO wrapper
+    biosproto - generated layer of public API
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -24,8 +24,8 @@
     =========================================================================
 */
 
-#ifndef biosproto_library_H_INCLUDED
-#define biosproto_library_H_INCLUDED
+#ifndef BIOSPROTO_LIBRARY_H_INCLUDED
+#define BIOSPROTO_LIBRARY_H_INCLUDED
 
 //  Set up environment for the application
 
@@ -57,11 +57,12 @@
 #endif
 
 //  Opaque class structures to allow forward references
+//  These classes are stable or legacy and built in all releases
 typedef struct _bios_proto_t bios_proto_t;
 #define BIOS_PROTO_T_DEFINED
 
 
-//  Public API classes
+//  Public classes, each with its own header file
 #include "bios_proto.h"
 
 #endif

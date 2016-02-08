@@ -26,10 +26,18 @@
 #ifndef BIOSPROTO_CLASSES_H_INCLUDED
 #define BIOSPROTO_CLASSES_H_INCLUDED
 
+//  Platform definitions, must come first
+#include "platform.h"
+
 //  External API
 #include "../include/biosproto.h"
 
 //  Internal API
 #include "selftest.h"
+
+//  *** Draft method, defined for internal use only ***
+//  Self test of this class.
+BIOSPROTO_EXPORT void
+    selftest_test (bool verbose);
 
 #endif

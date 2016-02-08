@@ -7,11 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-# The version number is extracted from include/biosproto.h using
-# the version.sh script. Hence, it should be updated there.
-# The version in git should reflect the *next* version planned.
-#
-AC_INIT([biosproto],[m4_esyscmd([./version.sh biosproto])],[bios@eaton.com])
+AC_INIT([biosproto],[0.1.0],[bios@eaton.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -67,19 +63,98 @@ if test "x${BIOSPROTO_GCOV}" == "xyes"; then
     if test "x${BIOSPROTO_ORIG_CFLAGS}" != "xnone"; then
         CFLAGS="${CFLAGS} ${BIOSPROTO_ORIG_CFLAGS}"
     fi
+    AM_CONDITIONAL(WITH_GCOV, true)
+else
+    AM_CONDITIONAL(WITH_GCOV, false)
 fi
 
 PREVIOUS_CFLAGS="${CFLAGS}"
 PREVIOUS_LIBS="${LIBS}"
 
 
+was_libsodium_check_lib_detected=no
+
+PKG_CHECK_MODULES([libsodium], [libsodium >= 0.0.0],
+    [
+        AC_DEFINE(HAVE_LIBSODIUM, 1, [The libsodium library is to be used.])
+    ],
+    [
+        AC_ARG_WITH([libsodium],
+            [
+                AS_HELP_STRING([--with-libsodium],
+                [Specify libsodium prefix])
+            ],
+            [search_libsodium="yes"],
+            [])
+
+        libsodium_synthetic_cflags=""
+        libsodium_synthetic_libs="-lsodium"
+
+        if test "x$search_libsodium" = "xyes"; then
+            if test -r "${with_libsodium}/include/sodium.h"; then
+                libsodium_synthetic_cflags="-I${with_libsodium}/include"
+                libsodium_synthetic_libs="-L${with_libsodium}/lib -lsodium"
+            else
+                AC_MSG_ERROR([${with_libsodium}/include/sodium.h not found. Please check libsodium prefix])
+            fi
+        fi
+
+        AC_CHECK_LIB([libsodium], [sodium_init],
+            [
+                CFLAGS="${libsodium_synthetic_cflags} ${CFLAGS}"
+                LDFLAGS="${libsodium_synthetic_libs} ${LDFLAGS}"
+                LIBS="${libsodium_synthetic_libs} ${LIBS}"
+
+                AC_SUBST([libsodium_CFLAGS],[${libsodium_synthetic_cflags}])
+                AC_SUBST([libsodium_LIBS],[${libsodium_synthetic_libs}])
+                was_libsodium_check_lib_detected=yes
+                AC_DEFINE(HAVE_LIBSODIUM, 1, [The libsodium library is to be used.])
+            ],
+            [])
+    ])
+
+if test "x$was_libsodium_check_lib_detected" = "xno"; then
+    CFLAGS="${libsodium_CFLAGS} ${CFLAGS}"
+    LIBS="${libsodium_LIBS} ${LIBS}"
+fi
+
 was_libzmq_check_lib_detected=no
 
-PKG_CHECK_MODULES([libzmq], [libzmq >= 2.2.0],
+PKG_CHECK_MODULES([libzmq], [libzmq >= 0.0.0],
     [
     ],
     [
-        AC_MSG_ERROR([Cannot find required package for libzmq. Note, pkg-config is required due to specified version >= 2.2.0])
+        AC_ARG_WITH([libzmq],
+            [
+                AS_HELP_STRING([--with-libzmq],
+                [Specify libzmq prefix])
+            ],
+            [search_libzmq="yes"],
+            [])
+
+        libzmq_synthetic_cflags=""
+        libzmq_synthetic_libs="-lzmq"
+
+        if test "x$search_libzmq" = "xyes"; then
+            if test -r "${with_libzmq}/include/zmq.h"; then
+                libzmq_synthetic_cflags="-I${with_libzmq}/include"
+                libzmq_synthetic_libs="-L${with_libzmq}/lib -lzmq"
+            else
+                AC_MSG_ERROR([${with_libzmq}/include/zmq.h not found. Please check libzmq prefix])
+            fi
+        fi
+
+        AC_CHECK_LIB([libzmq], [zmq_init],
+            [
+                CFLAGS="${libzmq_synthetic_cflags} ${CFLAGS}"
+                LDFLAGS="${libzmq_synthetic_libs} ${LDFLAGS}"
+                LIBS="${libzmq_synthetic_libs} ${LIBS}"
+
+                AC_SUBST([libzmq_CFLAGS],[${libzmq_synthetic_cflags}])
+                AC_SUBST([libzmq_LIBS],[${libzmq_synthetic_libs}])
+                was_libzmq_check_lib_detected=yes
+            ],
+            [AC_MSG_ERROR([cannot link with -lzmq, install libzmq.])])
     ])
 
 if test "x$was_libzmq_check_lib_detected" = "xno"; then
@@ -87,6 +162,51 @@ if test "x$was_libzmq_check_lib_detected" = "xno"; then
     LIBS="${libzmq_LIBS} ${LIBS}"
 fi
 
+was_uuid_check_lib_detected=no
+
+PKG_CHECK_MODULES([uuid], [uuid >= 0.0.0],
+    [
+        AC_DEFINE(HAVE_UUID, 1, [The uuid library is to be used.])
+    ],
+    [
+        AC_ARG_WITH([uuid],
+            [
+                AS_HELP_STRING([--with-uuid],
+                [Specify uuid prefix])
+            ],
+            [search_uuid="yes"],
+            [])
+
+        uuid_synthetic_cflags=""
+        uuid_synthetic_libs="-luuid"
+
+        if test "x$search_uuid" = "xyes"; then
+            if test -r "${with_uuid}/include/uuid/uuid.h"; then
+                uuid_synthetic_cflags="-I${with_uuid}/include"
+                uuid_synthetic_libs="-L${with_uuid}/lib -luuid"
+            else
+                AC_MSG_ERROR([${with_uuid}/include/uuid/uuid.h not found. Please check uuid prefix])
+            fi
+        fi
+
+        AC_CHECK_LIB([uuid], [uuid_generate],
+            [
+                CFLAGS="${uuid_synthetic_cflags} ${CFLAGS}"
+                LDFLAGS="${uuid_synthetic_libs} ${LDFLAGS}"
+                LIBS="${uuid_synthetic_libs} ${LIBS}"
+
+                AC_SUBST([uuid_CFLAGS],[${uuid_synthetic_cflags}])
+                AC_SUBST([uuid_LIBS],[${uuid_synthetic_libs}])
+                was_uuid_check_lib_detected=yes
+                AC_DEFINE(HAVE_UUID, 1, [The uuid library is to be used.])
+            ],
+            [])
+    ])
+
+if test "x$was_uuid_check_lib_detected" = "xno"; then
+    CFLAGS="${uuid_CFLAGS} ${CFLAGS}"
+    LIBS="${uuid_LIBS} ${LIBS}"
+fi
 
 was_czmq_check_lib_detected=no
 
@@ -132,7 +252,6 @@ if test "x$was_czmq_check_lib_detected" = "xno"; then
     LIBS="${czmq_LIBS} ${LIBS}"
 fi
 
-
 was_malamute_check_lib_detected=no
 
 PKG_CHECK_MODULES([malamute], [libmlm >= 0.0.0],
@@ -177,7 +296,6 @@ if test "x$was_malamute_check_lib_detected" = "xno"; then
     LIBS="${malamute_LIBS} ${LIBS}"
 fi
 
-
 CFLAGS="${PREVIOUS_CFLAGS}"
 LIBS="${PREVIOUS_LIBS}"
 
@@ -185,24 +303,38 @@ LIBS="${PREVIOUS_LIBS}"
 biosproto_on_mingw32="no"
 biosproto_on_cygwin="no"
 biosproto_on_android="no"
+biosproto_on_linux="no"
+biosproto_on_gnu="no"
 
 # Host specific checks
 AC_CANONICAL_HOST
 
-# Determine whether or not documentation should be built and installed.
-biosproto_build_doc="yes"
-biosproto_install_man="yes"
+# Man pages are built/installed if asciidoc and xmlto are present
+#   --with-docs=no overrides this
+AC_ARG_WITH([docs],
+    AS_HELP_STRING([--with-docs],
+        [Build and install man pages [default=yes]]),
+    [with_docs=$withval])
 
-# Check for asciidoc and xmlto and don't build the docs if these are not installed.
-AC_CHECK_PROG(biosproto_have_asciidoc, asciidoc, yes, no)
-AC_CHECK_PROG(biosproto_have_xmlto, xmlto, yes, no)
-if test "x$biosproto_have_asciidoc" = "xno" -o "x$biosproto_have_xmlto" = "xno"; then
+if test "x$with_docs" = "xno"; then
     biosproto_build_doc="no"
-    # Tarballs built with 'make dist' ship with prebuilt documentation.
-    if ! test -f doc/biosproto.7; then
-        biosproto_install_man="no"
-        AC_MSG_WARN([You are building an unreleased version of BIOSPROTO and asciidoc or xmlto are not installed.])
-        AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
+    biosproto_install_man="no"
+else
+    # Determine whether or not documentation should be built and installed.
+    biosproto_build_doc="yes"
+    biosproto_install_man="yes"
+
+    # Check for asciidoc and xmlto and don't build the docs if these are not installed.
+    AC_CHECK_PROG(biosproto_have_asciidoc, asciidoc, yes, no)
+    AC_CHECK_PROG(biosproto_have_xmlto, xmlto, yes, no)
+    if test "x$biosproto_have_asciidoc" = "xno" -o "x$biosproto_have_xmlto" = "xno"; then
+        biosproto_build_doc="no"
+        # Tarballs built with 'make dist' ship with prebuilt documentation.
+        if ! test -f doc/biosproto.7; then
+            biosproto_install_man="no"
+            AC_MSG_WARN([You are building an unreleased version of BIOSPROTO and asciidoc or xmlto are not installed.])
+            AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
+        fi
     fi
 fi
 AC_MSG_CHECKING([whether to build documentation])
@@ -219,6 +351,7 @@ case "${host_os}" in
         # Define on Linux to enable all library features
         CPPFLAGS="-D_GNU_SOURCE -DLINUX $CPPFLAGS"
         AC_DEFINE(BIOSPROTO_HAVE_LINUX, 1, [Have Linux OS])
+        biosproto_on_linux="yes"
 
         case "${host_os}" in
             *android*)
@@ -277,6 +410,14 @@ case "${host_os}" in
         AC_DEFINE(BIOSPROTO_HAVE_CYGWIN, 1, [Have Cygwin])
         biosproto_on_cygwin="yes"
         ;;
+    gnu*)
+        # Define on GNU/Hurd to enable all library features
+        if test "x$GXX" = "xyes"; then
+            CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
+        fi
+        AC_DEFINE(BIOSPROTO_HAVE_GNU, 1, [Have GNU/Hurd OS])
+        biosproto_on_gnu="yes"
+        ;;
     *)
         AC_MSG_ERROR([unsupported system: ${host_os}.])
         ;;
@@ -315,28 +456,50 @@ AM_CONDITIONAL(ENABLE_SHARED, test "x$enable_shared" = "xyes")
 AM_CONDITIONAL(ON_MINGW, test "x$biosproto_on_mingw32" = "xyes")
 AM_CONDITIONAL(ON_CYGWIN, test "x$biosproto_on_cygwin" = "xyes")
 AM_CONDITIONAL(ON_ANDROID, test "x$biosproto_on_android" = "xyes")
+AM_CONDITIONAL(ON_LINUX, test "x$biosproto_on_linux" = "xyes")
+AM_CONDITIONAL(ON_GNU, test "x$biosproto_on_gnu" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$biosproto_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$biosproto_build_doc" = "xyes")
 
 # Check for generate_metric intent
-AC_ARG_WITH([generate_metric],
-    AS_HELP_STRING([--with-generate_metric],
-        [Compile and install the generate_metric program [default=yes].]),
-    [with_generate_metric=$withval],
-    [with_generate_metric=yes])
+AC_ARG_ENABLE([generate_metric],
+    AS_HELP_STRING([--enable-generate_metric],
+        [Compile and install 'generate_metric' [default=yes].]),
+    [enable_generate_metric=$enableval],
+    [enable_generate_metric=yes])
 
-AM_CONDITIONAL([WITH_GENERATE_METRIC], [test x$with_generate_metric != xno])
-AM_COND_IF([WITH_GENERATE_METRIC], [AC_MSG_NOTICE([WITH_GENERATE_METRIC defined])])
+AM_CONDITIONAL([ENABLE_GENERATE_METRIC], [test x$enable_generate_metric != xno])
+AM_COND_IF([ENABLE_GENERATE_METRIC], [AC_MSG_NOTICE([ENABLE_GENERATE_METRIC defined])])
 
 # Check for get_metrics intent
-AC_ARG_WITH([get_metrics],
-    AS_HELP_STRING([--with-get_metrics],
-        [Compile and install the get_metrics program [default=yes].]),
-    [with_get_metrics=$withval],
-    [with_get_metrics=yes])
+AC_ARG_ENABLE([get_metrics],
+    AS_HELP_STRING([--enable-get_metrics],
+        [Compile and install 'get_metrics' [default=yes].]),
+    [enable_get_metrics=$enableval],
+    [enable_get_metrics=yes])
 
-AM_CONDITIONAL([WITH_GET_METRICS], [test x$with_get_metrics != xno])
-AM_COND_IF([WITH_GET_METRICS], [AC_MSG_NOTICE([WITH_GET_METRICS defined])])
+AM_CONDITIONAL([ENABLE_GET_METRICS], [test x$enable_get_metrics != xno])
+AM_COND_IF([ENABLE_GET_METRICS], [AC_MSG_NOTICE([ENABLE_GET_METRICS defined])])
+
+# Check for bmsg intent
+AC_ARG_ENABLE([bmsg],
+    AS_HELP_STRING([--enable-bmsg],
+        [Compile and install 'bmsg' [default=yes].]),
+    [enable_bmsg=$enableval],
+    [enable_bmsg=yes])
+
+AM_CONDITIONAL([ENABLE_BMSG], [test x$enable_bmsg != xno])
+AM_COND_IF([ENABLE_BMSG], [AC_MSG_NOTICE([ENABLE_BMSG defined])])
+
+# Check for biosproto_selftest intent
+AC_ARG_ENABLE([biosproto_selftest],
+    AS_HELP_STRING([--enable-biosproto_selftest],
+        [Compile 'biosproto_selftest' in src [default=yes].]),
+    [enable_biosproto_selftest=$enableval],
+    [enable_biosproto_selftest=yes])
+
+AM_CONDITIONAL([ENABLE_BIOSPROTO_SELFTEST], [test x$enable_biosproto_selftest != xno])
+AM_COND_IF([ENABLE_BIOSPROTO_SELFTEST], [AC_MSG_NOTICE([ENABLE_BIOSPROTO_SELFTEST defined])])
 
 # Checks for library functions.
 AC_TYPE_SIGNAL
@@ -349,14 +512,59 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
 AC_SUBST([pkgconfigdir])
 
 
+# enable specific system integration features
+AC_ARG_WITH([systemd],
+    AS_HELP_STRING([--with-systemd],
+    [Build and install with systemd integration [default=no].]),
+    [with_systemd=$withval],
+    [with_systemd=no])
+
+AM_CONDITIONAL([WITH_SYSTEMD], [test x$with_systemd != xno])
+
+AM_COND_IF([WITH_SYSTEMD],
+    [PKG_CHECK_MODULES([SYSTEMD], [systemd >= 200], [],
+        [AC_MSG_ERROR([Cannot find required package for systemd. Note, pkg-config is required due to specified version >= 200])])],
+    [])
+
+if test "x$cross_compiling" = "xyes"; then
+    #   Enable draft by default when cross-compiling
+    gitmaster=yes
+else
+    # enable draft API by default if we're in a git repository
+    # else disable it by default; then allow --enable-drafts=yes/no override
+    AC_CHECK_FILE($srcdir/.git, [gitmaster=yes], [gitmaster=no])
+fi
+
+AC_ARG_ENABLE([drafts],
+    AS_HELP_STRING([--enable-drafts],
+        [Build and install draft classes and methods [default=yes.]]),
+    [enable_drafts=$enableval],
+    [enable_drafts=$gitmaster])
+
+AM_CONDITIONAL([ENABLE_DRAFTS], [test x$enable_drafts != xno])
+
+if test "x$enable_drafts" = "xyes"; then
+    AC_MSG_NOTICE([Building stable and legacy API + draft API])
+    AC_DEFINE(BIOSPROTO_BUILD_DRAFT_API, 1, [Provide draft classes and methods.])
+    AC_SUBST(pkg_config_defines, "-DBIOSPROTO_BUILD_DRAFT_API=1")
+else
+    AC_MSG_NOTICE([Building stable and legacy API (no draft API)])
+    AC_SUBST(pkg_config_defines, "")
+fi
 
 # Specify output files
 AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  src/libbiosproto.pc
                  ])
-AC_OUTPUT
 
+AM_COND_IF([WITH_SYSTEMD],
+    [AC_CONFIG_FILES([
+    ])],
+    [])
+
+
+AC_OUTPUT
 ################################################################################
 #  THIS FILE IS 100% GENERATED BY ZPROJECT; DO NOT EDIT EXCEPT EXPERIMENTALLY  #
 #  Please refer to the README for information about making permanent changes.  #

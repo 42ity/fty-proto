@@ -4,15 +4,20 @@
     script = "zproject.gsl"
     email = "bios@eaton.com"
     >
+
+    <target name = "debian" />
+    <target name = "redhat" />
+
     <include filename = "license.xml" />
     <version major = "0" minor = "1" patch = "0" />
     <use project = "czmq" />
     <use project = "malamute" />
 
-    <class name = "bios_proto">BIOS protocol</class>
+    <class name = "bios_proto" state = "stable" >BIOS protocol</class>
     <class name = "selftest" private="1">Selftest</class>
     <main  name = "generate_metric">Metric generator</main>
     <main  name = "get_metrics">Metrics getter</main>
+    <main name = "bmsg">Command line tool to work with bios proto messages</main>
 
     <model name = "bios_proto" codec="zproto_codec_c_v1" />
 
