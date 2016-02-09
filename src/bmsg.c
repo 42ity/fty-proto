@@ -29,7 +29,8 @@
 #define die(format, ...) \
     do { \
         zsys_error (format, ##__VA_ARGS__); \
-        exit (EXIT_FAILURE); \
+        ret = EXIT_FAILURE; \
+        goto exit; \
     } while (0);
 
 #include "biosproto_classes.h"
@@ -74,10 +75,12 @@ int main (int argc, char *argv [])
     puts ("bmsg - Command line tool to work with bios proto messages");
     bool verbose = false;
     int argn;
+    int ret = 0;
     char *endpoint = "ipc://@/malamute";
 
     char *bmsg_command = "monitor";
-    char *bmsg_streams = "all";
+
+    mlm_client_t *client = NULL;
 
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
@@ -86,12 +89,14 @@ int main (int argc, char *argv [])
             puts ("  --endpoint / -e        malamute endpoint (default ipc://@/malamute)");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --help / -h            this information");
+            puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             return 0;
         }
         else
         if (streq (argv [argn], "--verbose")
         ||  streq (argv [argn], "-v"))
             verbose = true;
+        else
         if (streq (argv [argn], "--endpoint")
         ||  streq (argv [argn], "-e")) {
             if (argn == argc -1)
@@ -100,7 +105,7 @@ int main (int argc, char *argv [])
             argn ++;
         }
         else
-        if (argv [argn][0] == '-')
+        if (argv [argn][0] != '-')
             break;
         else {
             printf ("Unknown option: %s\n", argv [argn]);
@@ -108,10 +113,17 @@ int main (int argc, char *argv [])
         }
     }
 
-    // TODO: positional argument parsing, for now expect just monitor all
+    // identify the main command here
+    if (argv [argn]) {
+        if (streq (argv [argn], "monitor"))
+            bmsg_command = "monitor";
+        else
+            die ("Unknown command %s", argv[argn]);
+        argn ++;
+    }
 
     // connect to malamute
-    mlm_client_t *client = mlm_client_new ();
+    client = mlm_client_new ();
     assert (client);
 
     char *address;
@@ -125,27 +137,42 @@ int main (int argc, char *argv [])
         die ("mlm_client_connect failed", NULL);
 
     // set monitor
-    if (streq (bmsg_streams, "all")) {
-        r = mlm_client_set_consumer (client, "METRICS", ".*");
-        if (r == -1)
-            die ("set consumer METRICS failed", NULL);
+    if (streq (bmsg_command, "monitor")) {
 
-        r = mlm_client_set_consumer (client, "ASSETS", ".*");
-        if (r == -1)
-            die ("set consumer ASSETS failed", NULL);
+        if (!argv [argn]) {
+            // set all streams
+            if (verbose)
+                zsys_info ("set_consumer on METRICS .*, ALERTS .* and ASSETS .*");
+            r = mlm_client_set_consumer (client, "METRICS", ".*");
+            if (r == -1)
+                die ("set consumer METRICS failed", NULL);
 
-        r = mlm_client_set_consumer (client, "ALERTS", ".*");
-        if (r == -1)
-            die ("set consumer ALERTS failed", NULL);
-    }
-    else
-        die ("unknown streams value %s", bmsg_streams);
+            r = mlm_client_set_consumer (client, "ASSETS", ".*");
+            if (r == -1)
+                die ("set consumer ASSETS failed", NULL);
 
-    if (streq (bmsg_command, "monitor"))
+            r = mlm_client_set_consumer (client, "ALERTS", ".*");
+            if (r == -1)
+                die ("set consumer ALERTS failed", NULL);
+        }
+
+        while (argv [argn]) {
+            char *stream = argv [argn];
+            char *pattern = ".*";
+            if (argv [argn+1])
+                pattern = argv [++argn];
+            argn ++;
+
+            if (verbose)
+                zsys_info ("set_consumer (%s, %s)", stream, pattern);
+            r = mlm_client_set_consumer (client, stream, pattern);
+            if (r == -1)
+                die ("set consumer %s %s failed", stream, pattern);
+        }
         s_do_monitor (client);
-    else
-        die ("unknown command %s", bmsg_command);
+    }
 
+exit:
     mlm_client_destroy (&client);
-    return 0;
+    return ret;
 }
