@@ -1,0 +1,73 @@
+#
+#    biosproto - Core protocols for BIOS
+#
+#    Copyright (C) 2014 - 2015 Eaton                                        
+#                                                                           
+#    This program is free software; you can redistribute it and/or modify   
+#    it under the terms of the GNU General Public License as published by   
+#    the Free Software Foundation; either version 2 of the License, or      
+#    (at your option) any later version.                                    
+#                                                                           
+#    This program is distributed in the hope that it will be useful,        
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+#    GNU General Public License for more details.                           
+#                                                                           
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+
+Source:         biosproto
+Section:        net
+Priority:       optional
+Maintainer:     John Doe <John.Doe@example.com>
+Uploaders:      John Doe <John.Doe@example.com>
+Standards-Version: 3.9.5
+Build-Depends: bison, debhelper (>= 8),
+    pkg-config,
+    automake,
+    autoconf,
+    libtool,
+    libsodium-dev,
+    libzmq4-dev,
+    libuuid-dev,
+    libczmq-dev,
+    libmlm-dev,
+    dh-autoreconf,
+    systemd
+
+Package: libbiosproto0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: biosproto
+ This package contains shared library for biosproto: core protocols for bios
+
+Package: biosproto-dev
+Architecture: all
+Section: libdevel
+Depends:
+    libsodium-dev,
+    libzmq4-dev,
+    libuuid-dev,
+    libczmq-dev,
+    libmlm-dev,
+    libbiosproto0 (= ${binary:Version})
+Description: development files for biosproto
+ This package contains development files for biosproto: core protocols for bios
+
+Package: biosproto
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: core protocols for bios
+ Main package for biosproto: core protocols for bios
+
+Package: biosproto-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    biosproto (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for biosproto
+ This package contains the debugging symbols for biosproto : core protocols for bios.
+
