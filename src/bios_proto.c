@@ -263,7 +263,7 @@ is_bios_proto (zmsg_t *msg)
     self->ceiling = self->needle + zframe_size (frame);
     uint16_t signature;
     GET_NUMBER2 (signature);
-    if (signature != (0xAAA0 | 0))
+    if (signature != (0xAAA0 | 1))
         goto fail;             //  Invalid signature
 
     //  Get message id and parse per message type
@@ -308,7 +308,7 @@ bios_proto_decode (zmsg_t **msg_p)
     self->ceiling = self->needle + zframe_size (frame);
     uint16_t signature;
     GET_NUMBER2 (signature);
-    if (signature != (0xAAA0 | 0))
+    if (signature != (0xAAA0 | 1))
         goto empty;             //  Invalid signature
 
     //  Get message id and parse per message type
@@ -549,7 +549,7 @@ bios_proto_encode (bios_proto_t **self_p)
     //  Now serialize message into the frame
     zframe_t *frame = zframe_new (NULL, frame_size);
     self->needle = zframe_data (frame);
-    PUT_NUMBER2 (0xAAA0 | 0);
+    PUT_NUMBER2 (0xAAA0 | 1);
     PUT_NUMBER1 (self->id);
 
     switch (self->id) {

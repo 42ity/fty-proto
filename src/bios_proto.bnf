@@ -5,7 +5,7 @@ The following ABNF grammar defines the Core BIOS protocols:
     ;  No description                                                        
 
     METRIC          = signature %d1 aux type element_src value unit time
-    signature       = %xAA %xA0             ; two octets
+    signature       = %xAA %xA1             ; two octets
     aux             = hash                  ; 
     type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
     element_src     = string                ; Name of source element to which metrics are bind to.
