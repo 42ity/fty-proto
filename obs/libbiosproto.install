@@ -1,0 +1,4 @@
+debian/tmp/usr/lib/*/libbiosproto.so.*
+debian/tmp/usr/bin/generate_metric
+debian/tmp/usr/bin/get_metrics
+debian/tmp/usr/bin/bmsg

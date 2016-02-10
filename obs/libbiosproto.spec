@@ -71,6 +71,7 @@ make %{?_smp_mflags}
 %doc COPYING
 %{_bindir}/generate_metric
 %{_bindir}/get_metrics
+%{_bindir}/bmsg
 
 %install
 make install DESTDIR=%{buildroot} %{?_smp_mflags}
