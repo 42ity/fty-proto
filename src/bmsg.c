@@ -127,11 +127,12 @@ int main (int argc, char *argv [])
     assert (client);
 
     char *address;
-    asprintf (&address, "bmsg.%"PRIi64, zclock_mono ());
+    int r = asprintf (&address, "bmsg.%"PRIi64, zclock_mono ());
+    assert (r > -1);
     if (verbose)
         zsys_info ("address: %s", address);
 
-    int r = mlm_client_connect (client, endpoint, 5000, address);
+    r = mlm_client_connect (client, endpoint, 5000, address);
     zstr_free (&address);
     if (r == -1)
         die ("mlm_client_connect failed", NULL);
