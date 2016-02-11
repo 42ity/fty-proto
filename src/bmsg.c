@@ -90,6 +90,9 @@ int main (int argc, char *argv [])
             puts ("  --verbose / -v         verbose test output");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
+            puts ("  publish (pub) type     publish given message type on respective stream (alert, asset, metric)");
+            puts ("  publish (pub) alert rule element_src state severity description time action");
+            puts ("                         publish alert on stream ALERTS");
             return 0;
         }
         else
@@ -118,9 +121,16 @@ int main (int argc, char *argv [])
         if (streq (argv [argn], "monitor"))
             bmsg_command = "monitor";
         else
+        if (streq (argv [argn], "publish")
+        ||  streq (argv [argn], "pub"))
+            bmsg_command = "publish";
+        else
             die ("Unknown command %s", argv[argn]);
         argn ++;
     }
+
+    if (verbose)
+        zsys_info ("command=%s", bmsg_command);
 
     // connect to malamute
     client = mlm_client_new ();
@@ -171,6 +181,75 @@ int main (int argc, char *argv [])
                 die ("set consumer %s %s failed", stream, pattern);
         }
         s_do_monitor (client);
+    }
+    else
+    if (streq (bmsg_command, "publish")) {
+        if (streq (argv[argn], "alert")) {
+
+            mlm_client_set_producer (client, "ALERTS");
+
+            char *rule = argv[++argn];
+            if (!rule)
+                die ("missing rule", NULL);
+
+            char *element_src = argv[++argn];
+            if (!element_src)
+                die ("missing element_src", NULL);
+
+            char *state = argv[++argn];
+            if (!state)
+                die ("missing state", NULL);
+
+            char *severity = argv[++argn];
+            if (!severity)
+                die ("missing severity", NULL);
+
+            char *description = argv[++argn];
+            if (!description)
+                die ("missing description", NULL);
+
+            char *s_time = argv[++argn];
+            uint64_t time;
+            if (!s_time)
+                die ("missing time", NULL);
+            int r = sscanf (s_time, "%"SCNu64, &time);
+            if (r < 1)
+                die ("time %s is not a number", s_time);
+
+            char *action = argv[++argn];
+            if (!action)
+                die ("missing action", NULL);
+
+            if (verbose)
+                zsys_info ("publishing alert rule=%s, element_src=%s, state=%s, severity=%s, description=%s, time=%"PRIu64 ", action=%s",
+                        rule,
+                        element_src,
+                        state,
+                        severity,
+                        description,
+                        time,
+                        action);
+
+            char *subject;
+            r = asprintf (&subject, "%s@%s", rule, element_src);
+            assert (r > 0);
+
+            zmsg_t *msg = bios_proto_encode_alert (
+                        NULL,
+                        rule,
+                        element_src,
+                        state,
+                        severity,
+                        description,
+                        time,
+                        action);
+            mlm_client_send (client, subject, &msg);
+            zstr_free (&subject);
+            // to get all the threads behind enough time to send it
+            zclock_sleep (500);
+        }
+        else
+            die ("unknown type %s", argv[argn]);
     }
 
 exit:
