@@ -56,7 +56,10 @@ static void
 
         puts ("--------------------------------------------------------------------------------");
         printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
-
+        if ( is_bios_proto (msg) )
+            zsys_info ("yes");
+        else
+            zsys_info ("no");
         bios_proto_t *bmsg = bios_proto_decode (&msg);
         if (!bmsg)
             printf ("  (cannot decode bios_proto message)\n");
@@ -93,6 +96,8 @@ int main (int argc, char *argv [])
             puts ("  publish (pub) type     publish given message type on respective stream (alert, asset, metric)");
             puts ("  publish (pub) alert rule element_src state severity description time action");
             puts ("                         publish alert on stream ALERTS");
+            puts ("  publish (pub) metric quantity element_src value units time");
+            puts ("                         publish metric on stream METRICS");
             return 0;
         }
         else
@@ -249,7 +254,62 @@ int main (int argc, char *argv [])
             zclock_sleep (500);
         }
         else
+        if (streq (argv[argn], "metric")) {
+
+            mlm_client_set_producer (client, "METRICS");
+
+            char *quantity = argv[++argn];
+            if (!quantity)
+                die ("missing quantity", NULL);
+
+            char *element_src = argv[++argn];
+            if (!element_src)
+                die ("missing element_src", NULL);
+
+            char *value = argv[++argn];
+            if (!value)
+                die ("missing value", NULL);
+
+            char *unit = argv[++argn];
+            if (!unit)
+                die ("missing unit", NULL);
+
+            char *s_time = argv[++argn];
+            if (!s_time)
+                die ("missing time", NULL);
+            uint64_t time;
+            int r = sscanf (s_time, "%"SCNu64, &time);
+            if (r < 1)
+                die ("time %s is not a number", s_time);
+
+            if (verbose) {
+                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, time=%"PRIu64 ,
+                        quantity,
+                        element_src,
+                        value,
+                        unit,
+                        time);
+            }
+
+            char *subject;
+            r = asprintf (&subject, "%s@%s", quantity, element_src);
+            assert (r > 0);
+
+            zmsg_t *msg = bios_proto_encode_metric (
+                        NULL,
+                        quantity,
+                        element_src,
+                        value,
+                        unit,
+                        time);
+            mlm_client_send (client, subject, &msg);
+            zstr_free (&subject);
+            // to get all the threads behind enough time to send it
+            zclock_sleep (500);
+        }
+        else {
             die ("unknown type %s", argv[argn]);
+        }
     }
 
 exit:
