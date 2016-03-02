@@ -56,10 +56,6 @@ static void
 
         puts ("--------------------------------------------------------------------------------");
         printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
-        if ( is_bios_proto (msg) )
-            zsys_info ("yes");
-        else
-            zsys_info ("no");
         bios_proto_t *bmsg = bios_proto_decode (&msg);
         if (!bmsg)
             printf ("  (cannot decode bios_proto message)\n");
