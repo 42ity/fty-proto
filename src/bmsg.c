@@ -94,6 +94,8 @@ int main (int argc, char *argv [])
             puts ("                         publish alert on stream ALERTS");
             puts ("  publish (pub) metric quantity element_src value units time");
             puts ("                         publish metric on stream METRICS");
+            puts ("  publish (pub) asset name operation");
+            puts ("                         publish asset on stream ASSETS for now without ext attributes");
             return 0;
         }
         else
@@ -298,6 +300,39 @@ int main (int argc, char *argv [])
                         value,
                         unit,
                         time);
+            mlm_client_send (client, subject, &msg);
+            zstr_free (&subject);
+            // to get all the threads behind enough time to send it
+            zclock_sleep (500);
+        }
+        else
+        if (streq (argv[argn], "asset")) {
+
+            mlm_client_set_producer (client, "ASSETS");
+
+            char *name = argv[++argn];
+            if (!name)
+                die ("missing name", NULL);
+
+            char *operation = argv[++argn];
+            if (!operation)
+                die ("missing operation", NULL);
+
+            if (verbose) {
+                zsys_info ("publishing ASSET name=%s, operation=%s",
+                        name,
+                        operation);
+            }
+
+            char *subject;
+            r = asprintf (&subject, "%s@%s", operation, name);
+            assert (r > 0);
+
+            zmsg_t *msg = bios_proto_encode_asset (
+                        NULL,
+                        name,
+                        operation,
+                        NULL);
             mlm_client_send (client, subject, &msg);
             zstr_free (&subject);
             // to get all the threads behind enough time to send it
