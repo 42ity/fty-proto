@@ -89,13 +89,13 @@ int main (int argc, char *argv [])
             puts ("  --verbose / -v         verbose test output");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish (pub) type     publish given message type on respective stream (alert, asset, metric)");
+            puts ("  publish (pub) type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
             puts ("  publish (pub) alert rule element_src state severity description time action");
-            puts ("                         publish alert on stream ALERTS");
+            puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS);
             puts ("  publish (pub) asset name operation");
-            puts ("                         publish asset on stream ASSETS for now without ext attributes");
+            puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS " (for now without ext attributes)");
             puts ("  publish (pub) metric quantity element_src value units time");
-            puts ("                         publish metric on stream METRICS");
+            puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
             return 0;
         }
         else
@@ -156,18 +156,18 @@ int main (int argc, char *argv [])
         if (!argv [argn]) {
             // set all streams
             if (verbose)
-                zsys_info ("set_consumer on METRICS .*, ALERTS .* and ASSETS .*");
-            r = mlm_client_set_consumer (client, "METRICS", ".*");
+                zsys_info ("set_consumer on " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ASSETS ", " BIOS_PROTO_STREAM_METRICS);
+            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_METRICS, ".*");
             if (r == -1)
-                die ("set consumer METRICS failed", NULL);
+                die ("set consumer " BIOS_PROTO_STREAM_METRICS " failed", NULL);
 
-            r = mlm_client_set_consumer (client, "ASSETS", ".*");
+            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ASSETS, ".*");
             if (r == -1)
-                die ("set consumer ASSETS failed", NULL);
+                die ("set consumer " BIOS_PROTO_STREAM_ASSETS " failed", NULL);
 
-            r = mlm_client_set_consumer (client, "ALERTS", ".*");
+            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ALERTS, ".*");
             if (r == -1)
-                die ("set consumer ALERTS failed", NULL);
+                die ("set consumer " BIOS_PROTO_STREAM_ALERTS " failed", NULL);
         }
 
         while (argv [argn]) {
@@ -189,7 +189,7 @@ int main (int argc, char *argv [])
     if (streq (bmsg_command, "publish")) {
         if (streq (argv[argn], "alert")) {
 
-            mlm_client_set_producer (client, "ALERTS");
+            mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS);
 
             char *rule = argv[++argn];
             if (!rule)
@@ -254,7 +254,7 @@ int main (int argc, char *argv [])
         else
         if (streq (argv[argn], "metric")) {
 
-            mlm_client_set_producer (client, "METRICS");
+            mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS);
 
             char *quantity = argv[++argn];
             if (!quantity)
@@ -308,7 +308,7 @@ int main (int argc, char *argv [])
         else
         if (streq (argv[argn], "asset")) {
 
-            mlm_client_set_producer (client, "ASSETS");
+            mlm_client_set_producer (client, BIOS_PROTO_STREAM_ASSETS);
 
             char *name = argv[++argn];
             if (!name)
@@ -319,7 +319,7 @@ int main (int argc, char *argv [])
                 die ("missing operation", NULL);
 
             if (verbose) {
-                zsys_info ("publishing ASSET name=%s, operation=%s",
+                zsys_info ("publishing asset name=%s, operation=%s",
                         name,
                         operation);
             }
