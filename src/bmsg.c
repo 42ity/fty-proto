@@ -92,10 +92,10 @@ int main (int argc, char *argv [])
             puts ("  publish (pub) type     publish given message type on respective stream (alert, asset, metric)");
             puts ("  publish (pub) alert rule element_src state severity description time action");
             puts ("                         publish alert on stream ALERTS");
-            puts ("  publish (pub) metric quantity element_src value units time");
-            puts ("                         publish metric on stream METRICS");
             puts ("  publish (pub) asset name operation");
             puts ("                         publish asset on stream ASSETS for now without ext attributes");
+            puts ("  publish (pub) metric quantity element_src value units time");
+            puts ("                         publish metric on stream METRICS");
             return 0;
         }
         else
