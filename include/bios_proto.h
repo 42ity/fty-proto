@@ -50,7 +50,7 @@
         Unit of metric (C, F or K for temperature)
     
         time                number 8    
-        Metric date/time, -1 will be replaced by actual time on receiving side.
+        Metric date/time
     
 
     ALERT - TODO THERE WILL BE SOME DESCRPTION
@@ -71,7 +71,7 @@
         a description of the alert
     
         time                number 8    
-        ALERT date/time, -1 will be replaced by actual time on receiving side by current time.
+        ALERT date/time
     
         action              string      
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
