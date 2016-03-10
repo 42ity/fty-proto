@@ -51,7 +51,7 @@
         Unit of metric (C, F or K for temperature)
     </field>
     <field name = "time" type = "number" size = "8">
-        Metric date/time, -1 will be replaced by actual time on receiving side.
+        Metric date/time
     </field>
 </message>
 
@@ -75,7 +75,7 @@
         a description of the alert
     </field>
     <field name = "time" type = "number" size = "8">
-        ALERT date/time, -1 will be replaced by actual time on receiving side by current time.
+        ALERT date/time
     </field>
     <field name = "action" type = "string">
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
