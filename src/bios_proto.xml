@@ -89,7 +89,7 @@
         Unique name of asset.
     </field>
     <field name = "operation" type = "string">
-        What have hapened with asset (create|update|delete).
+        What have hapened with asset (create|update|delete|inventory).
     </field>
     <field name = "ext" type = "hash">
         Additional extended information for assets.

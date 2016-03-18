@@ -59,7 +59,7 @@ struct _bios_proto_t {
     char *description;                  //  a description of the alert
     char *action;                       //  list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
     char *name;                         //  Unique name of asset.
-    char *operation;                    //  What have hapened with asset (create|update|delete).
+    char *operation;                    //  What have hapened with asset (create|update|delete|inventory).
     zhash_t *ext;                       //  Additional extended information for assets.
     size_t ext_bytes;                   //  Additional extended information for assets.
 };

@@ -75,6 +75,7 @@
     
         action              string      
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+        i
     
 
     ASSET - TODO THERE WILL BE SOME DESCRPTION
@@ -83,7 +84,7 @@
         Unique name of asset.
     
         operation           string      
-        What have hapened with asset (create|update|delete).
+        What have hapened with asset (create|update|delete|inventory).
     
         ext                 hash        
         Additional extended information for assets.
