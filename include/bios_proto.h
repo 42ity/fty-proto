@@ -75,7 +75,6 @@
     
         action              string      
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
-        i
     
 
     ASSET - TODO THERE WILL BE SOME DESCRPTION
