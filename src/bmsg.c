@@ -78,9 +78,7 @@ int main (int argc, char *argv [])
     char *endpoint = "ipc://@/malamute";
 
     char *bmsg_command = "monitor";
-
     mlm_client_t *client = NULL;
-
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
@@ -129,7 +127,9 @@ int main (int argc, char *argv [])
             bmsg_command = "publish";
         else
             die ("Unknown command %s", argv[argn]);
-        argn ++;
+        if ( argn +1 == argc )
+            die ("too few arguments", "");
+        ++argn;
     }
 
     if (verbose)
