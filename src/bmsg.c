@@ -35,38 +35,119 @@
 
 #include "biosproto_classes.h"
 
+static const int64_t STAT_INTERVAL = 10000;     // we'll count messages in 10 seconds intervals
+
 static void
-    s_do_monitor (mlm_client_t *client)
+s_number_destructor (void ** item_p)
+{
+    free (*item_p);
+    *item_p = NULL;
+}
+
+static void
+s_add_cnt (zlistx_t *stat_list, size_t cnt)
+{
+    fprintf (stderr, "got [%zu] messages\n", cnt);
+    size_t *item_p = (size_t*) zmalloc (sizeof (size_t));
+    *item_p = cnt;
+    zlistx_add_end (stat_list, (void*) item_p);
+}
+
+static void
+s_print_stats (zlistx_t *stat_list)
 {
 
-    while (!zsys_interrupted) {
-        zmsg_t *msg = mlm_client_recv (client);
+    size_t max = 0, sum = 0;
+    size_t min = SIZE_MAX;
 
-        if (!msg)
+    for (void *it = zlistx_first (stat_list);
+               it != NULL;
+               it = zlistx_next (stat_list))
+    {
+        size_t v = *(size_t*)it;
+
+        if (v < min)
+            min = v;
+        if (v > max)
+            max = v;
+        sum += v;
+    }
+
+    double avg = 0.0;
+    if (zlistx_size (stat_list) > 0)
+        avg = (double) sum / zlistx_size (stat_list);
+    else
+        min = 0;
+
+    fprintf (stderr, "interval/count/min/avg/max = %"PRIi64 " ms/%zu/%zu/%.3f/%zu\n",
+            STAT_INTERVAL,
+            zlistx_size (stat_list),
+            min,
+            avg,
+            max);
+}
+
+static void
+    s_do_monitor (mlm_client_t *client, bool stats)
+{
+
+    zlistx_t *stat_list = zlistx_new ();
+    zlistx_set_destructor (stat_list, s_number_destructor);
+    size_t cnt = 0;
+    int64_t start = zclock_mono ();
+    zpoller_t *poller = zpoller_new (mlm_client_msgpipe (client), NULL);
+
+    while (!zsys_interrupted) {
+
+        int64_t interval = STAT_INTERVAL - (zclock_mono () - start);
+
+        if (interval > 100)
+            zpoller_wait (poller, interval);
+
+        if (zsys_interrupted || zpoller_terminated (poller))
             break;
 
+        if (interval < 100 || zpoller_expired (poller)) {
+            s_add_cnt (stat_list, cnt);
+            cnt = 0;
+            start = zclock_mono ();
+            continue;
+        }
+
+        // it's unlikelly someone is going to send messages to bmsg mailbox, so counter is not increased here
+        // ... but it's fine to cleanup the broker too
+        zmsg_t *msg = mlm_client_recv (client);
         if (!streq (mlm_client_command (client), "STREAM DELIVER")) {
             zmsg_destroy (&msg);
             continue;
         }
 
-        const char *address = mlm_client_address (client);
-        const char *sender = mlm_client_sender (client);
-        const char *subject = mlm_client_subject (client);
-
-        puts ("--------------------------------------------------------------------------------");
-        printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
-        bios_proto_t *bmsg = bios_proto_decode (&msg);
-        if (!bmsg)
-            printf ("  (cannot decode bios_proto message)\n");
+        if (stats)
+            cnt += 1;
         else
-            bios_proto_print (bmsg);
-        bios_proto_destroy (&bmsg);
+        {
+            const char *address = mlm_client_address (client);
+            const char *sender = mlm_client_sender (client);
+            const char *subject = mlm_client_subject (client);
 
-        puts ("--------------------------------------------------------------------------------");
+            puts ("--------------------------------------------------------------------------------");
+            printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
+            bios_proto_t *bmsg = bios_proto_decode (&msg);
+            if (!bmsg)
+                printf ("  (cannot decode bios_proto message)\n");
+            else
+                bios_proto_print (bmsg);
+            bios_proto_destroy (&bmsg);
+
+            puts ("--------------------------------------------------------------------------------");
+        }
 
         zmsg_destroy (&msg);
     }
+    if (stats)
+        s_print_stats (stat_list);
+
+    zlistx_destroy (&stat_list);
 }
 
 int main (int argc, char *argv [])
@@ -76,6 +157,7 @@ int main (int argc, char *argv [])
     int argn;
     int ret = 0;
     char *endpoint = "ipc://@/malamute";
+    bool stats = false;
 
     char *bmsg_command = "monitor";
     mlm_client_t *client = NULL;
@@ -85,6 +167,7 @@ int main (int argc, char *argv [])
             puts ("bmsg [options] ...");
             puts ("  --endpoint / -e        malamute endpoint (default ipc://@/malamute)");
             puts ("  --verbose / -v         verbose test output");
+            puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts ("  publish (pub) type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
@@ -108,6 +191,9 @@ int main (int argc, char *argv [])
             endpoint = argv [argn];
             argn ++;
         }
+        if (streq (argv [argn], "--stats")
+        ||  streq (argv [argn], "-s"))
+            stats = true;
         else
         if (argv [argn][0] != '-')
             break;
@@ -183,7 +269,7 @@ int main (int argc, char *argv [])
             if (r == -1)
                 die ("set consumer %s %s failed", stream, pattern);
         }
-        s_do_monitor (client);
+        s_do_monitor (client, stats);
     }
     else
     if (streq (bmsg_command, "publish")) {
