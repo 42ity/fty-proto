@@ -42,16 +42,19 @@
         Type of metric send (temperature, humidity, power.load, ...)
     </field>
     <field name = "element_src" type = "string">
-        Name of source element to which metrics are bind to.
+        Name of source element to which metrics are bound to
     </field>
     <field name = "value" type = "string">
         Value of metric as plain string
     </field>
     <field name = "unit" type = "string">
-        Unit of metric (C, F or K for temperature)
+        Unit of metric (i.e. C, F or K for temperature)
+    </field>
+    <field name = "ttl" type = "number" size = "4">
+        Metric time to live seconds (i.e. How long is the metric valid - how long from now should i get a new one)
     </field>
     <field name = "time" type = "number" size = "8">
-        Metric date/time
+        Metric timestamp in seconds 
     </field>
 </message>
 
