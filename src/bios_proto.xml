@@ -51,7 +51,7 @@
         Unit of metric (i.e. C, F or K for temperature)
     </field>
     <field name = "ttl" type = "number" size = "4">
-        Metric time to live seconds (i.e. How long is the metric valid - how long from now should i get a new one)
+        Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
     </field>
     <field name = "time" type = "number" size = "8">
         Metric timestamp in seconds 
