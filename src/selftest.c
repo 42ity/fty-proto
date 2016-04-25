@@ -66,7 +66,11 @@ s_test_metrics (zactor_t *server)
     r = zhash_insert (aux, BIOS_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
     assert (r == 0);
 
-    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", -1);
+    time_t time_temp = time (NULL);
+    assert (time_temp >= 0);
+    uint64_t timestamp = (uint64_t) time_temp;
+
+    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", 30, timestamp);
     assert (msg);
     zhash_destroy (&aux);
 

@@ -20,20 +20,82 @@ Copyright (C) 2014 - 2015 Eaton
 */
 
 int main(int argc, char** argv) {
-    if(argc != 5 && argc != 6) {
-        printf("Usage: %s type source value units [endpoint]\n", argv[0]);
-        exit(-1);
+    if (argc < 6) {
+        fprintf (stderr, "Usage: %s <type> <source> <value> <units> <TTL> [endpoint]\n", argv[0]);
+        return EXIT_FAILURE;
     }
-    const char* endpoint = (argc == 6) ? argv[5] : "ipc://@/malamute";
-    mlm_client_t *producer = mlm_client_new();
-    mlm_client_connect(producer, endpoint, 5000, "metric_generator");
-    mlm_client_set_producer(producer, "METRICS");
-    zmsg_t *msg = bios_proto_encode_metric(NULL, argv[1], argv[2], argv[3], argv[4], -1);
-    char *buff;
-    if(asprintf(&buff, "%s@%s", argv[1], argv[2]) < 3) {
-        printf("Can't allocate subject\n");
-        exit(-1);
+
+    const char* endpoint = NULL;
+    if (argc == 7) {
+       endpoint = argv[6];
     }
-    mlm_client_send(producer, buff, &msg);
+    else {
+       endpoint = "ipc://@/malamute";
+    }
+
+    // TTL
+    uint32_t ttl = 0;
+    if (atoi (argv[5]) <= 0 || atoi (argv[5]) > INT32_MAX) {
+        zsys_error ("<TTL> has bad value. Number in range 1 .. INT32_MAX expected.");
+        return EXIT_FAILURE;
+    }
+    ttl = atoi (argv[5]);
+
+    // topic
+    char *buff = NULL;
+    if (asprintf (&buff, "%s@%s", argv[1], argv[2]) < 3) {
+        zsys_error ("asprintf () failed. Can't allocate subject.");
+        return EXIT_FAILURE;
+    }
+
+    mlm_client_t *producer = mlm_client_new ();
+    assert (producer);
+
+    int rv = mlm_client_connect (producer, endpoint, 5000, "metric_generator");
+    if (rv == -1) {
+        zsys_error ("mlm_client_connect (endpoint = '%s', timeout = '5000', address = 'metric_generator') failed", endpoint);
+        mlm_client_destroy (&producer);
+        zstr_free (&buff);
+        return EXIT_FAILURE;
+    }
+
+    rv = mlm_client_set_producer (producer, "METRICS");
+    if (rv == -1) {
+        zsys_error ("mlm_client_set_producer (stream = 'METRICS') failed.");
+        mlm_client_destroy (&producer);
+        zstr_free (&buff);
+        return EXIT_FAILURE;
+    }
+    
+    uint64_t timestamp = 0;
+    time_t time_temp = time (NULL);
+    if (time_temp < 0) {
+        zsys_error ("time (NULL) failed (returned -1).");
+        mlm_client_destroy (&producer);
+        zstr_free (&buff);
+        return EXIT_FAILURE;
+    }
+    timestamp = (uint64_t)  time_temp;
+
+    zmsg_t *msg = bios_proto_encode_metric (
+            NULL,       // aux
+            argv[1],    // type
+            argv[2],    // element_src                
+            argv[3],    // value
+            argv[4],    // unit
+            ttl,        // TTL
+            timestamp   // timestamp    
+            );
+    assert (msg);
+    zstr_free (&buff);
+
+    rv = mlm_client_send (producer, buff, &msg);
+    if (rv == -1) {
+        zsys_error ("mlm_client_send (subject = '%s') failed.", buff);
+        mlm_client_destroy(&producer);
+        return EXIT_FAILURE;
+    }
+
     mlm_client_destroy(&producer);
+    return EXIT_SUCCESS;
 }
