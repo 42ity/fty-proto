@@ -49,10 +49,11 @@ struct _bios_proto_t {
     zhash_t *aux;                       //  aux
     size_t aux_bytes;                   //  aux
     char *type;                         //  Type of metric send (temperature, humidity, power.load, ...)
-    char *element_src;                  //  Name of source element to which metrics are bind to.
+    char *element_src;                  //  Name of source element to which metrics are bound to
     char *value;                        //  Value of metric as plain string
-    char *unit;                         //  Unit of metric (C, F or K for temperature)
-    uint64_t time;                      //  Metric date/time, -1 will be replaced by actual time on receiving side.
+    char *unit;                         //  Unit of metric (i.e. C, F or K for temperature)
+    uint32_t ttl;                       //  Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
+    uint64_t time;                      //  Metric timestamp in seconds
     char *rule;                         //  a rule name, that triggers this alert
     char *state;                        //  state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
     char *severity;                     //  severity of the alert. Possible values are INFO/WARNING/CRITICAL
@@ -83,7 +84,7 @@ struct _bios_proto_t {
 
 //  Put a 1-byte number to the frame
 #define PUT_NUMBER1(host) { \
-    *(byte *) self->needle = (host); \
+    *(byte *) self->needle = (byte) (host); \
     self->needle++; \
 }
 
@@ -334,6 +335,7 @@ bios_proto_decode (zmsg_t **msg_p)
             GET_STRING (self->element_src);
             GET_STRING (self->value);
             GET_STRING (self->unit);
+            GET_NUMBER4 (self->ttl);
             GET_NUMBER8 (self->time);
             break;
 
@@ -458,6 +460,8 @@ bios_proto_encode (bios_proto_t **self_p)
             frame_size++;       //  Size is one octet
             if (self->unit)
                 frame_size += strlen (self->unit);
+            //  ttl is a 4-byte integer
+            frame_size += 4;
             //  time is a 8-byte integer
             frame_size += 8;
             break;
@@ -585,6 +589,7 @@ bios_proto_encode (bios_proto_t **self_p)
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
+            PUT_NUMBER4 (self->ttl);
             PUT_NUMBER8 (self->time);
             break;
 
@@ -793,6 +798,7 @@ bios_proto_encode_metric (
     const char *element_src,
     const char *value,
     const char *unit,
+    uint32_t ttl,
     uint64_t time)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
@@ -802,6 +808,7 @@ bios_proto_encode_metric (
     bios_proto_set_element_src (self, "%s", element_src);
     bios_proto_set_value (self, "%s", value);
     bios_proto_set_unit (self, "%s", unit);
+    bios_proto_set_ttl (self, ttl);
     bios_proto_set_time (self, time);
     return bios_proto_encode (&self);
 }
@@ -867,6 +874,7 @@ bios_proto_send_metric (
     const char *element_src,
     const char *value,
     const char *unit,
+    uint32_t ttl,
     uint64_t time)
 {
     bios_proto_t *self = bios_proto_new (BIOS_PROTO_METRIC);
@@ -876,6 +884,7 @@ bios_proto_send_metric (
     bios_proto_set_element_src (self, element_src);
     bios_proto_set_value (self, value);
     bios_proto_set_unit (self, unit);
+    bios_proto_set_ttl (self, ttl);
     bios_proto_set_time (self, time);
     return bios_proto_send (&self, output);
 }
@@ -951,6 +960,7 @@ bios_proto_dup (bios_proto_t *self)
             copy->element_src = self->element_src? strdup (self->element_src): NULL;
             copy->value = self->value? strdup (self->value): NULL;
             copy->unit = self->unit? strdup (self->unit): NULL;
+            copy->ttl = self->ttl;
             copy->time = self->time;
             break;
 
@@ -1013,6 +1023,7 @@ bios_proto_print (bios_proto_t *self)
                 zsys_debug ("    unit='%s'", self->unit);
             else
                 zsys_debug ("    unit=");
+            zsys_debug ("    ttl=%ld", (long) self->ttl);
             zsys_debug ("    time=%ld", (long) self->time);
             break;
 
@@ -1328,6 +1339,24 @@ bios_proto_set_unit (bios_proto_t *self, const char *format, ...)
 
 
 //  --------------------------------------------------------------------------
+//  Get/set the ttl field
+
+uint32_t
+bios_proto_ttl (bios_proto_t *self)
+{
+    assert (self);
+    return self->ttl;
+}
+
+void
+bios_proto_set_ttl (bios_proto_t *self, uint32_t ttl)
+{
+    assert (self);
+    self->ttl = ttl;
+}
+
+
+//  --------------------------------------------------------------------------
 //  Get/set the time field
 
 uint64_t
@@ -1637,6 +1666,7 @@ bios_proto_test (bool verbose)
     bios_proto_set_element_src (self, "Life is short but Now lasts for ever");
     bios_proto_set_value (self, "Life is short but Now lasts for ever");
     bios_proto_set_unit (self, "Life is short but Now lasts for ever");
+    bios_proto_set_ttl (self, 123);
     bios_proto_set_time (self, 123);
     //  Send twice from same object
     bios_proto_send_again (self, output);
@@ -1654,6 +1684,7 @@ bios_proto_test (bool verbose)
         assert (streq (bios_proto_element_src (self), "Life is short but Now lasts for ever"));
         assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
         assert (streq (bios_proto_unit (self), "Life is short but Now lasts for ever"));
+        assert (bios_proto_ttl (self) == 123);
         assert (bios_proto_time (self) == 123);
         bios_proto_destroy (&self);
     }

@@ -4,14 +4,15 @@ The following ABNF grammar defines the Core BIOS protocols:
 
     ;  No description                                                        
 
-    METRIC          = signature %d1 aux type element_src value unit time
+    METRIC          = signature %d1 aux type element_src value unit ttl time
     signature       = %xAA %xA1             ; two octets
     aux             = hash                  ; 
     type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
-    element_src     = string                ; Name of source element to which metrics are bind to.
+    element_src     = string                ; Name of source element to which metrics are bound to
     value           = string                ; Value of metric as plain string
-    unit            = string                ; Unit of metric (C, F or K for temperature)
-    time            = number-8              ; Metric date/time, -1 will be replaced by actual time on receiving side.
+    unit            = string                ; Unit of metric (i.e. C, F or K for temperature)
+    ttl             = number-4              ; Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
+    time            = number-8              ; Metric timestamp in seconds
 
     ;  No description                                                        
 
@@ -22,7 +23,7 @@ The following ABNF grammar defines the Core BIOS protocols:
     state           = string                ; state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
     severity        = string                ; severity of the alert. Possible values are INFO/WARNING/CRITICAL
     description     = string                ; a description of the alert
-    time            = number-8              ; ALERT date/time, -1 will be replaced by actual time on receiving side by current time.
+    time            = number-8              ; ALERT date/time
     action          = string                ; list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
 
     ;  No description                                                        
@@ -30,7 +31,7 @@ The following ABNF grammar defines the Core BIOS protocols:
     ASSET           = signature %d3 aux name operation ext
     aux             = hash                  ; 
     name            = string                ; Unique name of asset.
-    operation       = string                ; What have hapened with asset (create|update|delete).
+    operation       = string                ; What have hapened with asset (create|update|delete|inventory).
     ext             = hash                  ; Additional extended information for assets.
 
     ; A list of name/value pairs
