@@ -67,24 +67,13 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     
-    uint64_t timestamp = 0;
-    time_t time_temp = time (NULL);
-    if (time_temp < 0) {
-        zsys_error ("time (NULL) failed (returned -1).");
-        mlm_client_destroy (&producer);
-        zstr_free (&buff);
-        return EXIT_FAILURE;
-    }
-    timestamp = (uint64_t)  time_temp;
-
     zmsg_t *msg = bios_proto_encode_metric (
             NULL,       // aux
             argv[1],    // type
             argv[2],    // element_src                
             argv[3],    // value
             argv[4],    // unit
-            ttl,        // TTL
-            timestamp   // timestamp    
+            ttl         // TTL
             );
     assert (msg);
     zstr_free (&buff);

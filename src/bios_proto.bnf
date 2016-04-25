@@ -4,7 +4,7 @@ The following ABNF grammar defines the Core BIOS protocols:
 
     ;  No description                                                        
 
-    METRIC          = signature %d1 aux type element_src value unit ttl time
+    METRIC          = signature %d1 aux type element_src value unit ttl
     signature       = %xAA %xA1             ; two octets
     aux             = hash                  ; 
     type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
@@ -12,7 +12,6 @@ The following ABNF grammar defines the Core BIOS protocols:
     value           = string                ; Value of metric as plain string
     unit            = string                ; Unit of metric (i.e. C, F or K for temperature)
     ttl             = number-4              ; Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
-    time            = number-8              ; Metric timestamp in seconds
 
     ;  No description                                                        
 
