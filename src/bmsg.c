@@ -175,7 +175,7 @@ int main (int argc, char *argv [])
             puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS);
             puts ("  publish (pub) asset <name> <operation>");
             puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS " (for now without ext attributes)");
-            puts ("  publish (pub) metric <quantity> <element_src> <value> <units> <ttl> <time>");
+            puts ("  publish (pub) metric <quantity> <element_src> <value> <units> <ttl>");
             puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
             return 0;
         }
@@ -366,22 +366,13 @@ int main (int argc, char *argv [])
             if (r < 1)
                 die ("TTL %s is not a number", s_ttl);
 
-            char *s_time = argv[++argn];
-            if (!s_time)
-                die ("missing time", NULL);
-            uint64_t time;
-            r = sscanf (s_time, "%"SCNu64, &time);
-            if (r < 1)
-                die ("time %s is not a number", s_time);
-
             if (verbose) {
-                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, TTL=%" PRIu32", time=%"PRIu64 ,
+                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, TTL=%" PRIu32,
                         quantity,
                         element_src,
                         value,
                         unit,
-                        ttl,
-                        time);
+                        ttl);
             }
 
             char *subject;
@@ -394,8 +385,7 @@ int main (int argc, char *argv [])
                         element_src,
                         value,
                         unit,
-                        ttl,
-                        time);
+                        ttl);
 
             mlm_client_send (client, subject, &msg);
             zstr_free (&subject);

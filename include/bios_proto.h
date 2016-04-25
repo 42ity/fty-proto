@@ -33,14 +33,15 @@
 #ifndef BIOS_PROTO_H_INCLUDED
 #define BIOS_PROTO_H_INCLUDED
 
-/* The software maintains three main types of information divided to three streams
+/*  These are the bios_proto messages:
+
+    METRIC - BIOS core protocols
+
+The software maintains three main types of information divided to three streams
 
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-
-    METRIC - BIOS core protocols
-
         aux                 hash        
         type                string      
         Type of metric send (temperature, humidity, power.load, ...)
@@ -57,12 +58,14 @@
         ttl                 number 4    
         Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
     
-        time                number 8    
-        Metric timestamp in seconds 
-    
 
     ALERT - BIOS core protocols
 
+The software maintains three main types of information divided to three streams
+
+1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+2. Stream: METRICS - dynamic information about metric data coming from varous devices
+3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         rule                string      
         a rule name, that triggers this alert
@@ -88,6 +91,11 @@
 
     ASSET - BIOS core protocols
 
+The software maintains three main types of information divided to three streams
+
+1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+2. Stream: METRICS - dynamic information about metric data coming from varous devices
+3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         name                string      
         Unique name of asset.
@@ -101,9 +109,9 @@
 */
 
 #define BIOS_PROTO_VERSION                  1
-#define BIOS_PROTO_STREAM_METRICS           "METRICS"
-#define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
-#define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
+#define BIOS_PROTO_STREAM_METRICS           "metrics"
+#define BIOS_PROTO_STREAM_ALERTS            "alerts"
+#define BIOS_PROTO_STREAM_ASSETS            "assets"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 #define BIOS_PROTO_ASSET_TYPE               "type"
 #define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
@@ -180,8 +188,7 @@ zmsg_t *
         const char *element_src,
         const char *value,
         const char *unit,
-        uint32_t ttl,
-        uint64_t time);
+        uint32_t ttl);
 
 //  Encode the ALERT
 zmsg_t *
@@ -213,8 +220,7 @@ int
         const char *element_src,
         const char *value,
         const char *unit,
-        uint32_t ttl,
-        uint64_t time);
+        uint32_t ttl);
 
 //  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -313,12 +319,6 @@ uint32_t
 void
     bios_proto_set_ttl (bios_proto_t *self, uint32_t ttl);
 
-//  Get/set the time field
-uint64_t
-    bios_proto_time (bios_proto_t *self);
-void
-    bios_proto_set_time (bios_proto_t *self, uint64_t time);
-
 //  Get/set the rule field
 const char *
     bios_proto_rule (bios_proto_t *self);
@@ -342,6 +342,12 @@ const char *
     bios_proto_description (bios_proto_t *self);
 void
     bios_proto_set_description (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the time field
+uint64_t
+    bios_proto_time (bios_proto_t *self);
+void
+    bios_proto_set_time (bios_proto_t *self, uint64_t time);
 
 //  Get/set the action field
 const char *
