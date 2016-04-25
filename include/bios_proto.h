@@ -33,11 +33,12 @@
 #ifndef BIOS_PROTO_H_INCLUDED
 #define BIOS_PROTO_H_INCLUDED
 
-/* The software maintains three main types of information divided to three streams
+/*  The software maintains three main types of information divided to three streams
 
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
+
 
     METRIC - BIOS core protocols
 
@@ -57,9 +58,6 @@
         ttl                 number 4    
         Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
     
-        time                number 8    
-        Metric timestamp in seconds 
-    
 
     ALERT - BIOS core protocols
 
@@ -75,9 +73,6 @@
     
         severity            string      
         severity of the alert. Possible values are INFO/WARNING/CRITICAL
-    
-        description         string      
-        a description of the alert
     
         description         string      
         a description of the alert
@@ -392,3 +387,9 @@ void
 
 //  For backwards compatibility with old codecs
 #define bios_proto_dump     bios_proto_print
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
