@@ -171,11 +171,11 @@ int main (int argc, char *argv [])
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts ("  publish (pub) type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
-            puts ("  publish (pub) alert rule element_src state severity description time action");
+            puts ("  publish (pub) alert <rule> <element_src> <state> <severity> <description> <time> <action>");
             puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS);
-            puts ("  publish (pub) asset name operation");
+            puts ("  publish (pub) asset <name> <operation>");
             puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS " (for now without ext attributes)");
-            puts ("  publish (pub) metric quantity element_src value units time");
+            puts ("  publish (pub) metric <quantity> <element_src> <value> <units> <ttl> <time>");
             puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
             return 0;
         }
@@ -358,20 +358,29 @@ int main (int argc, char *argv [])
             if (!unit)
                 die ("missing unit", NULL);
 
+            char *s_ttl = argv[++argn];
+            if (!s_ttl)
+                die ("missing TTL", NULL);
+            uint32_t ttl;
+            int r = sscanf (s_ttl, "%"SCNu32, &ttl);
+            if (r < 1)
+                die ("TTL %s is not a number", s_ttl);
+
             char *s_time = argv[++argn];
             if (!s_time)
                 die ("missing time", NULL);
             uint64_t time;
-            int r = sscanf (s_time, "%"SCNu64, &time);
+            r = sscanf (s_time, "%"SCNu64, &time);
             if (r < 1)
                 die ("time %s is not a number", s_time);
 
             if (verbose) {
-                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, time=%"PRIu64 ,
+                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, TTL=%" PRIu32", time=%"PRIu64 ,
                         quantity,
                         element_src,
                         value,
                         unit,
+                        ttl,
                         time);
             }
 
@@ -385,7 +394,9 @@ int main (int argc, char *argv [])
                         element_src,
                         value,
                         unit,
+                        ttl,
                         time);
+
             mlm_client_send (client, subject, &msg);
             zstr_free (&subject);
             // to get all the threads behind enough time to send it

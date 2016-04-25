@@ -33,27 +33,36 @@
 #ifndef BIOS_PROTO_H_INCLUDED
 #define BIOS_PROTO_H_INCLUDED
 
-/*  These are the bios_proto messages:
+/* The software maintains three main types of information divided to three streams
 
-    METRIC - TODO THERE WILL BE SOME DESCRPTION
+1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+2. Stream: METRICS - dynamic information about metric data coming from varous devices
+3. Stream: ALERTS - information about alerts produced for given asset based on metric information
+
+    METRIC - BIOS core protocols
+
         aux                 hash        
         type                string      
         Type of metric send (temperature, humidity, power.load, ...)
     
         element_src         string      
-        Name of source element to which metrics are bind to.
+        Name of source element to which metrics are bound to
     
         value               string      
         Value of metric as plain string
     
         unit                string      
-        Unit of metric (C, F or K for temperature)
+        Unit of metric (i.e. C, F or K for temperature)
+    
+        ttl                 number 4    
+        Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
     
         time                number 8    
-        Metric date/time
+        Metric timestamp in seconds 
     
 
-    ALERT - TODO THERE WILL BE SOME DESCRPTION
+    ALERT - BIOS core protocols
+
         aux                 hash        
         rule                string      
         a rule name, that triggers this alert
@@ -77,7 +86,8 @@
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
     
 
-    ASSET - TODO THERE WILL BE SOME DESCRPTION
+    ASSET - BIOS core protocols
+
         aux                 hash        
         name                string      
         Unique name of asset.
@@ -170,6 +180,7 @@ zmsg_t *
         const char *element_src,
         const char *value,
         const char *unit,
+        uint32_t ttl,
         uint64_t time);
 
 //  Encode the ALERT
@@ -202,6 +213,7 @@ int
         const char *element_src,
         const char *value,
         const char *unit,
+        uint32_t ttl,
         uint64_t time);
 
 //  Send the ALERT to the output in one step
@@ -294,6 +306,12 @@ const char *
     bios_proto_unit (bios_proto_t *self);
 void
     bios_proto_set_unit (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the ttl field
+uint32_t
+    bios_proto_ttl (bios_proto_t *self);
+void
+    bios_proto_set_ttl (bios_proto_t *self, uint32_t ttl);
 
 //  Get/set the time field
 uint64_t
