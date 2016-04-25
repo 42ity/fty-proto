@@ -150,6 +150,76 @@ static void
     zlistx_destroy (&stat_list);
 }
 
+static zhash_t *
+    s_parse_hash (int argc, int argn, char *argv [], zrex_t *prefix)
+{
+    int ret=EXIT_SUCCESS;    // to make die working here
+    zhash_t *hash = zhash_new ();
+
+    for (int i = argn; i != argc; i++)
+    {
+
+        bool has_dot = false;
+        char *dot = strchr (argv [i], '.');
+
+        // skip ext.key=value if there's no prefix
+        if (!prefix && dot != NULL)
+            continue;
+
+        if (prefix && !zrex_matches (prefix, argv [i]))
+            continue;
+
+        char *key = argv [i];
+        char * eq = strchr (key, '=');
+        if (eq == NULL)
+            die ("Failed to parse '%s', missing =", key);
+
+        *eq = '\0';
+        char *value = eq+1;
+
+        if (dot) {
+            *dot = '\0';
+            has_dot = true;
+        }
+
+        zhash_update (hash, key, (void*) value);
+        *eq = '=';
+        if (has_dot)
+            *dot = '.';
+    }
+
+exit:
+    if (ret == EXIT_FAILURE)
+        exit (1);
+    return hash;
+}
+
+static zhash_t *
+    s_parse_aux (int argc, int argn, char *argv [])
+{
+    return s_parse_hash (argc, argn, argv, NULL);
+}
+
+static zhash_t *
+    s_parse_ext (int argc, int argn, char *argv [])
+{
+    zrex_t *prefix = zrex_new ("^ext\\.");
+    assert (zrex_valid (prefix));
+    zhash_t *ext = s_parse_hash (argc, argn, argv, prefix);
+    zrex_destroy (&prefix);
+    return ext;
+}
+
+static void
+    s_print_bmsg (const char *prefix, const char *subject, zmsg_t *msg)
+{
+    zsys_info ("%s, subject=%s", prefix, subject);
+    zmsg_t *msg2 = zmsg_dup (msg);
+    bios_proto_t *bmsg = bios_proto_decode (&msg2);
+    bios_proto_print (bmsg);
+    bios_proto_destroy (&bmsg);
+}
+
 int main (int argc, char *argv [])
 {
     puts ("bmsg - Command line tool to work with bios proto messages");
@@ -177,6 +247,12 @@ int main (int argc, char *argv [])
             puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS " (for now without ext attributes)");
             puts ("  publish (pub) metric <quantity> <element_src> <value> <units> <ttl>");
             puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
+            puts ("");
+            puts ("Auxiliary data and extended attributes for assets:");
+            puts ("  those are recognized on the end of the command line");
+            puts ("  key=value              add additional key and value to aux hash, the last value is used");
+            puts ("  ext.key=value          add additional key and value to ext hash, the last value is used");
+            puts ("                         ignored for non metric");
             return 0;
         }
         else
@@ -191,6 +267,7 @@ int main (int argc, char *argv [])
             endpoint = argv [argn];
             argn ++;
         }
+        else
         if (streq (argv [argn], "--stats")
         ||  streq (argv [argn], "-s"))
             stats = true;
@@ -309,22 +386,14 @@ int main (int argc, char *argv [])
             if (!action)
                 die ("missing action", NULL);
 
-            if (verbose)
-                zsys_info ("publishing alert rule=%s, element_src=%s, state=%s, severity=%s, description=%s, time=%"PRIu64 ", action=%s",
-                        rule,
-                        element_src,
-                        state,
-                        severity,
-                        description,
-                        time,
-                        action);
+            zhash_t *aux = s_parse_aux (argc, argn+1, argv);
 
             char *subject;
             r = asprintf (&subject, "%s@%s", rule, element_src);
             assert (r > 0);
 
             zmsg_t *msg = bios_proto_encode_alert (
-                        NULL,
+                        aux,
                         rule,
                         element_src,
                         state,
@@ -332,7 +401,12 @@ int main (int argc, char *argv [])
                         description,
                         time,
                         action);
+
+            if (verbose)
+                s_print_bmsg ("alert", subject, msg);
+
             mlm_client_send (client, subject, &msg);
+            zhash_destroy (&aux);
             zstr_free (&subject);
             // to get all the threads behind enough time to send it
             zclock_sleep (500);
@@ -366,28 +440,23 @@ int main (int argc, char *argv [])
             if (r < 1)
                 die ("TTL %s is not a number", s_ttl);
 
-            if (verbose) {
-                zsys_info ("publishing metric type=%s, element_src=%s, value=%s, unit=%s, TTL=%" PRIu32,
-                        quantity,
-                        element_src,
-                        value,
-                        unit,
-                        ttl);
-            }
-
             char *subject;
             r = asprintf (&subject, "%s@%s", quantity, element_src);
             assert (r > 0);
 
             zmsg_t *msg = bios_proto_encode_metric (
-                        NULL,
+                        aux,
                         quantity,
                         element_src,
                         value,
                         unit,
                         ttl);
 
+            if (verbose)
+                s_print_bmsg ("metric", subject, msg);
+
             mlm_client_send (client, subject, &msg);
+            zhash_destroy (&aux);
             zstr_free (&subject);
             // to get all the threads behind enough time to send it
             zclock_sleep (500);
@@ -405,22 +474,25 @@ int main (int argc, char *argv [])
             if (!operation)
                 die ("missing operation", NULL);
 
-            if (verbose) {
-                zsys_info ("publishing asset name=%s, operation=%s",
-                        name,
-                        operation);
-            }
+            zhash_t *aux = s_parse_aux (argc, argn+1, argv);
+            zhash_t *ext = s_parse_ext (argc, argn+1, argv);
 
             char *subject;
             r = asprintf (&subject, "%s@%s", operation, name);
             assert (r > 0);
 
             zmsg_t *msg = bios_proto_encode_asset (
-                        NULL,
+                        aux,
                         name,
                         operation,
-                        NULL);
+                        ext);
+
+            if (verbose)
+                s_print_bmsg ("alert", subject, msg);
+
             mlm_client_send (client, subject, &msg);
+            zhash_destroy (&aux);
+            zhash_destroy (&ext);
             zstr_free (&subject);
             // to get all the threads behind enough time to send it
             zclock_sleep (500);
