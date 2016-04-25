@@ -33,15 +33,14 @@
 #ifndef BIOS_PROTO_H_INCLUDED
 #define BIOS_PROTO_H_INCLUDED
 
-/*  These are the bios_proto messages:
-
-    METRIC - BIOS core protocols
-
-The software maintains three main types of information divided to three streams
+/* The software maintains three main types of information divided to three streams
 
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
+
+    METRIC - BIOS core protocols
+
         aux                 hash        
         type                string      
         Type of metric send (temperature, humidity, power.load, ...)
@@ -58,14 +57,12 @@ The software maintains three main types of information divided to three streams
         ttl                 number 4    
         Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
     
+        time                number 8    
+        Metric timestamp in seconds 
+    
 
     ALERT - BIOS core protocols
 
-The software maintains three main types of information divided to three streams
-
-1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
-2. Stream: METRICS - dynamic information about metric data coming from varous devices
-3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         rule                string      
         a rule name, that triggers this alert
@@ -82,6 +79,9 @@ The software maintains three main types of information divided to three streams
         description         string      
         a description of the alert
     
+        description         string      
+        a description of the alert
+    
         time                number 8    
         ALERT date/time
     
@@ -91,11 +91,6 @@ The software maintains three main types of information divided to three streams
 
     ASSET - BIOS core protocols
 
-The software maintains three main types of information divided to three streams
-
-1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
-2. Stream: METRICS - dynamic information about metric data coming from varous devices
-3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         name                string      
         Unique name of asset.
@@ -109,9 +104,9 @@ The software maintains three main types of information divided to three streams
 */
 
 #define BIOS_PROTO_VERSION                  1
-#define BIOS_PROTO_STREAM_METRICS           "metrics"
-#define BIOS_PROTO_STREAM_ALERTS            "alerts"
-#define BIOS_PROTO_STREAM_ASSETS            "assets"
+#define BIOS_PROTO_STREAM_METRICS           "METRICS"
+#define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
+#define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 #define BIOS_PROTO_ASSET_TYPE               "type"
 #define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
@@ -397,9 +392,3 @@ void
 
 //  For backwards compatibility with old codecs
 #define bios_proto_dump     bios_proto_print
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
