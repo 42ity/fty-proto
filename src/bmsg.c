@@ -151,45 +151,28 @@ static void
 }
 
 static zhash_t *
-    s_parse_hash (int argc, int argn, char *argv [], zrex_t *prefix)
+    s_parse_aux (int argc, int argn, char *argv [])
 {
     int ret=EXIT_SUCCESS;    // to make die working here
     zhash_t *hash = zhash_new ();
 
     for (int i = argn; i != argc; i++)
     {
+        char *key = argv [i];
 
-        bool has_dot = false;
-        if (prefix && !zrex_matches (prefix, argv [i]))
+        // skip ext. prefix there!
+        if (strncmp (key, "ext.", 4) == 0)
             continue;
 
-        char *key = argv [i];
         char *eq = strchr (key, '=');
         if (eq == NULL)
             die ("Failed to parse '%s', missing =", key);
 
         *eq = '\0';
         char *value = eq+1;
-
-        char *dot = strchr (key, '.');
-
-        // skip ext.key=value if there's no prefix
-        if (!prefix && dot != NULL) {
-            *eq = '=';
-            continue;
-        }
-
-        if (dot) {
-            *dot = '\0';
-            has_dot = true;
-        }
-
         zhash_update (hash, key, (void*) value);
         *eq = '=';
-        if (has_dot)
-            *dot = '.';
     }
-
 exit:
     if (ret == EXIT_FAILURE)
         exit (1);
@@ -197,19 +180,32 @@ exit:
 }
 
 static zhash_t *
-    s_parse_aux (int argc, int argn, char *argv [])
-{
-    return s_parse_hash (argc, argn, argv, NULL);
-}
-
-static zhash_t *
     s_parse_ext (int argc, int argn, char *argv [])
 {
-    zrex_t *prefix = zrex_new ("^ext\\.");
-    assert (zrex_valid (prefix));
-    zhash_t *ext = s_parse_hash (argc, argn, argv, prefix);
-    zrex_destroy (&prefix);
-    return ext;
+    int ret=EXIT_SUCCESS;    // to make die working here
+    zhash_t *hash = zhash_new ();
+
+    for (int i = argn; i != argc; i++)
+    {
+        char *key = argv [i];
+
+        // use ext. prefix there!
+        if (strncmp (key, "ext.", 4) != 0)
+            continue;
+
+        char *eq = strchr (key, '=');
+        if (eq == NULL)
+            die ("Failed to parse '%s', missing =", key);
+
+        *eq = '\0';
+        char *value = eq+1;
+        zhash_update (hash, key+4, (void*) value);
+        *eq = '=';
+    }
+exit:
+    if (ret == EXIT_FAILURE)
+        exit (1);
+    return hash;
 }
 
 static void
