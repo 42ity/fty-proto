@@ -440,6 +440,8 @@ int main (int argc, char *argv [])
             if (r < 1)
                 die ("TTL %s is not a number", s_ttl);
 
+            zhash_t *aux = s_parse_aux (argc, argn+1, argv);
+
             char *subject;
             r = asprintf (&subject, "%s@%s", quantity, element_src);
             assert (r > 0);
