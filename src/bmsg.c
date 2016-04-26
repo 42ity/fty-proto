@@ -160,22 +160,24 @@ static zhash_t *
     {
 
         bool has_dot = false;
-        char *dot = strchr (argv [i], '.');
-
-        // skip ext.key=value if there's no prefix
-        if (!prefix && dot != NULL)
-            continue;
-
         if (prefix && !zrex_matches (prefix, argv [i]))
             continue;
 
         char *key = argv [i];
-        char * eq = strchr (key, '=');
+        char *eq = strchr (key, '=');
         if (eq == NULL)
             die ("Failed to parse '%s', missing =", key);
 
         *eq = '\0';
         char *value = eq+1;
+
+        char *dot = strchr (key, '.');
+
+        // skip ext.key=value if there's no prefix
+        if (!prefix && dot != NULL) {
+            *eq = '=';
+            continue;
+        }
 
         if (dot) {
             *dot = '\0';
