@@ -218,6 +218,16 @@ static void
     bios_proto_destroy (&bmsg);
 }
 
+#define ACTIVE "ACTIVE"
+#define ACK_WIP "ACK-WIP"
+#define ACK_IGNORE "ACK-IGNORE"
+#define ACK_PAUSE "ACK-PAUSE"
+#define ACK_SILENCE "ACK-SILENCE"
+#define RESOLVED "RESOLVED"
+#define s_CRITICAL "CRITICAL"
+#define s_WARNING "WARNING"
+#define s_INFO "INFO"
+
 int main (int argc, char *argv [])
 {
     puts ("bmsg - Command line tool to work with bios proto messages");
@@ -238,19 +248,33 @@ int main (int argc, char *argv [])
             puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish (pub) type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
-            puts ("  publish (pub) alert <rule> <element_src> <state> <severity> <description> <time> <action>");
+            puts ("  publish type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
+            puts ("  publish alert <rule_name> <element_src> <state> <severity> <description> <time> <action>");
             puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS);
-            puts ("  publish (pub) asset <name> <operation>");
-            puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS " (for now without ext attributes)");
-            puts ("  publish (pub) metric <quantity> <element_src> <value> <units> <ttl>");
+            puts ("                         <state> has possible values " ACTIVE "," ACK_WIP "," ACK_PAUSE "," ACK_IGNORE "," ACK_SILENCE "," RESOLVED);
+            puts ("                         <severity> has possible values " s_CRITICAL "," s_WARNING "," s_INFO);
+            puts ("                         <time> is an UNIX timestamp");
+            puts ("                         <action> has possible values SMS, EMAIL, SMS/EMAIL, EMAIL/SMS");
+            puts ("  publish asset <name> <operation> [auxilary_data see section bellow]");
+            puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS);
+            puts ("                         <operation> has possible values INSERT, UPDATE, DELETE");
+            puts ("                         Auxilary data:");
+            puts ("                             priority=X where X in[1,5]");
+            puts ("  publish metric <quantity> <element_src> <value> <units> <ttl>");
             puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
+            puts ("                         <quantity> a string name for the metric type");
+            puts ("                         <element_src> a string name for asset where metric was detected");
+            puts ("                         <value> a string value of the metric (for now only values convertable to double should be used");
+            puts ("                         <units> a string like %, W, days");
+            puts ("                         <ttl>   a number time to leave [s]");
+            puts ("                         Auxilary data:");
+            puts ("                             time=Y, where Y is an UNIX timestamp when metric was detected");
             puts ("");
-            puts ("Auxiliary data and extended attributes for assets:");
+            puts ("Auxiliary data for all streams and extended attributes for stream ASSETS:");
             puts ("  those are recognized on the end of the command line");
             puts ("  key=value              add additional key and value to aux hash, the last value is used");
             puts ("  ext.key=value          add additional key and value to ext hash, the last value is used");
-            puts ("                         ignored for non metric");
+            puts ("                         ignored for non asset messages");
             return 0;
         }
         else
@@ -317,18 +341,18 @@ int main (int argc, char *argv [])
         if (!argv [argn]) {
             // set all streams
             if (verbose)
-                zsys_info ("set_consumer on " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ASSETS ", " BIOS_PROTO_STREAM_METRICS);
+                zsys_info ("setting consumer on " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ASSETS ", " BIOS_PROTO_STREAM_METRICS);
             r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_METRICS, ".*");
             if (r == -1)
-                die ("set consumer " BIOS_PROTO_STREAM_METRICS " failed", NULL);
+                die ("set consumer on" BIOS_PROTO_STREAM_METRICS " failed", NULL);
 
             r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ASSETS, ".*");
             if (r == -1)
-                die ("set consumer " BIOS_PROTO_STREAM_ASSETS " failed", NULL);
+                die ("set consumer on" BIOS_PROTO_STREAM_ASSETS " failed", NULL);
 
             r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ALERTS, ".*");
             if (r == -1)
-                die ("set consumer " BIOS_PROTO_STREAM_ALERTS " failed", NULL);
+                die ("set consumer on" BIOS_PROTO_STREAM_ALERTS " failed", NULL);
         }
 
         while (argv [argn]) {
@@ -339,10 +363,10 @@ int main (int argc, char *argv [])
             argn ++;
 
             if (verbose)
-                zsys_info ("set_consumer (%s, %s)", stream, pattern);
+                zsys_info ("set consumer (%s, %s)", stream, pattern);
             r = mlm_client_set_consumer (client, stream, pattern);
             if (r == -1)
-                die ("set consumer %s %s failed", stream, pattern);
+                die ("set consumer (%s, %s) failed", stream, pattern);
         }
         s_do_monitor (client, stats);
     }
