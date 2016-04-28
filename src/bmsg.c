@@ -94,25 +94,31 @@ static void
     zlistx_t *stat_list = zlistx_new ();
     zlistx_set_destructor (stat_list, s_number_destructor);
     size_t cnt = 0;
+    int64_t interval = STAT_INTERVAL;
     int64_t start = zclock_mono ();
     zpoller_t *poller = zpoller_new (mlm_client_msgpipe (client), NULL);
 
     while (!zsys_interrupted) {
 
-        int64_t interval = STAT_INTERVAL - (zclock_mono () - start);
+        if (stats)
+        {
+            interval = STAT_INTERVAL - (zclock_mono () - start);
 
-        if (interval > 100)
-            zpoller_wait (poller, interval);
+            if (interval > 100)
+                zpoller_wait (poller, interval);
 
-        if (zsys_interrupted || zpoller_terminated (poller))
-            break;
+            if (zsys_interrupted || zpoller_terminated (poller))
+                break;
 
-        if (interval < 100 || zpoller_expired (poller)) {
-            s_add_cnt (stat_list, cnt);
-            cnt = 0;
-            start = zclock_mono ();
-            continue;
+            if (interval < 100 || zpoller_expired (poller)) {
+                s_add_cnt (stat_list, cnt);
+                cnt = 0;
+                start = zclock_mono ();
+                continue;
+            }
         }
+        else
+            zpoller_wait (poller, -1);
 
         // it's unlikelly someone is going to send messages to bmsg mailbox, so counter is not increased here
         // ... but it's fine to cleanup the broker too
