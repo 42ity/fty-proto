@@ -123,6 +123,10 @@ static void
         // it's unlikelly someone is going to send messages to bmsg mailbox, so counter is not increased here
         // ... but it's fine to cleanup the broker too
         zmsg_t *msg = mlm_client_recv (client);
+
+        if (!msg)
+            break;
+
         if (!streq (mlm_client_command (client), "STREAM DELIVER")) {
             zmsg_destroy (&msg);
             continue;
