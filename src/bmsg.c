@@ -47,7 +47,7 @@ s_number_destructor (void ** item_p)
 static void
 s_add_cnt (zlistx_t *stat_list, size_t cnt)
 {
-    fprintf (stderr, "got [%zu] messages\n", cnt);
+    zsys_info ("got [%zu] messages in 10 seconds", cnt);
     size_t *item_p = (size_t*) zmalloc (sizeof (size_t));
     *item_p = cnt;
     zlistx_add_end (stat_list, (void*) item_p);
@@ -79,7 +79,7 @@ s_print_stats (zlistx_t *stat_list)
     else
         min = 0;
 
-    fprintf (stderr, "interval/count/min/avg/max = %"PRIi64 " ms/%zu/%zu/%.3f/%zu\n",
+    zsys_info ("interval/count/min/avg/max = %"PRIi64 " ms/%zu/%zu/%.3f/%zu",
             STAT_INTERVAL,
             zlistx_size (stat_list),
             min,
