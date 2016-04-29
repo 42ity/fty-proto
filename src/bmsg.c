@@ -118,7 +118,7 @@ static void
             }
         }
         else
-            zpoller_wait (poller, -1);
+            zpoller_wait (poller, 0);
 
         // it's unlikelly someone is going to send messages to bmsg mailbox, so counter is not increased here
         // ... but it's fine to cleanup the broker too
