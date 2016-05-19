@@ -267,7 +267,7 @@ int main (int argc, char *argv [])
             puts ("                         <action> has possible values SMS, EMAIL, SMS/EMAIL, EMAIL/SMS");
             puts ("  publish asset <name> <operation> [auxilary_data see section bellow]");
             puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS);
-            puts ("                         <operation> has possible values INSERT, UPDATE, DELETE");
+            puts ("                         <operation> has possible values create, update, delete, inventory");
             puts ("                         Auxilary data:");
             puts ("                             priority=X where X in[1,5]");
             puts ("  publish metric <quantity> <element_src> <value> <units> <ttl>");
