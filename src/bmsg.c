@@ -258,9 +258,9 @@ int main (int argc, char *argv [])
             puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_METRICS ")");
-            puts ("  publish alert <rule_name> <element_src> <state> <severity> <description> <time> <action>");
-            puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS);
+            puts ("  publish type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS_SYS ", " BIOS_PROTO_STREAM_METRICS ", " BIOS_PROTO_STREAM_ASSETS ")");
+            puts ("  publish (alert|slertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
+            puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS " or " BIOS_PROTO_STREAM_ALERTS_SYS);
             puts ("                         <state> has possible values " ACTIVE "," ACK_WIP "," ACK_PAUSE "," ACK_IGNORE "," ACK_SILENCE "," RESOLVED);
             puts ("                         <severity> has possible values " s_CRITICAL "," s_WARNING "," s_INFO);
             puts ("                         <time> is an UNIX timestamp");
@@ -382,10 +382,12 @@ int main (int argc, char *argv [])
     }
     else
     if (streq (bmsg_command, "publish")) {
-        if (streq (argv[argn], "alert")) {
-
-            mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS);
-
+        if (streq (argv[argn], "alert")  || streq (argv[argn], "alertsys")) {
+            if (streq (argv[argn], "alert")) {
+                mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS);
+            } else {
+                mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS_SYS);
+            }
             char *rule = argv[++argn];
             if (!rule)
                 die ("missing rule", NULL);
