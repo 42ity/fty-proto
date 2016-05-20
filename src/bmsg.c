@@ -294,9 +294,10 @@ int main (int argc, char *argv [])
         else
         if (streq (argv [argn], "--endpoint")
         ||  streq (argv [argn], "-e")) {
-            if (argn == argc -1)
+            if (argn + 1 == argc)
                 die ("value after --endpoint / -e expected", "");
-            endpoint = argv [argn];
+            endpoint = argv [argn+1];
+            zsys_debug ("cli specified endpoint: %s", endpoint);
             argn ++;
         }
         else
