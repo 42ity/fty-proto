@@ -265,6 +265,7 @@ int main (int argc, char *argv [])
             puts ("                         <severity> has possible values " s_CRITICAL "," s_WARNING "," s_INFO);
             puts ("                         <time> is an UNIX timestamp");
             puts ("                         <action> has possible values SMS, EMAIL, SMS/EMAIL, EMAIL/SMS");
+            puts ("                         Note: Publishing on " BIOS_PROTO_STREAM_ALERTS_SYS " has some restrictions - only ACTIVE/RESOLVED alerts.");
             puts ("  publish asset <name> <operation> [auxilary_data see section bellow]");
             puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS);
             puts ("                         <operation> has possible values create, update, delete, inventory");
@@ -400,6 +401,9 @@ int main (int argc, char *argv [])
             char *state = argv[++argn];
             if (!state)
                 die ("missing state", NULL);
+            if (streq (argv[argn], "alertsys") &&
+                (!streq (state, "ACTIVE") && !streq (state, "RESOLVED")))
+                die ("restrictions not met for alertsys: only ACTIVE/RESOLVED", "NULL");
 
             char *severity = argv[++argn];
             if (!severity)
