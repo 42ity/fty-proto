@@ -84,7 +84,7 @@ struct _bios_proto_t {
 
 //  Put a 1-byte number to the frame
 #define PUT_NUMBER1(host) { \
-    *(byte *) self->needle = (byte) (host); \
+    *(byte *) self->needle = (host); \
     self->needle++; \
 }
 
