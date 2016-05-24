@@ -33,15 +33,15 @@
 #ifndef BIOS_PROTO_H_INCLUDED
 #define BIOS_PROTO_H_INCLUDED
 
-/*  The software maintains three main types of information divided to three streams
+/*  These are the bios_proto messages:
+
+    METRIC - BIOS core protocols
+
+The software maintains three main types of information divided to three streams
 
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-
-
-    METRIC - BIOS core protocols
-
         aux                 hash        
         type                string      
         Type of metric send (temperature, humidity, power.load, ...)
@@ -61,6 +61,11 @@
 
     ALERT - BIOS core protocols
 
+The software maintains three main types of information divided to three streams
+
+1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+2. Stream: METRICS - dynamic information about metric data coming from varous devices
+3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         rule                string      
         a rule name, that triggers this alert
@@ -86,6 +91,11 @@
 
     ASSET - BIOS core protocols
 
+The software maintains three main types of information divided to three streams
+
+1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+2. Stream: METRICS - dynamic information about metric data coming from varous devices
+3. Stream: ALERTS - information about alerts produced for given asset based on metric information
         aux                 hash        
         name                string      
         Unique name of asset.
@@ -101,14 +111,15 @@
 #define BIOS_PROTO_VERSION                  1
 #define BIOS_PROTO_STREAM_METRICS           "METRICS"
 #define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
-#define BIOS_PROTO_STREAM_ALERTS_SYS        "_ALERTS_SYS"
 #define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
+#define BIOS_PROTO_STREAM_ALERTS_SYS        "_ALERTS_SYS"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 #define BIOS_PROTO_ASSET_TYPE               "type"
 #define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
 #define BIOS_PROTO_ASSET_STATUS             "status"
 #define BIOS_PROTO_ASSET_PRIORITY           "priority"
 #define BIOS_PROTO_ASSET_PARENT             "parent"
+#define BIOS_PROTO_RULE_CLASS               "rule_class"
 
 #define BIOS_PROTO_METRIC                   1
 #define BIOS_PROTO_ALERT                    2
