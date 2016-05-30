@@ -34,6 +34,7 @@
 <define name = "ASSET_OP_CREATE"        value = "&quot;create&quot;" />
 <define name = "ASSET_OP_UPDATE"        value = "&quot;update&quot;" />
 <define name = "ASSET_OP_DELETE"        value = "&quot;delete&quot;" />
+<define name = "ASSET_OP_RETIRE"        value = "&quot;retire&quot;" />
 <define name = "ASSET_OP_INVENTORY"     value = "&quot;inventory&quot;" />
 
 <define name = "RULE_CLASS" value = "&quot;rule_class&quot;" >

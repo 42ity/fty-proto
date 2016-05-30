@@ -122,6 +122,7 @@ The software maintains three main types of information divided to three streams
 #define BIOS_PROTO_ASSET_OP_CREATE          "create"
 #define BIOS_PROTO_ASSET_OP_UPDATE          "update"
 #define BIOS_PROTO_ASSET_OP_DELETE          "delete"
+#define BIOS_PROTO_ASSET_OP_RETIRE          "retire"
 #define BIOS_PROTO_ASSET_OP_INVENTORY       "inventory"
 #define BIOS_PROTO_RULE_CLASS               "rule_class"
 
