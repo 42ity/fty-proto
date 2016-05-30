@@ -31,6 +31,11 @@
 <define name = "ASSET_PRIORITY" value = "&quot;priority&quot;" />
 <define name = "ASSET_PARENT" value = "&quot;parent&quot;" />
 
+<define name = "ASSET_OP_CREATE"        value = "&quot;create&quot;" />
+<define name = "ASSET_OP_UPDATE"        value = "&quot;update&quot;" />
+<define name = "ASSET_OP_DELETE"        value = "&quot;delete&quot;" />
+<define name = "ASSET_OP_INVENTORY"     value = "&quot;inventory&quot;" />
+
 <define name = "RULE_CLASS" value = "&quot;rule_class&quot;" >
     Name of aux hash key to get a rule class. Usage
         bios_proto_aux_string (msg, BIOS_PROTO_RULE_CLASS, "");
