@@ -113,6 +113,7 @@ The software maintains three main types of information divided to three streams
 #define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
 #define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
 #define BIOS_PROTO_STREAM_ALERTS_SYS        "_ALERTS_SYS"
+#define BIOS_PROTO_STREAM_METRICS_SENSOR    "_METRICS_SENSOR"
 #define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
 #define BIOS_PROTO_ASSET_TYPE               "type"
 #define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
