@@ -18,10 +18,11 @@
 
 <define name = "VERSION" value = "1" />
 
-<define name = "STREAM_METRICS" value = "&quot;METRICS&quot;" />
-<define name = "STREAM_ALERTS" value = "&quot;ALERTS&quot;" />
-<define name = "STREAM_ASSETS" value = "&quot;ASSETS&quot;" />
-<define name = "STREAM_ALERTS_SYS" value = "&quot;_ALERTS_SYS&quot;" />
+<define name = "STREAM_METRICS"         value = "&quot;METRICS&quot;" />
+<define name = "STREAM_ALERTS"          value = "&quot;ALERTS&quot;" />
+<define name = "STREAM_ASSETS"          value = "&quot;ASSETS&quot;" />
+<define name = "STREAM_ALERTS_SYS"      value = "&quot;_ALERTS_SYS&quot;" />
+<define name = "STREAM_METRICS_SENSOR"  value = "&quot;_METRICS_SENSOR&quot;" />
 
 <define name = "METRIC_ELEMENT_DEST" value = "&quot;element-dest&quot;" />
 
