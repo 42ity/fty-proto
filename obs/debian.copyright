@@ -1,44 +1,23 @@
-This package was debianized by Michal Vyskocil <MichalVyskocil@Eaton.com> on
-Tue Nov 10 2015 11:31:25 +0100
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libbiosproto
 
-Upstream Authors:
-
-  Alena Chernikava <AlenaChernikava@Eaton.com>
-  Tomas Halman <TomasHalman@Eaton.com>
-  Karol Hrdina <KarolHrdina@Eaton.com>
-  Michal Hrusecky <MichalHrusecky@Eaton.com>
-  Michal Vyskocil <MichalVyskocil@Eaton.com>
-
-Copyright:
-
-  Copyright (C) 2015 Eaton
-
-Licenses:
-
-  Most files are licensed under the GNU General Public License (GPL) version 2,
-  or (at your option) any later version.
-
-  GPL-2
-  -----
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-  On Debian systems, the full text of the GNU General Public License v2
-  may be found in /usr/share/common-licenses/GPL-2.
-
-
-The Debian packaging is Copyright (C) 2015 Eaton,
-and is licensed under the GNU General Public License (GPL) version 2,
-or (at your option) any later version, see `/usr/share/common-licenses/GPL-2'.
+Files: *
+Copyright: Copyright 2015, 2016 Eaton
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.       
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.
