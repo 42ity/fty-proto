@@ -279,8 +279,8 @@ int main (int argc, char *argv [])
             puts ("                             priority=X where X in[1,5]");
             puts ("  publish metric_unavailable <metric topic>");
             puts ("                         publish information on stream " BIOS_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
-            puts ("  publish metric <quantity> <element_src> <value> <units> <ttl>");
-            puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS);
+            puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl>");
+            puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS " or " BIOS_PROTO_STREAM_METRICS_SENSOR);
             puts ("                         <quantity> a string name for the metric type");
             puts ("                         <element_src> a string name for asset where metric was detected");
             puts ("                         <value> a string value of the metric (for now only values convertable to double should be used");
@@ -459,10 +459,12 @@ int main (int argc, char *argv [])
             zclock_sleep (500);
         }
         else
-        if (streq (argv[argn], "metric")) {
-
-            mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS);
-
+        if (streq (argv[argn], "metric") || streq (argv[argn], "metricsensor") ) {
+            if (streq (argv[argn], "metric")) {
+                mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS);
+            } else {
+                mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS_SENSOR);
+            }           
             char *quantity = argv[++argn];
             if (!quantity)
                 die ("missing quantity", NULL);
