@@ -142,12 +142,18 @@ static void
 
             puts ("--------------------------------------------------------------------------------");
             printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
-            bios_proto_t *bmsg = bios_proto_decode (&msg);
-            if (!bmsg)
-                printf ("  (cannot decode bios_proto message)\n");
-            else
-                bios_proto_print (bmsg);
-            bios_proto_destroy (&bmsg);
+            if ( is_bios_proto (msg) ) {
+                bios_proto_t *bmsg = bios_proto_decode (&msg);
+                if (!bmsg)
+                    printf ("  (cannot decode bios_proto message)\n");
+                else
+                    bios_proto_print (bmsg);
+                bios_proto_destroy (&bmsg);
+            }
+            else {
+                zmsg_print (msg);
+                zmsg_destroy (&msg);
+            }
 
             puts ("--------------------------------------------------------------------------------");
         }
@@ -271,6 +277,8 @@ int main (int argc, char *argv [])
             puts ("                         <operation> has possible values create, update, delete, inventory");
             puts ("                         Auxilary data:");
             puts ("                             priority=X where X in[1,5]");
+            puts ("  publish metric_unavailable <metric topic>");
+            puts ("                         publish information on stream " BIOS_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
             puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl>");
             puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS " or " BIOS_PROTO_STREAM_METRICS_SENSOR);
             puts ("                         <quantity> a string name for the metric type");
@@ -537,6 +545,26 @@ int main (int argc, char *argv [])
             zhash_destroy (&aux);
             zhash_destroy (&ext);
             zstr_free (&subject);
+            // to get all the threads behind enough time to send it
+            zclock_sleep (500);
+        }
+        else
+        if (streq (argv[argn], "metric_unavailable")) {
+
+            mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS_UNAVAILABLE);
+
+            char *metric_topic = argv[++argn];
+            if (!metric_topic)
+                die ("missing metric_topic", NULL);
+
+            zmsg_t *msg = zmsg_new();
+            zmsg_addstr (msg, "METRIC_UNAVAILABLE");
+            zmsg_addstr (msg, metric_topic);
+
+            if (verbose)
+                zmsg_print (msg);
+
+            mlm_client_send (client, metric_topic, &msg);
             // to get all the threads behind enough time to send it
             zclock_sleep (500);
         }
