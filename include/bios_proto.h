@@ -12,21 +12,21 @@
      * The XML model used for this code generation: bios_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2015 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2015 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -42,22 +42,22 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
-        type                string      
+        aux                 hash
+        type                string
         Type of metric send (temperature, humidity, power.load, ...)
-    
-        element_src         string      
+
+        element_src         string
         Name of source element to which metrics are bound to
-    
-        value               string      
+
+        value               string
         Value of metric as plain string
-    
-        unit                string      
+
+        unit                string
         Unit of metric (i.e. C, F or K for temperature)
-    
-        ttl                 number 4    
+
+        ttl                 number 4
         Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
-    
+
 
     ALERT - BIOS core protocols
 
@@ -66,28 +66,28 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
-        rule                string      
+        aux                 hash
+        rule                string
         a rule name, that triggers this alert
-    
-        element_src         string      
+
+        element_src         string
         name of the element, where alert was detected. Most of the time is would be asset element name
-    
-        state               string      
+
+        state               string
         state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
-    
-        severity            string      
+
+        severity            string
         severity of the alert. Possible values are INFO/WARNING/CRITICAL
-    
-        description         string      
+
+        description         string
         a description of the alert
-    
-        time                number 8    
+
+        time                number 8
         ALERT date/time
-    
-        action              string      
+
+        action              string
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
-    
+
 
     ASSET - BIOS core protocols
 
@@ -96,16 +96,16 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
-        name                string      
+        aux                 hash
+        name                string
         Unique name of asset.
-    
-        operation           string      
+
+        operation           string
         What have hapened with asset (create|update|delete|inventory).
-    
-        ext                 hash        
+
+        ext                 hash
         Additional extended information for assets.
-    
+
 */
 
 #define BIOS_PROTO_VERSION                  1

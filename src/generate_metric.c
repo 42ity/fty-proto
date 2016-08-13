@@ -66,11 +66,11 @@ int main(int argc, char** argv) {
         zstr_free (&buff);
         return EXIT_FAILURE;
     }
-    
+
     zmsg_t *msg = bios_proto_encode_metric (
             NULL,       // aux
             argv[1],    // type
-            argv[2],    // element_src                
+            argv[2],    // element_src
             argv[3],    // value
             argv[4],    // unit
             ttl         // TTL
