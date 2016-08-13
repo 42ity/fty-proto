@@ -1,0 +1,364 @@
+bios_proto(3)
+=============
+
+NAME
+----
+bios_proto - Core BIOS protocols
+
+SYNOPSIS
+--------
+----
+//  Create a new bios_proto
+bios_proto_t *
+    bios_proto_new (int id);
+
+//  Destroy the bios_proto
+void
+    bios_proto_destroy (bios_proto_t **self_p);
+
+//  Parse a zmsg_t and decides whether it is bios_proto. Returns
+//  true if it is, false otherwise. Doesn't destroy or modify the
+//  original message.
+bool
+    is_bios_proto (zmsg_t *msg_p);
+
+//  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
+//  the message could not be parsed, or was NULL. Destroys msg and
+//  nullifies the msg reference.
+bios_proto_t *
+    bios_proto_decode (zmsg_t **msg_p);
+
+//  Encode bios_proto into zmsg and destroy it. Returns a newly created
+//  object or NULL if error. Use when not in control of sending the message.
+zmsg_t *
+    bios_proto_encode (bios_proto_t **self_p);
+
+//  Receive and parse a bios_proto from the socket. Returns new object,
+//  or NULL if error. Will block if there's no message waiting.
+bios_proto_t *
+    bios_proto_recv (void *input);
+
+//  Receive and parse a bios_proto from the socket. Returns new object,
+//  or NULL either if there was no input waiting, or the recv was interrupted.
+bios_proto_t *
+    bios_proto_recv_nowait (void *input);
+
+//  Send the bios_proto to the output, and destroy it
+int
+    bios_proto_send (bios_proto_t **self_p, void *output);
+
+//  Send the bios_proto to the output, and do not destroy it
+int
+    bios_proto_send_again (bios_proto_t *self, void *output);
+
+//  Encode the METRIC
+zmsg_t *
+    bios_proto_encode_metric (
+        zhash_t *aux,
+        const char *type,
+        const char *element_src,
+        const char *value,
+        const char *unit,
+        uint64_t time);
+
+//  Encode the ALERT
+zmsg_t *
+    bios_proto_encode_alert (
+        zhash_t *aux,
+        const char *rule,
+        const char *element_src,
+        const char *state,
+        const char *severity,
+        const char *description,
+        uint64_t time,
+        const char *action);
+
+//  Encode the DATA
+zmsg_t *
+    bios_proto_encode_data (
+        zhash_t *aux,
+        const char *type,
+        const char *key,
+        const char *value);
+
+
+//  Send the METRIC to the output in one step
+//  WARNING, this call will fail if output is of type ZMQ_ROUTER.
+int
+    bios_proto_send_metric (void *output,
+        zhash_t *aux,
+        const char *type,
+        const char *element_src,
+        const char *value,
+        const char *unit,
+        uint64_t time);
+
+//  Send the ALERT to the output in one step
+//  WARNING, this call will fail if output is of type ZMQ_ROUTER.
+int
+    bios_proto_send_alert (void *output,
+        zhash_t *aux,
+        const char *rule,
+        const char *element_src,
+        const char *state,
+        const char *severity,
+        const char *description,
+        uint64_t time,
+        const char *action);
+
+//  Send the DATA to the output in one step
+//  WARNING, this call will fail if output is of type ZMQ_ROUTER.
+int
+    bios_proto_send_data (void *output,
+        zhash_t *aux,
+        const char *type,
+        const char *key,
+        const char *value);
+
+//  Duplicate the bios_proto message
+bios_proto_t *
+    bios_proto_dup (bios_proto_t *self);
+
+//  Print contents of message to stdout
+void
+    bios_proto_print (bios_proto_t *self);
+
+//  Get/set the message routing id
+zframe_t *
+    bios_proto_routing_id (bios_proto_t *self);
+void
+    bios_proto_set_routing_id (bios_proto_t *self, zframe_t *routing_id);
+
+//  Get the bios_proto id and printable command
+int
+    bios_proto_id (bios_proto_t *self);
+void
+    bios_proto_set_id (bios_proto_t *self, int id);
+const char *
+    bios_proto_command (bios_proto_t *self);
+
+//  Get/set the aux field
+zhash_t *
+    bios_proto_aux (bios_proto_t *self);
+//  Get the aux field and transfer ownership to caller
+zhash_t *
+    bios_proto_get_aux (bios_proto_t *self);
+//  Set the aux field, transferring ownership from caller
+void
+    bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p);
+
+//  Get/set a value in the aux dictionary
+const char *
+    bios_proto_aux_string (bios_proto_t *self,
+        const char *key, const char *default_value);
+uint64_t
+    bios_proto_aux_number (bios_proto_t *self,
+        const char *key, uint64_t default_value);
+void
+    bios_proto_aux_insert (bios_proto_t *self,
+        const char *key, const char *format, ...);
+size_t
+    bios_proto_aux_size (bios_proto_t *self);
+
+//  Get/set the type field
+const char *
+    bios_proto_type (bios_proto_t *self);
+void
+    bios_proto_set_type (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the element_src field
+const char *
+    bios_proto_element_src (bios_proto_t *self);
+void
+    bios_proto_set_element_src (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the value field
+const char *
+    bios_proto_value (bios_proto_t *self);
+void
+    bios_proto_set_value (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the unit field
+const char *
+    bios_proto_unit (bios_proto_t *self);
+void
+    bios_proto_set_unit (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the time field
+uint64_t
+    bios_proto_time (bios_proto_t *self);
+void
+    bios_proto_set_time (bios_proto_t *self, uint64_t time);
+
+//  Get/set the rule field
+const char *
+    bios_proto_rule (bios_proto_t *self);
+void
+    bios_proto_set_rule (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the state field
+const char *
+    bios_proto_state (bios_proto_t *self);
+void
+    bios_proto_set_state (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the severity field
+const char *
+    bios_proto_severity (bios_proto_t *self);
+void
+    bios_proto_set_severity (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the description field
+const char *
+    bios_proto_description (bios_proto_t *self);
+void
+    bios_proto_set_description (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the action field
+const char *
+    bios_proto_action (bios_proto_t *self);
+void
+    bios_proto_set_action (bios_proto_t *self, const char *format, ...);
+
+//  Get/set the key field
+const char *
+    bios_proto_key (bios_proto_t *self);
+void
+    bios_proto_set_key (bios_proto_t *self, const char *format, ...);
+
+//  Self test of this class
+int
+    bios_proto_test (bool verbose);
+----
+
+DESCRIPTION
+-----------
+
+bios_proto - Core BIOS protocols
+
+Please add @discuss section in ../src/bios_proto.c.
+
+EXAMPLE
+-------
+.From bios_proto_test method
+----
+//  Simple create/destroy test
+bios_proto_t *self = bios_proto_new (0);
+assert (self);
+bios_proto_destroy (&self);
+
+//  Create pair of sockets we can send through
+zsock_t *input = zsock_new (ZMQ_ROUTER);
+assert (input);
+zsock_connect (input, "inproc://selftest-bios_proto");
+
+zsock_t *output = zsock_new (ZMQ_DEALER);
+assert (output);
+zsock_bind (output, "inproc://selftest-bios_proto");
+
+//  Encode/send/decode and verify each message type
+int instance;
+bios_proto_t *copy;
+self = bios_proto_new (BIOS_PROTO_METRIC);
+
+//  Check that _dup works on empty message
+copy = bios_proto_dup (self);
+assert (copy);
+bios_proto_destroy (&copy);
+
+bios_proto_aux_insert (self, "Name", "Brutus");
+bios_proto_aux_insert (self, "Age", "%d", 43);
+bios_proto_set_type (self, "Life is short but Now lasts for ever");
+bios_proto_set_element_src (self, "Life is short but Now lasts for ever");
+bios_proto_set_value (self, "Life is short but Now lasts for ever");
+bios_proto_set_unit (self, "Life is short but Now lasts for ever");
+bios_proto_set_time (self, 123);
+//  Send twice from same object
+bios_proto_send_again (self, output);
+bios_proto_send (&self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    self = bios_proto_recv (input);
+    assert (self);
+    assert (bios_proto_routing_id (self));
+
+    assert (bios_proto_aux_size (self) == 2);
+    assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
+    assert (bios_proto_aux_number (self, "Age", 0) == 43);
+    assert (streq (bios_proto_type (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_element_src (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_unit (self), "Life is short but Now lasts for ever"));
+    assert (bios_proto_time (self) == 123);
+    bios_proto_destroy (&self);
+}
+self = bios_proto_new (BIOS_PROTO_ALERT);
+
+//  Check that _dup works on empty message
+copy = bios_proto_dup (self);
+assert (copy);
+bios_proto_destroy (&copy);
+
+bios_proto_aux_insert (self, "Name", "Brutus");
+bios_proto_aux_insert (self, "Age", "%d", 43);
+bios_proto_set_rule (self, "Life is short but Now lasts for ever");
+bios_proto_set_element_src (self, "Life is short but Now lasts for ever");
+bios_proto_set_state (self, "Life is short but Now lasts for ever");
+bios_proto_set_severity (self, "Life is short but Now lasts for ever");
+bios_proto_set_description (self, "Life is short but Now lasts for ever");
+bios_proto_set_time (self, 123);
+bios_proto_set_action (self, "Life is short but Now lasts for ever");
+//  Send twice from same object
+bios_proto_send_again (self, output);
+bios_proto_send (&self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    self = bios_proto_recv (input);
+    assert (self);
+    assert (bios_proto_routing_id (self));
+
+    assert (bios_proto_aux_size (self) == 2);
+    assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
+    assert (bios_proto_aux_number (self, "Age", 0) == 43);
+    assert (streq (bios_proto_rule (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_element_src (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_state (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_severity (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_description (self), "Life is short but Now lasts for ever"));
+    assert (bios_proto_time (self) == 123);
+    assert (streq (bios_proto_action (self), "Life is short but Now lasts for ever"));
+    bios_proto_destroy (&self);
+}
+self = bios_proto_new (BIOS_PROTO_DATA);
+
+//  Check that _dup works on empty message
+copy = bios_proto_dup (self);
+assert (copy);
+bios_proto_destroy (&copy);
+
+bios_proto_aux_insert (self, "Name", "Brutus");
+bios_proto_aux_insert (self, "Age", "%d", 43);
+bios_proto_set_type (self, "Life is short but Now lasts for ever");
+bios_proto_set_key (self, "Life is short but Now lasts for ever");
+bios_proto_set_value (self, "Life is short but Now lasts for ever");
+//  Send twice from same object
+bios_proto_send_again (self, output);
+bios_proto_send (&self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    self = bios_proto_recv (input);
+    assert (self);
+    assert (bios_proto_routing_id (self));
+
+    assert (bios_proto_aux_size (self) == 2);
+    assert (streq (bios_proto_aux_string (self, "Name", "?"), "Brutus"));
+    assert (bios_proto_aux_number (self, "Age", 0) == 43);
+    assert (streq (bios_proto_type (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_key (self), "Life is short but Now lasts for ever"));
+    assert (streq (bios_proto_value (self), "Life is short but Now lasts for ever"));
+    bios_proto_destroy (&self);
+}
+
+zsock_destroy (&input);
+zsock_destroy (&output);
+----
