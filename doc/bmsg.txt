@@ -1,0 +1,26 @@
+bmsg(1)
+=======
+
+NAME
+----
+bmsg - Command line tool to work with bios proto messages
+
+SYNOPSIS
+--------
+----
+Please add @interface section in ../src/bmsg.c.
+----
+
+DESCRIPTION
+-----------
+
+bmsg - Command line tool to work with bios proto messages
+
+Please add @discuss section in ../src/bmsg.c.
+
+EXAMPLE
+-------
+.From bmsg_test method
+----
+Please add @selftest section in ../src/bmsg.c.
+----

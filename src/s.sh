@@ -23,7 +23,7 @@
 #  \author  Michal Hrusecky <MichalHrusecky@Eaton.com>
 #  \author  Chernikava, Alena <AlenaChernikava@Eaton.com>
 #  \details Not yet documented file
-# 
+#
 
 die () {
     echo "${@}" >&2
