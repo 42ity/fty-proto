@@ -539,7 +539,7 @@ int main (int argc, char *argv [])
                         ext);
 
             if (verbose)
-                s_print_bmsg ("alert", subject, msg);
+                s_print_bmsg ("asset", subject, msg);
 
             mlm_client_send (client, subject, &msg);
             zhash_destroy (&aux);
