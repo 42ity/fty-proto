@@ -108,7 +108,6 @@ The software maintains three main types of information divided to three streams
     
 */
 
-#define FTY_PROTO_VERSION                   1
 #define FTY_PROTO_STREAM_METRICS            "METRICS"
 #define FTY_PROTO_STREAM_ALERTS             "ALERTS"
 #define FTY_PROTO_STREAM_ASSETS             "ASSETS"

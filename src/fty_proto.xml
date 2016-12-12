@@ -16,8 +16,6 @@
 
 <include filename = "../license.xml" />
 
-<define name = "VERSION" value = "1" />
-
 <define name = "STREAM_METRICS"         value = "&quot;METRICS&quot;" />
 <define name = "STREAM_ALERTS"          value = "&quot;ALERTS&quot;" />
 <define name = "STREAM_ASSETS"          value = "&quot;ASSETS&quot;" />

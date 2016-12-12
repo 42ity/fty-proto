@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+fty-proto - Core protocols for 42ity project
+
+
+SYNOPSIS
+--------
+----
+#include <fty_proto.h>
+
+cc ['flags'] 'files' -lfty_proto ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

@@ -23,7 +23,7 @@
 #define FTYPROTO_H_INCLUDED
 
 //  Include the project library file
-#include "ftyproto_library.h"
+#include "fty_proto_library.h"
 
 //  Add your own public definitions here, if you need them
 

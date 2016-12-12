@@ -1,5 +1,5 @@
 /*  =========================================================================
-    ftyproto_selftest.c - run selftests
+    fty_proto_selftest.c - run selftests
 
     Runs all selftests.
 
@@ -27,7 +27,7 @@
     =========================================================================
 */
 
-#include "ftyproto_classes.h"
+#include "fty_proto_classes.h"
 
 typedef struct {
     const char *testname;
@@ -64,7 +64,7 @@ static void
 test_runall (bool verbose)
 {
     test_item_t *item;
-    printf ("Running ftyproto selftests...\n");
+    printf ("Running fty-proto selftests...\n");
     for (item = all_tests; item->test; item++)
         item->test (verbose);
 
@@ -80,7 +80,7 @@ main (int argc, char **argv)
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
-            puts ("ftyproto_selftest.c [options] ...");
+            puts ("fty_proto_selftest.c [options] ...");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --number / -n          report number of tests");
             puts ("  --list / -l            list all tests");
@@ -133,7 +133,7 @@ main (int argc, char **argv)
         }
     }
     if (test) {
-        printf ("Running ftyproto test '%s'...\n", test->testname);
+        printf ("Running fty-proto test '%s'...\n", test->testname);
         test->test (verbose);
     }
     else

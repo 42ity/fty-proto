@@ -23,8 +23,8 @@
     =========================================================================
 */
 
-#ifndef FTYPROTO_CLASSES_H_INCLUDED
-#define FTYPROTO_CLASSES_H_INCLUDED
+#ifndef FTY_PROTO_CLASSES_H_INCLUDED
+#define FTY_PROTO_CLASSES_H_INCLUDED
 
 //  Platform definitions, must come first
 #include "platform.h"
@@ -36,13 +36,13 @@
 #include "selftest.h"
 
 //  *** To avoid double-definitions, only define if building without draft ***
-#ifndef FTYPROTO_BUILD_DRAFT_API
+#ifndef FTY_PROTO_BUILD_DRAFT_API
 
 //  *** Draft method, defined for internal use only ***
 //  Self test of this class.
-FTYPROTO_PRIVATE void
+FTY_PROTO_PRIVATE void
     selftest_test (bool verbose);
 
-#endif // FTYPROTO_BUILD_DRAFT_API
+#endif // FTY_PROTO_BUILD_DRAFT_API
 
 #endif

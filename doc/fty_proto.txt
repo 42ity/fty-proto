@@ -1,5 +1,5 @@
 fty_proto(3)
-=============
+============
 
 NAME
 ----
@@ -11,6 +11,10 @@ SYNOPSIS
 //  Create a new fty_proto
 fty_proto_t *
     fty_proto_new (int id);
+
+//  Create a new fty_proto from zpl/zconfig_t *
+fty_proto_t *
+    fty_proto_new_zpl (zconfig_t *config);
 
 //  Destroy the fty_proto
 void
@@ -59,7 +63,7 @@ zmsg_t *
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time);
+        uint32_t ttl);
 
 //  Encode the ALERT
 zmsg_t *
@@ -73,13 +77,13 @@ zmsg_t *
         uint64_t time,
         const char *action);
 
-//  Encode the DATA
+//  Encode the ASSET
 zmsg_t *
-    fty_proto_encode_data (
+    fty_proto_encode_asset (
         zhash_t *aux,
-        const char *type,
-        const char *key,
-        const char *value);
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
 
 
 //  Send the METRIC to the output in one step
@@ -91,7 +95,7 @@ int
         const char *element_src,
         const char *value,
         const char *unit,
-        uint64_t time);
+        uint32_t ttl);
 
 //  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -106,14 +110,14 @@ int
         uint64_t time,
         const char *action);
 
-//  Send the DATA to the output in one step
+//  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    fty_proto_send_data (void *output,
+    fty_proto_send_asset (void *output,
         zhash_t *aux,
-        const char *type,
-        const char *key,
-        const char *value);
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
 
 //  Duplicate the fty_proto message
 fty_proto_t *
@@ -122,6 +126,10 @@ fty_proto_t *
 //  Print contents of message to stdout
 void
     fty_proto_print (fty_proto_t *self);
+
+//  Export class as zconfig_t*. Caller is responsibe for destroying the instance
+zconfig_t *
+    fty_proto_zpl (fty_proto_t *self, zconfig_t* parent);
 
 //  Get/set the message routing id
 zframe_t *
@@ -184,11 +192,11 @@ const char *
 void
     fty_proto_set_unit (fty_proto_t *self, const char *format, ...);
 
-//  Get/set the time field
-uint64_t
-    fty_proto_time (fty_proto_t *self);
+//  Get/set the ttl field
+uint32_t
+    fty_proto_ttl (fty_proto_t *self);
 void
-    fty_proto_set_time (fty_proto_t *self, uint64_t time);
+    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
 
 //  Get/set the rule field
 const char *
@@ -214,21 +222,57 @@ const char *
 void
     fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
+//  Get/set the time field
+uint64_t
+    fty_proto_time (fty_proto_t *self);
+void
+    fty_proto_set_time (fty_proto_t *self, uint64_t time);
+
 //  Get/set the action field
 const char *
     fty_proto_action (fty_proto_t *self);
 void
     fty_proto_set_action (fty_proto_t *self, const char *format, ...);
 
-//  Get/set the key field
+//  Get/set the name field
 const char *
-    fty_proto_key (fty_proto_t *self);
+    fty_proto_name (fty_proto_t *self);
 void
-    fty_proto_set_key (fty_proto_t *self, const char *format, ...);
+    fty_proto_set_name (fty_proto_t *self, const char *format, ...);
+
+//  Get/set the operation field
+const char *
+    fty_proto_operation (fty_proto_t *self);
+void
+    fty_proto_set_operation (fty_proto_t *self, const char *format, ...);
+
+//  Get/set the ext field
+zhash_t *
+    fty_proto_ext (fty_proto_t *self);
+//  Get the ext field and transfer ownership to caller
+zhash_t *
+    fty_proto_get_ext (fty_proto_t *self);
+//  Set the ext field, transferring ownership from caller
+void
+    fty_proto_set_ext (fty_proto_t *self, zhash_t **ext_p);
+
+//  Get/set a value in the ext dictionary
+const char *
+    fty_proto_ext_string (fty_proto_t *self,
+        const char *key, const char *default_value);
+uint64_t
+    fty_proto_ext_number (fty_proto_t *self,
+        const char *key, uint64_t default_value);
+void
+    fty_proto_ext_insert (fty_proto_t *self,
+        const char *key, const char *format, ...);
+size_t
+    fty_proto_ext_size (fty_proto_t *self);
 
 //  Self test of this class
-int
+void
     fty_proto_test (bool verbose);
+Please add '@interface' section in './../src/fty_proto.c'.
 ----
 
 DESCRIPTION
@@ -236,7 +280,7 @@ DESCRIPTION
 
 fty_proto - Core FTY protocols
 
-Please add @discuss section in ../src/fty_proto.c.
+Please add '@discuss' section in './../src/fty_proto.c'.
 
 EXAMPLE
 -------
@@ -259,6 +303,7 @@ zsock_bind (output, "inproc://selftest-fty_proto");
 //  Encode/send/decode and verify each message type
 int instance;
 fty_proto_t *copy;
+zconfig_t *config;
 self = fty_proto_new (FTY_PROTO_METRIC);
 
 //  Check that _dup works on empty message
@@ -272,15 +317,25 @@ fty_proto_set_type (self, "Life is short but Now lasts for ever");
 fty_proto_set_element_src (self, "Life is short but Now lasts for ever");
 fty_proto_set_value (self, "Life is short but Now lasts for ever");
 fty_proto_set_unit (self, "Life is short but Now lasts for ever");
-fty_proto_set_time (self, 123);
+fty_proto_set_ttl (self, 123);
+// convert to zpl
+config = fty_proto_zpl (self, NULL);
+if (verbose)
+    zconfig_print (config);
 //  Send twice from same object
 fty_proto_send_again (self, output);
 fty_proto_send (&self, output);
 
-for (instance = 0; instance < 2; instance++) {
-    self = fty_proto_recv (input);
+for (instance = 0; instance < 3; instance++) {
+    if (instance < 2)
+        self = fty_proto_recv (input);
+    else {
+        self = fty_proto_new_zpl (config);
+        zconfig_destroy (&config);
+    }
     assert (self);
-    assert (fty_proto_routing_id (self));
+    if (instance < 2)
+        assert (fty_proto_routing_id (self));
 
     assert (fty_proto_aux_size (self) == 2);
     assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
@@ -289,7 +344,7 @@ for (instance = 0; instance < 2; instance++) {
     assert (streq (fty_proto_element_src (self), "Life is short but Now lasts for ever"));
     assert (streq (fty_proto_value (self), "Life is short but Now lasts for ever"));
     assert (streq (fty_proto_unit (self), "Life is short but Now lasts for ever"));
-    assert (fty_proto_time (self) == 123);
+    assert (fty_proto_ttl (self) == 123);
     fty_proto_destroy (&self);
 }
 self = fty_proto_new (FTY_PROTO_ALERT);
@@ -308,14 +363,24 @@ fty_proto_set_severity (self, "Life is short but Now lasts for ever");
 fty_proto_set_description (self, "Life is short but Now lasts for ever");
 fty_proto_set_time (self, 123);
 fty_proto_set_action (self, "Life is short but Now lasts for ever");
+// convert to zpl
+config = fty_proto_zpl (self, NULL);
+if (verbose)
+    zconfig_print (config);
 //  Send twice from same object
 fty_proto_send_again (self, output);
 fty_proto_send (&self, output);
 
-for (instance = 0; instance < 2; instance++) {
-    self = fty_proto_recv (input);
+for (instance = 0; instance < 3; instance++) {
+    if (instance < 2)
+        self = fty_proto_recv (input);
+    else {
+        self = fty_proto_new_zpl (config);
+        zconfig_destroy (&config);
+    }
     assert (self);
-    assert (fty_proto_routing_id (self));
+    if (instance < 2)
+        assert (fty_proto_routing_id (self));
 
     assert (fty_proto_aux_size (self) == 2);
     assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
@@ -329,7 +394,7 @@ for (instance = 0; instance < 2; instance++) {
     assert (streq (fty_proto_action (self), "Life is short but Now lasts for ever"));
     fty_proto_destroy (&self);
 }
-self = fty_proto_new (FTY_PROTO_DATA);
+self = fty_proto_new (FTY_PROTO_ASSET);
 
 //  Check that _dup works on empty message
 copy = fty_proto_dup (self);
@@ -338,27 +403,41 @@ fty_proto_destroy (&copy);
 
 fty_proto_aux_insert (self, "Name", "Brutus");
 fty_proto_aux_insert (self, "Age", "%d", 43);
-fty_proto_set_type (self, "Life is short but Now lasts for ever");
-fty_proto_set_key (self, "Life is short but Now lasts for ever");
-fty_proto_set_value (self, "Life is short but Now lasts for ever");
+fty_proto_set_name (self, "Life is short but Now lasts for ever");
+fty_proto_set_operation (self, "Life is short but Now lasts for ever");
+fty_proto_ext_insert (self, "Name", "Brutus");
+fty_proto_ext_insert (self, "Age", "%d", 43);
+// convert to zpl
+config = fty_proto_zpl (self, NULL);
+if (verbose)
+    zconfig_print (config);
 //  Send twice from same object
 fty_proto_send_again (self, output);
 fty_proto_send (&self, output);
 
-for (instance = 0; instance < 2; instance++) {
-    self = fty_proto_recv (input);
+for (instance = 0; instance < 3; instance++) {
+    if (instance < 2)
+        self = fty_proto_recv (input);
+    else {
+        self = fty_proto_new_zpl (config);
+        zconfig_destroy (&config);
+    }
     assert (self);
-    assert (fty_proto_routing_id (self));
+    if (instance < 2)
+        assert (fty_proto_routing_id (self));
 
     assert (fty_proto_aux_size (self) == 2);
     assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
     assert (fty_proto_aux_number (self, "Age", 0) == 43);
-    assert (streq (fty_proto_type (self), "Life is short but Now lasts for ever"));
-    assert (streq (fty_proto_key (self), "Life is short but Now lasts for ever"));
-    assert (streq (fty_proto_value (self), "Life is short but Now lasts for ever"));
+    assert (streq (fty_proto_name (self), "Life is short but Now lasts for ever"));
+    assert (streq (fty_proto_operation (self), "Life is short but Now lasts for ever"));
+    assert (fty_proto_ext_size (self) == 2);
+    assert (streq (fty_proto_ext_string (self, "Name", "?"), "Brutus"));
+    assert (fty_proto_ext_number (self, "Age", 0) == 43);
     fty_proto_destroy (&self);
 }
 
+zconfig_destroy (&config);
 zsock_destroy (&input);
 zsock_destroy (&output);
 ----

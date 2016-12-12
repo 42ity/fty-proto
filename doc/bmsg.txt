@@ -8,7 +8,8 @@ bmsg - Command line tool to work with fty proto messages
 SYNOPSIS
 --------
 ----
-Please add @interface section in ../src/bmsg.c.
+Please add '@interface' section in './../src/bmsg.c'.
+Please add '@interface' section in './../src/bmsg.c'.
 ----
 
 DESCRIPTION
@@ -16,11 +17,11 @@ DESCRIPTION
 
 bmsg - Command line tool to work with fty proto messages
 
-Please add @discuss section in ../src/bmsg.c.
+Please add '@discuss' section in './../src/bmsg.c'.
 
 EXAMPLE
 -------
 .From bmsg_test method
 ----
-Please add @selftest section in ../src/bmsg.c.
+Please add '@selftest' section in './../src/bmsg.c'.
 ----

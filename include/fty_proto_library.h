@@ -1,5 +1,5 @@
 /*  =========================================================================
-    ftyproto - generated layer of public API
+    fty-proto - generated layer of public API
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
@@ -24,8 +24,8 @@
     =========================================================================
 */
 
-#ifndef FTYPROTO_LIBRARY_H_INCLUDED
-#define FTYPROTO_LIBRARY_H_INCLUDED
+#ifndef FTY_PROTO_LIBRARY_H_INCLUDED
+#define FTY_PROTO_LIBRARY_H_INCLUDED
 
 //  Set up environment for the application
 
@@ -33,37 +33,37 @@
 #include <czmq.h>
 #include <malamute.h>
 
-//  FTYPROTO version macros for compile-time API detection
-#define FTYPROTO_VERSION_MAJOR 0
-#define FTYPROTO_VERSION_MINOR 1
-#define FTYPROTO_VERSION_PATCH 0
+//  FTY_PROTO version macros for compile-time API detection
+#define FTY_PROTO_VERSION_MAJOR 1
+#define FTY_PROTO_VERSION_MINOR 0
+#define FTY_PROTO_VERSION_PATCH 0
 
-#define FTYPROTO_MAKE_VERSION(major, minor, patch) \
+#define FTY_PROTO_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
-#define FTYPROTO_VERSION \
-    FTYPROTO_MAKE_VERSION(FTYPROTO_VERSION_MAJOR, FTYPROTO_VERSION_MINOR, FTYPROTO_VERSION_PATCH)
+#define FTY_PROTO_VERSION \
+    FTY_PROTO_MAKE_VERSION(FTY_PROTO_VERSION_MAJOR, FTY_PROTO_VERSION_MINOR, FTY_PROTO_VERSION_PATCH)
 
 #if defined (__WINDOWS__)
-#   if defined FTYPROTO_STATIC
-#       define FTYPROTO_EXPORT
-#   elif defined FTYPROTO_INTERNAL_BUILD
+#   if defined FTY_PROTO_STATIC
+#       define FTY_PROTO_EXPORT
+#   elif defined FTY_PROTO_INTERNAL_BUILD
 #       if defined DLL_EXPORT
-#           define FTYPROTO_EXPORT __declspec(dllexport)
+#           define FTY_PROTO_EXPORT __declspec(dllexport)
 #       else
-#           define FTYPROTO_EXPORT
+#           define FTY_PROTO_EXPORT
 #       endif
-#   elif defined FTYPROTO_EXPORTS
-#       define FTYPROTO_EXPORT __declspec(dllexport)
+#   elif defined FTY_PROTO_EXPORTS
+#       define FTY_PROTO_EXPORT __declspec(dllexport)
 #   else
-#       define FTYPROTO_EXPORT __declspec(dllimport)
+#       define FTY_PROTO_EXPORT __declspec(dllimport)
 #   endif
-#   define FTYPROTO_PRIVATE
+#   define FTY_PROTO_PRIVATE
 #else
-#   define FTYPROTO_EXPORT
+#   define FTY_PROTO_EXPORT
 #   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
-#       define FTYPROTO_PRIVATE __attribute__ ((visibility ("hidden")))
+#       define FTY_PROTO_PRIVATE __attribute__ ((visibility ("hidden")))
 #   else
-#       define FTYPROTO_PRIVATE
+#       define FTY_PROTO_PRIVATE
 #   endif
 #endif
 

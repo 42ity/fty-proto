@@ -33,7 +33,7 @@
         goto exit; \
     } while (0);
 
-#include "ftyproto_classes.h"
+#include "fty_proto_classes.h"
 
 static const int64_t STAT_INTERVAL = 10000;     // we'll count messages in 10 seconds intervals
 
