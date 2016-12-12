@@ -1,0 +1,54 @@
+# Travis CI script
+language: c
+
+os:
+- linux
+
+sudo: false
+
+services:
+- docker
+
+env:
+- BUILD_TYPE=default
+- BUILD_TYPE=default-Werror
+- BUILD_TYPE=cmake
+#- BUILD_TYPE=android
+#- BUILD_TYPE=check-py
+
+matrix:
+  include:
+  - env: BUILD_TYPE=valgrind
+    os: linux
+    dist: trusty
+    sudo: required
+    addons:
+      apt:
+        packages:
+        - valgrind
+
+addons:
+  apt:
+    packages:
+    - git
+    - asciidoc
+    - xmlto
+
+before_install:
+- if [ $TRAVIS_OS_NAME == "osx" ] ; then brew update; brew install binutils valgrind ; fi
+
+# Hand off to generated script for each BUILD_TYPE
+script: ./ci_build.sh
+before_deploy: . ./ci_deploy.sh
+deploy:
+  provider: releases
+  api_key:
+    # To encrypt your access token run: `travis encrypt -r user/repo`
+    secure: <encrypted github access token>
+  file_glob: true
+  file: ${FTY_PROTO_DEPLOYMENT}
+  skip_cleanup: true
+  on:
+    branch: master
+    tags: true
+    condition: $TRAVIS_OS_NAME =~ (linux) && $BUILD_TYPE =~ (default)

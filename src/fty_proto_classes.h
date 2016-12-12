@@ -1,5 +1,5 @@
 /*  =========================================================================
-    ftyproto_classes - private header file
+    fty_proto_classes - private header file
 
     Copyright (C) 2014 - 2015 Eaton                                        
                                                                            
