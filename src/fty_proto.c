@@ -12,21 +12,21 @@
      * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2015 Eaton
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
+    Copyright (C) 2014 - 2015 Eaton                                        
+                                                                           
+    This program is free software; you can redistribute it and/or modify   
+    it under the terms of the GNU General Public License as published by   
+    the Free Software Foundation; either version 2 of the License, or      
+    (at your option) any later version.                                    
+                                                                           
+    This program is distributed in the hope that it will be useful,        
+    but WITHOUT ANY WARRANTY; without even the implied warranty of         
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
+    GNU General Public License for more details.                           
+                                                                           
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
     =========================================================================
 */
 
@@ -200,6 +200,49 @@ struct _fty_proto_t {
     self->needle += string_size; \
 }
 
+//  --------------------------------------------------------------------------
+//  bytes cstring conversion macros
+
+// create new array of unsigned char from properly encoded string
+// len of resulting array is strlen (str) / 2
+// caller is responsibe for freeing up the memory
+#define BYTES_FROM_STR(dst, _str) { \
+    char *str = (char*) (_str); \
+    if (!str || (strlen (str) % 2) != 0) \
+        return NULL; \
+\
+    size_t strlen_2 = strlen (str) / 2; \
+    byte *mem = (byte*) zmalloc (strlen_2); \
+\
+    for (size_t i = 0; i != strlen_2; i++) \
+    { \
+        char buff[3] = {0x0, 0x0, 0x0}; \
+        strncpy (buff, str, 2); \
+        unsigned int uint; \
+        sscanf (buff, "%x", &uint); \
+        assert (uint <= 0xff); \
+        mem [i] = (byte) (0xff & uint); \
+        str += 2; \
+    } \
+    dst = mem; \
+}
+
+// convert len bytes to hex string
+// caller is responsibe for freeing up the memory
+#define STR_FROM_BYTES(dst, _mem, _len) { \
+    byte *mem = (byte*) (_mem); \
+    size_t len = (size_t) (_len); \
+    char* ret = (char*) zmalloc (2*len + 1); \
+    char* aux = ret; \
+    for (size_t i = 0; i != len; i++) \
+    { \
+        sprintf (aux, "%02x", mem [i]); \
+        aux+=2; \
+    } \
+    dst = ret; \
+}
+
+
 
 //  --------------------------------------------------------------------------
 //  Create a new fty_proto
@@ -212,6 +255,246 @@ fty_proto_new (int id)
     return self;
 }
 
+//  --------------------------------------------------------------------------
+//  Create a new fty_proto from zpl/zconfig_t *
+
+fty_proto_t *
+    fty_proto_new_zpl (zconfig_t *config)
+{
+    assert (config);
+    fty_proto_t *self = NULL;
+    char *message = zconfig_get (config, "message", NULL);
+    if (!message) {
+        zsys_error ("Can't find 'message' section");
+        return NULL;
+    }
+
+    if (streq ("FTY_PROTO_METRIC", message))
+        self = fty_proto_new (FTY_PROTO_METRIC);
+    else
+    if (streq ("FTY_PROTO_ALERT", message))
+        self = fty_proto_new (FTY_PROTO_ALERT);
+    else
+    if (streq ("FTY_PROTO_ASSET", message))
+        self = fty_proto_new (FTY_PROTO_ASSET);
+    else
+       {
+        zsys_error ("message=%s is not known", message);
+        return NULL;
+       }
+
+    char *s = zconfig_get (config, "routing_id", NULL);
+    if (s) {
+        byte *bvalue;
+        BYTES_FROM_STR (bvalue, s);
+        if (!bvalue) {
+            fty_proto_destroy (&self);
+            return NULL;
+        }
+        zframe_t *frame = zframe_new (bvalue, strlen (s) / 2);
+        free (bvalue);
+        self->routing_id = frame;
+    }
+
+    zconfig_t *content = zconfig_locate (config, "content");
+    if (!content) {
+        zsys_error ("Can't find 'content' section");
+        return NULL;
+    }
+    switch (self->id) {
+        case FTY_PROTO_METRIC:
+            {
+            zconfig_t *zhash = zconfig_locate (content, "aux");
+            if (zhash) {
+                zhash_t *hash = zhash_new ();
+                zhash_autofree (hash);
+                for (zconfig_t *child = zconfig_child (zhash);
+                                child != NULL;
+                                child = zconfig_next (child))
+                {
+                    zhash_update (hash, zconfig_name (child), zconfig_value (child));
+                }
+                self->aux = hash;
+            }
+            }
+            {
+            char *s = zconfig_get (content, "type", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->type = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "element_src", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->element_src = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "value", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->value = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "unit", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->unit = strdup (s);
+            }
+            {
+            char *es = NULL;
+            char *s = zconfig_get (content, "ttl", NULL);
+            if (!s) {
+                zsys_error ("content/ttl not found");
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            uint64_t uvalue = (uint64_t) strtoll (s, &es, 10);
+            if (es != s+strlen (s)) {
+                zsys_error ("content/ttl: %s is not a number", s);
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->ttl = uvalue;
+            }
+            break;
+        case FTY_PROTO_ALERT:
+            {
+            zconfig_t *zhash = zconfig_locate (content, "aux");
+            if (zhash) {
+                zhash_t *hash = zhash_new ();
+                zhash_autofree (hash);
+                for (zconfig_t *child = zconfig_child (zhash);
+                                child != NULL;
+                                child = zconfig_next (child))
+                {
+                    zhash_update (hash, zconfig_name (child), zconfig_value (child));
+                }
+                self->aux = hash;
+            }
+            }
+            {
+            char *s = zconfig_get (content, "rule", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->rule = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "element_src", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->element_src = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "state", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->state = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "severity", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->severity = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "description", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->description = strdup (s);
+            }
+            {
+            char *es = NULL;
+            char *s = zconfig_get (content, "time", NULL);
+            if (!s) {
+                zsys_error ("content/time not found");
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            uint64_t uvalue = (uint64_t) strtoll (s, &es, 10);
+            if (es != s+strlen (s)) {
+                zsys_error ("content/time: %s is not a number", s);
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->time = uvalue;
+            }
+            {
+            char *s = zconfig_get (content, "action", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->action = strdup (s);
+            }
+            break;
+        case FTY_PROTO_ASSET:
+            {
+            zconfig_t *zhash = zconfig_locate (content, "aux");
+            if (zhash) {
+                zhash_t *hash = zhash_new ();
+                zhash_autofree (hash);
+                for (zconfig_t *child = zconfig_child (zhash);
+                                child != NULL;
+                                child = zconfig_next (child))
+                {
+                    zhash_update (hash, zconfig_name (child), zconfig_value (child));
+                }
+                self->aux = hash;
+            }
+            }
+            {
+            char *s = zconfig_get (content, "name", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->name = strdup (s);
+            }
+            {
+            char *s = zconfig_get (content, "operation", NULL);
+            if (!s) {
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->operation = strdup (s);
+            }
+            {
+            zconfig_t *zhash = zconfig_locate (content, "ext");
+            if (zhash) {
+                zhash_t *hash = zhash_new ();
+                zhash_autofree (hash);
+                for (zconfig_t *child = zconfig_child (zhash);
+                                child != NULL;
+                                child = zconfig_next (child))
+                {
+                    zhash_update (hash, zconfig_name (child), zconfig_value (child));
+                }
+                self->ext = hash;
+            }
+            }
+            break;
+    }
+    return self;
+}
 
 //  --------------------------------------------------------------------------
 //  Destroy the fty_proto
@@ -1091,6 +1374,121 @@ fty_proto_print (fty_proto_t *self)
     }
 }
 
+//  --------------------------------------------------------------------------
+//  Export class as zconfig_t*. Caller is responsibe for destroying the instance
+
+zconfig_t *
+fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
+{
+    assert (self);
+
+    zconfig_t *root = zconfig_new ("fty_proto", parent);
+
+    switch (self->id) {
+        case FTY_PROTO_METRIC:
+        {
+            zconfig_put (root, "message", "FTY_PROTO_METRIC");
+
+            if (self->routing_id) {
+                char *hex = NULL;
+                STR_FROM_BYTES (hex, zframe_data (self->routing_id), zframe_size (self->routing_id));
+                zconfig_putf (root, "routing_id", "%s", hex);
+                zstr_free (&hex);
+            }
+
+            zconfig_t *config = zconfig_new ("content", root);
+            if (self->aux) {
+                zconfig_t *hash = zconfig_new ("aux", config);
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    zconfig_putf (hash, zhash_cursor (self->aux), "%s", item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            if (self->type)
+                zconfig_putf (config, "type", "%s", self->type);
+            if (self->element_src)
+                zconfig_putf (config, "element_src", "%s", self->element_src);
+            if (self->value)
+                zconfig_putf (config, "value", "%s", self->value);
+            if (self->unit)
+                zconfig_putf (config, "unit", "%s", self->unit);
+            zconfig_putf (config, "ttl", "%ld", (long) self->ttl);
+            break;
+            }
+        case FTY_PROTO_ALERT:
+        {
+            zconfig_put (root, "message", "FTY_PROTO_ALERT");
+
+            if (self->routing_id) {
+                char *hex = NULL;
+                STR_FROM_BYTES (hex, zframe_data (self->routing_id), zframe_size (self->routing_id));
+                zconfig_putf (root, "routing_id", "%s", hex);
+                zstr_free (&hex);
+            }
+
+            zconfig_t *config = zconfig_new ("content", root);
+            if (self->aux) {
+                zconfig_t *hash = zconfig_new ("aux", config);
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    zconfig_putf (hash, zhash_cursor (self->aux), "%s", item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            if (self->rule)
+                zconfig_putf (config, "rule", "%s", self->rule);
+            if (self->element_src)
+                zconfig_putf (config, "element_src", "%s", self->element_src);
+            if (self->state)
+                zconfig_putf (config, "state", "%s", self->state);
+            if (self->severity)
+                zconfig_putf (config, "severity", "%s", self->severity);
+            if (self->description)
+                zconfig_putf (config, "description", "%s", self->description);
+            zconfig_putf (config, "time", "%ld", (long) self->time);
+            if (self->action)
+                zconfig_putf (config, "action", "%s", self->action);
+            break;
+            }
+        case FTY_PROTO_ASSET:
+        {
+            zconfig_put (root, "message", "FTY_PROTO_ASSET");
+
+            if (self->routing_id) {
+                char *hex = NULL;
+                STR_FROM_BYTES (hex, zframe_data (self->routing_id), zframe_size (self->routing_id));
+                zconfig_putf (root, "routing_id", "%s", hex);
+                zstr_free (&hex);
+            }
+
+            zconfig_t *config = zconfig_new ("content", root);
+            if (self->aux) {
+                zconfig_t *hash = zconfig_new ("aux", config);
+                char *item = (char *) zhash_first (self->aux);
+                while (item) {
+                    zconfig_putf (hash, zhash_cursor (self->aux), "%s", item);
+                    item = (char *) zhash_next (self->aux);
+                }
+            }
+            if (self->name)
+                zconfig_putf (config, "name", "%s", self->name);
+            if (self->operation)
+                zconfig_putf (config, "operation", "%s", self->operation);
+            if (self->ext) {
+                zconfig_t *hash = zconfig_new ("ext", config);
+                char *item = (char *) zhash_first (self->ext);
+                while (item) {
+                    zconfig_putf (hash, zhash_cursor (self->ext), "%s", item);
+                    item = (char *) zhash_next (self->ext);
+                }
+            }
+            break;
+            }
+    }
+    return root;
+}
+
 
 //  --------------------------------------------------------------------------
 //  Get/set the message routing_id
@@ -1643,6 +2041,7 @@ fty_proto_test (bool verbose)
     //  Encode/send/decode and verify each message type
     int instance;
     fty_proto_t *copy;
+    zconfig_t *config;
     self = fty_proto_new (FTY_PROTO_METRIC);
 
     //  Check that _dup works on empty message
@@ -1657,14 +2056,24 @@ fty_proto_test (bool verbose)
     fty_proto_set_value (self, "Life is short but Now lasts for ever");
     fty_proto_set_unit (self, "Life is short but Now lasts for ever");
     fty_proto_set_ttl (self, 123);
+    // convert to zpl
+    config = fty_proto_zpl (self, NULL);
+    if (verbose)
+        zconfig_print (config);
     //  Send twice from same object
     fty_proto_send_again (self, output);
     fty_proto_send (&self, output);
 
-    for (instance = 0; instance < 2; instance++) {
-        self = fty_proto_recv (input);
+    for (instance = 0; instance < 3; instance++) {
+        if (instance < 2)
+            self = fty_proto_recv (input);
+        else {
+            self = fty_proto_new_zpl (config);
+            zconfig_destroy (&config);
+        }
         assert (self);
-        assert (fty_proto_routing_id (self));
+        if (instance < 2)
+            assert (fty_proto_routing_id (self));
 
         assert (fty_proto_aux_size (self) == 2);
         assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
@@ -1692,14 +2101,24 @@ fty_proto_test (bool verbose)
     fty_proto_set_description (self, "Life is short but Now lasts for ever");
     fty_proto_set_time (self, 123);
     fty_proto_set_action (self, "Life is short but Now lasts for ever");
+    // convert to zpl
+    config = fty_proto_zpl (self, NULL);
+    if (verbose)
+        zconfig_print (config);
     //  Send twice from same object
     fty_proto_send_again (self, output);
     fty_proto_send (&self, output);
 
-    for (instance = 0; instance < 2; instance++) {
-        self = fty_proto_recv (input);
+    for (instance = 0; instance < 3; instance++) {
+        if (instance < 2)
+            self = fty_proto_recv (input);
+        else {
+            self = fty_proto_new_zpl (config);
+            zconfig_destroy (&config);
+        }
         assert (self);
-        assert (fty_proto_routing_id (self));
+        if (instance < 2)
+            assert (fty_proto_routing_id (self));
 
         assert (fty_proto_aux_size (self) == 2);
         assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
@@ -1726,14 +2145,24 @@ fty_proto_test (bool verbose)
     fty_proto_set_operation (self, "Life is short but Now lasts for ever");
     fty_proto_ext_insert (self, "Name", "Brutus");
     fty_proto_ext_insert (self, "Age", "%d", 43);
+    // convert to zpl
+    config = fty_proto_zpl (self, NULL);
+    if (verbose)
+        zconfig_print (config);
     //  Send twice from same object
     fty_proto_send_again (self, output);
     fty_proto_send (&self, output);
 
-    for (instance = 0; instance < 2; instance++) {
-        self = fty_proto_recv (input);
+    for (instance = 0; instance < 3; instance++) {
+        if (instance < 2)
+            self = fty_proto_recv (input);
+        else {
+            self = fty_proto_new_zpl (config);
+            zconfig_destroy (&config);
+        }
         assert (self);
-        assert (fty_proto_routing_id (self));
+        if (instance < 2)
+            assert (fty_proto_routing_id (self));
 
         assert (fty_proto_aux_size (self) == 2);
         assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
@@ -1746,6 +2175,7 @@ fty_proto_test (bool verbose)
         fty_proto_destroy (&self);
     }
 
+    zconfig_destroy (&config);
     zsock_destroy (&input);
     zsock_destroy (&output);
     //  @end
