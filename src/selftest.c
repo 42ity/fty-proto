@@ -1,4 +1,4 @@
-#include <bios_proto.h>
+#include <fty_proto.h>
 #include <malamute.h>
 
 /*
@@ -19,7 +19,7 @@ Copyright (C) 2014 - 2015 Eaton
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-// Selftest for BIOS core protocols using malamute client API
+// Selftest for FTY core protocols using malamute client API
 
 /*
  *
@@ -63,10 +63,10 @@ s_test_metrics (zactor_t *server)
     // send
     zhash_t *aux = zhash_new ();
     assert (aux);
-    r = zhash_insert (aux, BIOS_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
+    r = zhash_insert (aux, FTY_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
     assert (r == 0);
 
-    zmsg_t *msg = bios_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", 30);
+    zmsg_t *msg = fty_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", 30);
     assert (msg);
     zhash_destroy (&aux);
 
@@ -80,15 +80,15 @@ s_test_metrics (zactor_t *server)
     const char* subject = mlm_client_subject (consumer);
     assert (streq (subject, "TYPE@ELEMENT_SRC"));
 
-    bios_proto_t *recv = bios_proto_decode (&msg);
+    fty_proto_t *recv = fty_proto_decode (&msg);
     assert (recv);
 
-    assert (streq (bios_proto_value (recv), "VALUE"));
+    assert (streq (fty_proto_value (recv), "VALUE"));
     assert (streq (
-                bios_proto_aux_string (recv, BIOS_PROTO_METRIC_ELEMENT_DEST, "N/A"),
+                fty_proto_aux_string (recv, FTY_PROTO_METRIC_ELEMENT_DEST, "N/A"),
                 "ELEMENT_DEST"));
 
-    bios_proto_destroy (&recv);
+    fty_proto_destroy (&recv);
     mlm_client_destroy (&producer);
     mlm_client_destroy (&consumer);
 }

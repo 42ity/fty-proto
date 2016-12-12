@@ -1,4 +1,4 @@
-#include <bios_proto.h>
+#include <fty_proto.h>
 #include <malamute.h>
 
 /*
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    zmsg_t *msg = bios_proto_encode_metric (
+    zmsg_t *msg = fty_proto_encode_metric (
             NULL,       // aux
             argv[1],    // type
             argv[2],    // element_src

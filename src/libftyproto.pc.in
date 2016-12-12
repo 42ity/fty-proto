@@ -8,13 +8,13 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libbiosproto
-Description: Core protocols for BIOS
+Name: libftyproto
+Description: Core protocols for FTY
 Version: @VERSION@
 
 Requires:libzmq libczmq libmlm
 
-Libs: -L${libdir} -lbiosproto
+Libs: -L${libdir} -lftyproto
 Cflags: -I${includedir} @pkg_config_defines@
 
 ################################################################################

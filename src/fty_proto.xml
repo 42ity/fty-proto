@@ -1,12 +1,12 @@
 <class
-    name = "bios_proto"
+    name = "fty_proto"
     signature = "1"
-    title = "Core BIOS protocols"
+    title = "Core FTY protocols"
     script = "zproto_codec_c_v1"
     package_dir = "../include"
     source_dir = "."
     >
-    BIOS core protocols
+    FTY core protocols
 
     The software maintains three main types of information divided to three streams
 
@@ -41,7 +41,7 @@
 
 <define name = "RULE_CLASS" value = "&quot;rule_class&quot;" >
     Name of aux hash key to get a rule class. Usage
-        bios_proto_aux_string (msg, BIOS_PROTO_RULE_CLASS, "");
+        fty_proto_aux_string (msg, FTY_PROTO_RULE_CLASS, "");
 </define>
 
 <header>

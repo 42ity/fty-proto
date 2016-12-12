@@ -3,7 +3,7 @@ bmsg(1)
 
 NAME
 ----
-bmsg - Command line tool to work with bios proto messages
+bmsg - Command line tool to work with fty proto messages
 
 SYNOPSIS
 --------
@@ -14,7 +14,7 @@ Please add @interface section in ../src/bmsg.c.
 DESCRIPTION
 -----------
 
-bmsg - Command line tool to work with bios proto messages
+bmsg - Command line tool to work with fty proto messages
 
 Please add @discuss section in ../src/bmsg.c.
 

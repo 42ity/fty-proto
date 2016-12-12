@@ -30,19 +30,19 @@ typedef struct _selftest_t selftest_t;
 
 //  @interface
 //  Create a new selftest
-BIOSPROTO_EXPORT selftest_t *
+FTYPROTO_EXPORT selftest_t *
     selftest_new (void);
 
 //  Destroy the selftest
-BIOSPROTO_EXPORT void
+FTYPROTO_EXPORT void
     selftest_destroy (selftest_t **self_p);
 
 //  Print properties of object
-BIOSPROTO_EXPORT void
+FTYPROTO_EXPORT void
     selftest_print (selftest_t *self);
 
 //  Self test of this class
-BIOSPROTO_EXPORT void
+FTYPROTO_EXPORT void
     selftest_test (bool verbose);
 //  @end
 

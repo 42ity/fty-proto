@@ -2,7 +2,7 @@
 # -*- makefile -*-
 
 override_dh_strip:
-	dh_strip --dbg-package=libbiosproto-dbg
+	dh_strip --dbg-package=libftyproto-dbg
 
 override_dh_auto_test:
 	echo "Skipped for now"

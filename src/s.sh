@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 #! \file    s.sh
-#  \brief   build the selftest for libbiosproto
+#  \brief   build the selftest for libftyproto
 #  \author  Michal Vyskocil <michalvyskocil@Eaton.com>
 #  \author  Tomas Halman <TomasHalman@Eaton.com>
 #  \author  Michal Hrusecky <MichalHrusecky@Eaton.com>
@@ -30,10 +30,10 @@ die () {
     exit 1
 }
 
-[ -f .libs/libbiosproto.so ] || \
-    die "Can't locate .libs/libbiosproto.so, perhaps run make?"
+[ -f .libs/libftyproto.so ] || \
+    die "Can't locate .libs/libftyproto.so, perhaps run make?"
 
-gcc selftest.c -I ../include -L .libs/ -lmlm -lczmq -lbiosproto || \
+gcc selftest.c -I ../include -L .libs/ -lmlm -lczmq -lftyproto || \
     die
 
 LD_LIBRARY_PATH=.libs/ ./a.out

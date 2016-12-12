@@ -1,5 +1,5 @@
 /*  =========================================================================
-    bmsg - Command line tool to work with bios proto messages
+    bmsg - Command line tool to work with fty proto messages
 
     Copyright (C) 2014 - 2015 Eaton
 
@@ -21,7 +21,7 @@
 
 /*
 @header
-    bmsg - Command line tool to work with bios proto messages
+    bmsg - Command line tool to work with fty proto messages
 @discuss
 @end
 */
@@ -33,7 +33,7 @@
         goto exit; \
     } while (0);
 
-#include "biosproto_classes.h"
+#include "ftyproto_classes.h"
 
 static const int64_t STAT_INTERVAL = 10000;     // we'll count messages in 10 seconds intervals
 
@@ -142,13 +142,13 @@ static void
 
             puts ("--------------------------------------------------------------------------------");
             printf ("stream=%s\nsender=%s\nsubject=%s\n", address, sender, subject);
-            if ( is_bios_proto (msg) ) {
-                bios_proto_t *bmsg = bios_proto_decode (&msg);
+            if ( is_fty_proto (msg) ) {
+                fty_proto_t *bmsg = fty_proto_decode (&msg);
                 if (!bmsg)
-                    printf ("  (cannot decode bios_proto message)\n");
+                    printf ("  (cannot decode fty_proto message)\n");
                 else
-                    bios_proto_print (bmsg);
-                bios_proto_destroy (&bmsg);
+                    fty_proto_print (bmsg);
+                fty_proto_destroy (&bmsg);
             }
             else {
                 zmsg_print (msg);
@@ -229,9 +229,9 @@ static void
 {
     zsys_info ("%s, subject=%s", prefix, subject);
     zmsg_t *msg2 = zmsg_dup (msg);
-    bios_proto_t *bmsg = bios_proto_decode (&msg2);
-    bios_proto_print (bmsg);
-    bios_proto_destroy (&bmsg);
+    fty_proto_t *bmsg = fty_proto_decode (&msg2);
+    fty_proto_print (bmsg);
+    fty_proto_destroy (&bmsg);
 }
 
 #define ACTIVE "ACTIVE"
@@ -246,7 +246,7 @@ static void
 
 int main (int argc, char *argv [])
 {
-    puts ("bmsg - Command line tool to work with bios proto messages");
+    puts ("bmsg - Command line tool to work with fty proto messages");
     bool verbose = false;
     int argn;
     int ret = 0;
@@ -264,23 +264,23 @@ int main (int argc, char *argv [])
             puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish type     publish given message type on respective stream (" BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ALERTS_SYS ", " BIOS_PROTO_STREAM_METRICS ", " BIOS_PROTO_STREAM_ASSETS ")");
+            puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_ASSETS ")");
             puts ("  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
-            puts ("                         publish alert on stream " BIOS_PROTO_STREAM_ALERTS " or " BIOS_PROTO_STREAM_ALERTS_SYS);
+            puts ("                         publish alert on stream " FTY_PROTO_STREAM_ALERTS " or " FTY_PROTO_STREAM_ALERTS_SYS);
             puts ("                         <state> has possible values " ACTIVE "," ACK_WIP "," ACK_PAUSE "," ACK_IGNORE "," ACK_SILENCE "," RESOLVED);
             puts ("                         <severity> has possible values " s_CRITICAL "," s_WARNING "," s_INFO);
             puts ("                         <time> is an UNIX timestamp");
             puts ("                         <action> has possible values SMS, EMAIL, SMS/EMAIL, EMAIL/SMS");
-            puts ("                         Note: Publishing on " BIOS_PROTO_STREAM_ALERTS_SYS " has some restrictions - only ACTIVE/RESOLVED alerts.");
+            puts ("                         Note: Publishing on " FTY_PROTO_STREAM_ALERTS_SYS " has some restrictions - only ACTIVE/RESOLVED alerts.");
             puts ("  publish asset <name> <operation> [auxilary_data see section bellow]");
-            puts ("                         publish asset on stream " BIOS_PROTO_STREAM_ASSETS);
+            puts ("                         publish asset on stream " FTY_PROTO_STREAM_ASSETS);
             puts ("                         <operation> has possible values create, update, delete, inventory");
             puts ("                         Auxilary data:");
             puts ("                             priority=X where X in[1,5]");
             puts ("  publish metric_unavailable <metric topic>");
-            puts ("                         publish information on stream " BIOS_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
+            puts ("                         publish information on stream " FTY_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
             puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl>");
-            puts ("                         publish metric on stream " BIOS_PROTO_STREAM_METRICS " or " BIOS_PROTO_STREAM_METRICS_SENSOR);
+            puts ("                         publish metric on stream " FTY_PROTO_STREAM_METRICS " or " FTY_PROTO_STREAM_METRICS_SENSOR);
             puts ("                         <quantity> a string name for the metric type");
             puts ("                         <element_src> a string name for asset where metric was detected");
             puts ("                         <value> a string value of the metric (for now only values convertable to double should be used");
@@ -361,18 +361,18 @@ int main (int argc, char *argv [])
         if (!argv [argn]) {
             // set all streams
             if (verbose)
-                zsys_info ("setting consumer on " BIOS_PROTO_STREAM_ALERTS ", " BIOS_PROTO_STREAM_ASSETS ", " BIOS_PROTO_STREAM_METRICS);
-            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_METRICS, ".*");
+                zsys_info ("setting consumer on " FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS);
+            r = mlm_client_set_consumer (client, FTY_PROTO_STREAM_METRICS, ".*");
             if (r == -1)
-                die ("set consumer on" BIOS_PROTO_STREAM_METRICS " failed", NULL);
+                die ("set consumer on" FTY_PROTO_STREAM_METRICS " failed", NULL);
 
-            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ASSETS, ".*");
+            r = mlm_client_set_consumer (client, FTY_PROTO_STREAM_ASSETS, ".*");
             if (r == -1)
-                die ("set consumer on" BIOS_PROTO_STREAM_ASSETS " failed", NULL);
+                die ("set consumer on" FTY_PROTO_STREAM_ASSETS " failed", NULL);
 
-            r = mlm_client_set_consumer (client, BIOS_PROTO_STREAM_ALERTS, ".*");
+            r = mlm_client_set_consumer (client, FTY_PROTO_STREAM_ALERTS, ".*");
             if (r == -1)
-                die ("set consumer on" BIOS_PROTO_STREAM_ALERTS " failed", NULL);
+                die ("set consumer on" FTY_PROTO_STREAM_ALERTS " failed", NULL);
         }
 
         while (argv [argn]) {
@@ -394,9 +394,9 @@ int main (int argc, char *argv [])
     if (streq (bmsg_command, "publish")) {
         if (streq (argv[argn], "alert")  || streq (argv[argn], "alertsys")) {
             if (streq (argv[argn], "alert")) {
-                mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS);
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_ALERTS);
             } else {
-                mlm_client_set_producer (client, BIOS_PROTO_STREAM_ALERTS_SYS);
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_ALERTS_SYS);
             }
             char *rule = argv[++argn];
             if (!rule)
@@ -439,7 +439,7 @@ int main (int argc, char *argv [])
             r = asprintf (&subject, "%s@%s", rule, element_src);
             assert (r > 0);
 
-            zmsg_t *msg = bios_proto_encode_alert (
+            zmsg_t *msg = fty_proto_encode_alert (
                         aux,
                         rule,
                         element_src,
@@ -461,9 +461,9 @@ int main (int argc, char *argv [])
         else
         if (streq (argv[argn], "metric") || streq (argv[argn], "metricsensor") ) {
             if (streq (argv[argn], "metric")) {
-                mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS);
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_METRICS);
             } else {
-                mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS_SENSOR);
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_METRICS_SENSOR);
             }
             char *quantity = argv[++argn];
             if (!quantity)
@@ -495,7 +495,7 @@ int main (int argc, char *argv [])
             r = asprintf (&subject, "%s@%s", quantity, element_src);
             assert (r > 0);
 
-            zmsg_t *msg = bios_proto_encode_metric (
+            zmsg_t *msg = fty_proto_encode_metric (
                         aux,
                         quantity,
                         element_src,
@@ -515,7 +515,7 @@ int main (int argc, char *argv [])
         else
         if (streq (argv[argn], "asset")) {
 
-            mlm_client_set_producer (client, BIOS_PROTO_STREAM_ASSETS);
+            mlm_client_set_producer (client, FTY_PROTO_STREAM_ASSETS);
 
             char *name = argv[++argn];
             if (!name)
@@ -532,7 +532,7 @@ int main (int argc, char *argv [])
             r = asprintf (&subject, "%s@%s", operation, name);
             assert (r > 0);
 
-            zmsg_t *msg = bios_proto_encode_asset (
+            zmsg_t *msg = fty_proto_encode_asset (
                         aux,
                         name,
                         operation,
@@ -551,7 +551,7 @@ int main (int argc, char *argv [])
         else
         if (streq (argv[argn], "metric_unavailable")) {
 
-            mlm_client_set_producer (client, BIOS_PROTO_STREAM_METRICS_UNAVAILABLE);
+            mlm_client_set_producer (client, FTY_PROTO_STREAM_METRICS_UNAVAILABLE);
 
             char *metric_topic = argv[++argn];
             if (!metric_topic)

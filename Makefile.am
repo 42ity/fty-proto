@@ -31,7 +31,7 @@ TESTS =
 EXTRA_DIST = \
     src/selftest.h \
     README.md \
-    src/biosproto_classes.h
+    src/ftyproto_classes.h
 
 include $(srcdir)/src/Makemodule.am
 

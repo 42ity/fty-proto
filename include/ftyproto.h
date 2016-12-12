@@ -1,5 +1,5 @@
 /*  =========================================================================
-    biosproto - Core protocols for BIOS
+    ftyproto - Core protocols for FTY
 
     Copyright (C) 2014 - 2015 Eaton
 
@@ -19,11 +19,11 @@
     =========================================================================
 */
 
-#ifndef BIOSPROTO_H_INCLUDED
-#define BIOSPROTO_H_INCLUDED
+#ifndef FTYPROTO_H_INCLUDED
+#define FTYPROTO_H_INCLUDED
 
 //  Include the project library file
-#include "biosproto_library.h"
+#include "ftyproto_library.h"
 
 //  Add your own public definitions here, if you need them
 

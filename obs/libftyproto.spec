@@ -1,5 +1,5 @@
 #
-# spec file for package libbiosproto
+# spec file for package libftyproto
 #
 # Copyright (c) 2015 Eaton
 #
@@ -13,14 +13,14 @@
 # published by the Open Source Initiative.
 
 %global soname %{name}0
-Name:           libbiosproto
+Name:           libftyproto
 Version:        0.0.1
 Release:        1
 License:        GPLv2+
-Summary:        BIOS core protocols
+Summary:        FTY core protocols
 Url:            http://eaton.com/
 Group:          System/Libraries
-Source:         libbiosproto-%{version}.tar.gz
+Source:         libftyproto-%{version}.tar.gz
 BuildRequires:  pkg-config
 BuildRequires:  malamute-devel
 BuildRequires:  autoconf
@@ -29,13 +29,13 @@ BuildRequires:  libtool
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
-Core protocols for BIOS
+Core protocols for FTY
 
 %package -n %{soname}
-Summary:        Shared library for BIOS core protocols
+Summary:        Shared library for FTY core protocols
 
 %description -n %{soname}
-BIOS core protocols.
+FTY core protocols.
 This package contains shared library.
 
 %files -n %{soname}
@@ -44,11 +44,11 @@ This package contains shared library.
 %{_libdir}/%{name}.so.*
 
 %package devel
-Summary:        Devel files for BIOS core protocols
+Summary:        Devel files for FTY core protocols
 Requires:   %{soname} = %{version}
 
 %description devel
-Core protocols for BIOS.
+Core protocols for FTY.
 This package contains development files.
 
 %files devel

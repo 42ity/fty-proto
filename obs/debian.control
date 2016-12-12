@@ -1,4 +1,4 @@
-Source: libbiosproto
+Source: libftyproto
 Section: net
 Priority: optional
 Maintainer: Michal Hrusecky <MichalHrusecky@eaton.com>
@@ -6,32 +6,32 @@ Uploaders: Michal Hrusecky <MichalHrusecky@eaton.com>
 Standards-Version: 3.9.5
 Build-Depends: bison, debhelper (>= 8), pkg-config, libzmq4-dev, automake, autoconf, libtool, asciidoc, docbook-xsl-ns, docbook-xsl, docbook-xml, libxml2-utils, xsltproc, libczmq-dev, libsodium-dev, libmlm-dev, dh-autoreconf
 
-Package: libbiosproto
+Package: libftyproto
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: BIOS core protocols
- Core protocols for BIOS project
+Description: FTY core protocols
+ Core protocols for FTY project
 
-Package: libbiosproto-dbg
+Package: libftyproto-dbg
 Architecture: any
 Section: debug
 Priority: extra
 Depends:
     core (= ${binary:Version}),
     ${misc:Depends}
-Description: debugging symbols for BIOS core protocols
+Description: debugging symbols for FTY core protocols
  This package contains the debugging symbols for core protocols.
 
-Package: libbiosproto-dev
+Package: libftyproto-dev
 Architecture: any
 Section: libdevel
 Depends:
-    libbiosproto (= ${binary:Version}),
+    libftyproto (= ${binary:Version}),
     ${shlibs:Depends},
     ${misc:Depends},
     libmlm-dev,
     libsodium-dev,
     libczmq-dev,
     libzmq4-dev
-Description: development files for BIOS core protocols
+Description: development files for FTY core protocols
  This package contains the development files for core protocols.

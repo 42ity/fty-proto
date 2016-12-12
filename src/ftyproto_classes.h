@@ -1,5 +1,5 @@
 /*  =========================================================================
-    biosproto_classes - private header file
+    ftyproto_classes - private header file
 
     Copyright (C) 2014 - 2015 Eaton
 
@@ -23,21 +23,21 @@
     =========================================================================
 */
 
-#ifndef BIOSPROTO_CLASSES_H_INCLUDED
-#define BIOSPROTO_CLASSES_H_INCLUDED
+#ifndef FTYPROTO_CLASSES_H_INCLUDED
+#define FTYPROTO_CLASSES_H_INCLUDED
 
 //  Platform definitions, must come first
 #include "platform.h"
 
 //  External API
-#include "../include/biosproto.h"
+#include "../include/ftyproto.h"
 
 //  Internal API
 #include "selftest.h"
 
 //  *** Draft method, defined for internal use only ***
 //  Self test of this class.
-BIOSPROTO_EXPORT void
+FTYPROTO_EXPORT void
     selftest_test (bool verbose);
 
 #endif

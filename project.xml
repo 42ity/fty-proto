@@ -1,8 +1,8 @@
 <project
-    name = "biosproto"
-    description = "Core protocols for BIOS"
+    name = "ftyproto"
+    description = "Core protocols for FTY"
     script = "zproject.gsl"
-    email = "bios@eaton.com"
+    email = "fty@eaton.com"
     >
 
     <target name = "debian" />
@@ -13,12 +13,12 @@
     <use project = "czmq" />
     <use project = "malamute" />
 
-    <class name = "bios_proto" state = "stable" >BIOS protocol</class>
+    <class name = "fty_proto" state = "stable" >FTY protocol</class>
     <class name = "selftest" private="1">Selftest</class>
     <main  name = "generate_metric">Metric generator</main>
     <main  name = "get_metrics">Metrics getter</main>
-    <main name = "bmsg">Command line tool to work with bios proto messages</main>
+    <main name = "bmsg">Command line tool to work with fty proto messages</main>
 
-    <model name = "bios_proto" codec="zproto_codec_c_v1" />
+    <model name = "fty_proto" codec="zproto_codec_c_v1" />
 
 </project>

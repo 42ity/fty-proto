@@ -7,7 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-AC_INIT([biosproto],[0.1.0],[bios@eaton.com])
+AC_INIT([ftyproto],[0.1.0],[fty@eaton.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -20,11 +20,11 @@ PV_MAJOR=`echo $PACKAGE_VERSION | cut -d . -f 1`
 PV_MINOR=`echo $PACKAGE_VERSION | cut -d . -f 2`
 PV_PATCH=`echo $PACKAGE_VERSION | cut -d . -f 3`
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MAJOR],[$PV_MAJOR],
-    [BIOSPROTO major version])
+    [FTYPROTO major version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MINOR],[$PV_MINOR],
-    [BIOSPROTO minor version])
+    [FTYPROTO minor version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_PATCH],[$PV_PATCH],
-    [BIOSPROTO patchlevel])
+    [FTYPROTO patchlevel])
 # This lets us use PACKAGE_VERSION in Makefiles
 AC_SUBST(PACKAGE_VERSION)
 
@@ -35,12 +35,12 @@ AC_SUBST(PACKAGE_VERSION)
 # know exactly what you're doing and have read and understand
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 #
-# libbiosproto -version-info
+# libftyproto -version-info
 LTVER="0:1:0"
 AC_SUBST(LTVER)
 
 # Capture c flags
-BIOSPROTO_ORIG_CFLAGS="${CFLAGS:-none}"
+FTYPROTO_ORIG_CFLAGS="${CFLAGS:-none}"
 
 # Checks for programs
 AC_PROG_CC
@@ -55,13 +55,13 @@ PKG_PROG_PKG_CONFIG
 # Code coverage
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
                   [With GCC Code Coverage reporting.])],
-                  [BIOSPROTO_GCOV="$withval"])
+                  [FTYPROTO_GCOV="$withval"])
 
-if test "x${BIOSPROTO_GCOV}" == "xyes"; then
+if test "x${FTYPROTO_GCOV}" == "xyes"; then
     CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
 
-    if test "x${BIOSPROTO_ORIG_CFLAGS}" != "xnone"; then
-        CFLAGS="${CFLAGS} ${BIOSPROTO_ORIG_CFLAGS}"
+    if test "x${FTYPROTO_ORIG_CFLAGS}" != "xnone"; then
+        CFLAGS="${CFLAGS} ${FTYPROTO_ORIG_CFLAGS}"
     fi
     AM_CONDITIONAL(WITH_GCOV, true)
 else
@@ -300,11 +300,11 @@ CFLAGS="${PREVIOUS_CFLAGS}"
 LIBS="${PREVIOUS_LIBS}"
 
 # Platform specific checks
-biosproto_on_mingw32="no"
-biosproto_on_cygwin="no"
-biosproto_on_android="no"
-biosproto_on_linux="no"
-biosproto_on_gnu="no"
+ftyproto_on_mingw32="no"
+ftyproto_on_cygwin="no"
+ftyproto_on_android="no"
+ftyproto_on_linux="no"
+ftyproto_on_gnu="no"
 
 # Host specific checks
 AC_CANONICAL_HOST
@@ -317,32 +317,32 @@ AC_ARG_WITH([docs],
     [with_docs=$withval])
 
 if test "x$with_docs" = "xno"; then
-    biosproto_build_doc="no"
-    biosproto_install_man="no"
+    ftyproto_build_doc="no"
+    ftyproto_install_man="no"
 else
     # Determine whether or not documentation should be built and installed.
-    biosproto_build_doc="yes"
-    biosproto_install_man="yes"
+    ftyproto_build_doc="yes"
+    ftyproto_install_man="yes"
 
     # Check for asciidoc and xmlto and don't build the docs if these are not installed.
-    AC_CHECK_PROG(biosproto_have_asciidoc, asciidoc, yes, no)
-    AC_CHECK_PROG(biosproto_have_xmlto, xmlto, yes, no)
-    if test "x$biosproto_have_asciidoc" = "xno" -o "x$biosproto_have_xmlto" = "xno"; then
-        biosproto_build_doc="no"
+    AC_CHECK_PROG(ftyproto_have_asciidoc, asciidoc, yes, no)
+    AC_CHECK_PROG(ftyproto_have_xmlto, xmlto, yes, no)
+    if test "x$ftyproto_have_asciidoc" = "xno" -o "x$ftyproto_have_xmlto" = "xno"; then
+        ftyproto_build_doc="no"
         # Tarballs built with 'make dist' ship with prebuilt documentation.
-        if ! test -f doc/biosproto.7; then
-            biosproto_install_man="no"
-            AC_MSG_WARN([You are building an unreleased version of BIOSPROTO and asciidoc or xmlto are not installed.])
+        if ! test -f doc/ftyproto.7; then
+            ftyproto_install_man="no"
+            AC_MSG_WARN([You are building an unreleased version of FTYPROTO and asciidoc or xmlto are not installed.])
             AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
         fi
     fi
 fi
 AC_MSG_CHECKING([whether to build documentation])
-AC_MSG_RESULT([$biosproto_build_doc])
+AC_MSG_RESULT([$ftyproto_build_doc])
 AC_MSG_CHECKING([whether to install manpages])
-AC_MSG_RESULT([$biosproto_install_man])
+AC_MSG_RESULT([$ftyproto_install_man])
 
-# Set some default features required by libbiosproto code.
+# Set some default features required by libftyproto code.
 CPPFLAGS="-D_REENTRANT -D_THREAD_SAFE $CPPFLAGS"
 
 # OS-specific tests
@@ -350,73 +350,73 @@ case "${host_os}" in
     *linux*)
         # Define on Linux to enable all library features
         CPPFLAGS="-D_GNU_SOURCE -DLINUX $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_LINUX, 1, [Have Linux OS])
-        biosproto_on_linux="yes"
+        AC_DEFINE(FTYPROTO_HAVE_LINUX, 1, [Have Linux OS])
+        ftyproto_on_linux="yes"
 
         case "${host_os}" in
             *android*)
-                AC_DEFINE(BIOSPROTO_HAVE_ANDROID, 1, [Have Android OS])
-                biosproto_on_android="yes"
+                AC_DEFINE(FTYPROTO_HAVE_ANDROID, 1, [Have Android OS])
+                ftyproto_on_android="yes"
             ;;
         esac
         ;;
     *solaris*)
         # Define on Solaris to enable all library features
         CPPFLAGS="-D_PTHREADS $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_SOLARIS, 1, [Have Solaris OS])
+        AC_DEFINE(FTYPROTO_HAVE_SOLARIS, 1, [Have Solaris OS])
         CFLAGS="${CFLAGS} -lsocket -lssp"
         ;;
     *freebsd*)
         # Define on FreeBSD to enable all library features
         CPPFLAGS="-D__BSD_VISIBLE $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_FREEBSD, 1, [Have FreeBSD OS])
+        AC_DEFINE(FTYPROTO_HAVE_FREEBSD, 1, [Have FreeBSD OS])
         ;;
     *darwin*)
         # Define on Darwin to enable all library features
         CPPFLAGS="-D_DARWIN_C_SOURCE $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_OSX, 1, [Have DarwinOSX OS])
+        AC_DEFINE(FTYPROTO_HAVE_OSX, 1, [Have DarwinOSX OS])
         ;;
     *netbsd*)
         # Define on NetBSD to enable all library features
         CPPFLAGS="-D_NETBSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_NETBSD, 1, [Have NetBSD OS])
+        AC_DEFINE(FTYPROTO_HAVE_NETBSD, 1, [Have NetBSD OS])
         ;;
     *openbsd*)
         # Define on OpenBSD to enable all library features
         CPPFLAGS="-D_BSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_OPENBSD, 1, [Have OpenBSD OS])
+        AC_DEFINE(FTYPROTO_HAVE_OPENBSD, 1, [Have OpenBSD OS])
         ;;
     *nto-qnx*)
-        AC_DEFINE(BIOSPROTO_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
+        AC_DEFINE(FTYPROTO_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
         ;;
     *aix*)
-        AC_DEFINE(BIOSPROTO_HAVE_AIX, 1, [Have AIX OS])
+        AC_DEFINE(FTYPROTO_HAVE_AIX, 1, [Have AIX OS])
         ;;
     *hpux*)
         # Define on HP-UX to enable all library features
         CPPFLAGS="-D_POSIX_C_SOURCE=200112L"
-        AC_DEFINE(BIOSPROTO_HAVE_HPUX, 1, [Have HPUX OS])
+        AC_DEFINE(FTYPROTO_HAVE_HPUX, 1, [Have HPUX OS])
         ;;
     *mingw32*)
-        AC_DEFINE(BIOSPROTO_HAVE_WINDOWS, 1, [Have Windows OS])
-        AC_DEFINE(BIOSPROTO_HAVE_MINGW32, 1, [Have MinGW32])
+        AC_DEFINE(FTYPROTO_HAVE_WINDOWS, 1, [Have Windows OS])
+        AC_DEFINE(FTYPROTO_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
-        biosproto_on_mingw32="yes"
-        biosproto_install_man="no"
+        ftyproto_on_mingw32="yes"
+        ftyproto_install_man="no"
         ;;
     *cygwin*)
         # Define on Cygwin to enable all library features
         CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
-        AC_DEFINE(BIOSPROTO_HAVE_CYGWIN, 1, [Have Cygwin])
-        biosproto_on_cygwin="yes"
+        AC_DEFINE(FTYPROTO_HAVE_CYGWIN, 1, [Have Cygwin])
+        ftyproto_on_cygwin="yes"
         ;;
     gnu*)
         # Define on GNU/Hurd to enable all library features
         if test "x$GXX" = "xyes"; then
             CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
         fi
-        AC_DEFINE(BIOSPROTO_HAVE_GNU, 1, [Have GNU/Hurd OS])
-        biosproto_on_gnu="yes"
+        AC_DEFINE(FTYPROTO_HAVE_GNU, 1, [Have GNU/Hurd OS])
+        ftyproto_on_gnu="yes"
         ;;
     *)
         AC_MSG_ERROR([unsupported system: ${host_os}.])
@@ -453,13 +453,13 @@ if test "x$GCC" = "xyes"; then
 fi
 
 AM_CONDITIONAL(ENABLE_SHARED, test "x$enable_shared" = "xyes")
-AM_CONDITIONAL(ON_MINGW, test "x$biosproto_on_mingw32" = "xyes")
-AM_CONDITIONAL(ON_CYGWIN, test "x$biosproto_on_cygwin" = "xyes")
-AM_CONDITIONAL(ON_ANDROID, test "x$biosproto_on_android" = "xyes")
-AM_CONDITIONAL(ON_LINUX, test "x$biosproto_on_linux" = "xyes")
-AM_CONDITIONAL(ON_GNU, test "x$biosproto_on_gnu" = "xyes")
-AM_CONDITIONAL(INSTALL_MAN, test "x$biosproto_install_man" = "xyes")
-AM_CONDITIONAL(BUILD_DOC, test "x$biosproto_build_doc" = "xyes")
+AM_CONDITIONAL(ON_MINGW, test "x$ftyproto_on_mingw32" = "xyes")
+AM_CONDITIONAL(ON_CYGWIN, test "x$ftyproto_on_cygwin" = "xyes")
+AM_CONDITIONAL(ON_ANDROID, test "x$ftyproto_on_android" = "xyes")
+AM_CONDITIONAL(ON_LINUX, test "x$ftyproto_on_linux" = "xyes")
+AM_CONDITIONAL(ON_GNU, test "x$ftyproto_on_gnu" = "xyes")
+AM_CONDITIONAL(INSTALL_MAN, test "x$ftyproto_install_man" = "xyes")
+AM_CONDITIONAL(BUILD_DOC, test "x$ftyproto_build_doc" = "xyes")
 
 # Check for generate_metric intent
 AC_ARG_ENABLE([generate_metric],
@@ -491,15 +491,15 @@ AC_ARG_ENABLE([bmsg],
 AM_CONDITIONAL([ENABLE_BMSG], [test x$enable_bmsg != xno])
 AM_COND_IF([ENABLE_BMSG], [AC_MSG_NOTICE([ENABLE_BMSG defined])])
 
-# Check for biosproto_selftest intent
-AC_ARG_ENABLE([biosproto_selftest],
-    AS_HELP_STRING([--enable-biosproto_selftest],
-        [Compile 'biosproto_selftest' in src [default=yes].]),
-    [enable_biosproto_selftest=$enableval],
-    [enable_biosproto_selftest=yes])
+# Check for ftyproto_selftest intent
+AC_ARG_ENABLE([ftyproto_selftest],
+    AS_HELP_STRING([--enable-ftyproto_selftest],
+        [Compile 'ftyproto_selftest' in src [default=yes].]),
+    [enable_ftyproto_selftest=$enableval],
+    [enable_ftyproto_selftest=yes])
 
-AM_CONDITIONAL([ENABLE_BIOSPROTO_SELFTEST], [test x$enable_biosproto_selftest != xno])
-AM_COND_IF([ENABLE_BIOSPROTO_SELFTEST], [AC_MSG_NOTICE([ENABLE_BIOSPROTO_SELFTEST defined])])
+AM_CONDITIONAL([ENABLE_FTYPROTO_SELFTEST], [test x$enable_ftyproto_selftest != xno])
+AM_COND_IF([ENABLE_FTYPROTO_SELFTEST], [AC_MSG_NOTICE([ENABLE_FTYPROTO_SELFTEST defined])])
 
 # Checks for library functions.
 AC_TYPE_SIGNAL
@@ -545,8 +545,8 @@ AM_CONDITIONAL([ENABLE_DRAFTS], [test x$enable_drafts != xno])
 
 if test "x$enable_drafts" = "xyes"; then
     AC_MSG_NOTICE([Building stable and legacy API + draft API])
-    AC_DEFINE(BIOSPROTO_BUILD_DRAFT_API, 1, [Provide draft classes and methods.])
-    AC_SUBST(pkg_config_defines, "-DBIOSPROTO_BUILD_DRAFT_API=1")
+    AC_DEFINE(FTYPROTO_BUILD_DRAFT_API, 1, [Provide draft classes and methods.])
+    AC_SUBST(pkg_config_defines, "-DFTYPROTO_BUILD_DRAFT_API=1")
 else
     AC_MSG_NOTICE([Building stable and legacy API (no draft API)])
     AC_SUBST(pkg_config_defines, "")
@@ -555,7 +555,7 @@ fi
 # Specify output files
 AC_CONFIG_FILES([Makefile
                  doc/Makefile
-                 src/libbiosproto.pc
+                 src/libftyproto.pc
                  ])
 
 AM_COND_IF([WITH_SYSTEMD],

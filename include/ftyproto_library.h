@@ -1,5 +1,5 @@
 /*  =========================================================================
-    biosproto - generated layer of public API
+    ftyproto - generated layer of public API
 
     Copyright (C) 2014 - 2015 Eaton
 
@@ -24,8 +24,8 @@
     =========================================================================
 */
 
-#ifndef BIOSPROTO_LIBRARY_H_INCLUDED
-#define BIOSPROTO_LIBRARY_H_INCLUDED
+#ifndef FTYPROTO_LIBRARY_H_INCLUDED
+#define FTYPROTO_LIBRARY_H_INCLUDED
 
 //  Set up environment for the application
 
@@ -33,37 +33,37 @@
 #include <czmq.h>
 #include <malamute.h>
 
-//  BIOSPROTO version macros for compile-time API detection
+//  FTYPROTO version macros for compile-time API detection
 
-#define BIOSPROTO_VERSION_MAJOR 0
-#define BIOSPROTO_VERSION_MINOR 1
-#define BIOSPROTO_VERSION_PATCH 0
+#define FTYPROTO_VERSION_MAJOR 0
+#define FTYPROTO_VERSION_MINOR 1
+#define FTYPROTO_VERSION_PATCH 0
 
-#define BIOSPROTO_MAKE_VERSION(major, minor, patch) \
+#define FTYPROTO_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
-#define BIOSPROTO_VERSION \
-    BIOSPROTO_MAKE_VERSION(BIOSPROTO_VERSION_MAJOR, BIOSPROTO_VERSION_MINOR, BIOSPROTO_VERSION_PATCH)
+#define FTYPROTO_VERSION \
+    FTYPROTO_MAKE_VERSION(FTYPROTO_VERSION_MAJOR, FTYPROTO_VERSION_MINOR, FTYPROTO_VERSION_PATCH)
 
 #if defined (__WINDOWS__)
-#   if defined LIBBIOSPROTO_STATIC
-#       define BIOSPROTO_EXPORT
-#   elif defined LIBBIOSPROTO_EXPORTS
-#       define BIOSPROTO_EXPORT __declspec(dllexport)
+#   if defined LIBFTYPROTO_STATIC
+#       define FTYPROTO_EXPORT
+#   elif defined LIBFTYPROTO_EXPORTS
+#       define FTYPROTO_EXPORT __declspec(dllexport)
 #   else
-#       define BIOSPROTO_EXPORT __declspec(dllimport)
+#       define FTYPROTO_EXPORT __declspec(dllimport)
 #   endif
 #else
-#   define BIOSPROTO_EXPORT
+#   define FTYPROTO_EXPORT
 #endif
 
 //  Opaque class structures to allow forward references
 //  These classes are stable or legacy and built in all releases
-typedef struct _bios_proto_t bios_proto_t;
-#define BIOS_PROTO_T_DEFINED
+typedef struct _fty_proto_t fty_proto_t;
+#define FTY_PROTO_T_DEFINED
 
 
 //  Public classes, each with its own header file
-#include "bios_proto.h"
+#include "fty_proto.h"
 
 #endif
 /*

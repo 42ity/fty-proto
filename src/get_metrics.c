@@ -1,4 +1,4 @@
-#include <bios_proto.h>
+#include <fty_proto.h>
 #include <malamute.h>
 
 /*
@@ -29,13 +29,13 @@ int main(int argc, char** argv) {
         zmsg_t *msg = mlm_client_recv(consumer);
         if(msg == NULL)
             continue;
-        bios_proto_t *yn = bios_proto_decode(&msg);
+        fty_proto_t *yn = fty_proto_decode(&msg);
         if(yn == NULL)
             continue;
         printf("%s = %s %s\n",
                    mlm_client_subject(consumer),
-                   bios_proto_value(yn),
-                   bios_proto_unit(yn)
+                   fty_proto_value(yn),
+                   fty_proto_unit(yn)
               );
     }
     mlm_client_destroy(&consumer);

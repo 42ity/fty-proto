@@ -1,7 +1,7 @@
 /*  =========================================================================
-    bios_proto - Core BIOS protocols
+    fty_proto - Core FTY protocols
 
-    Codec header for bios_proto.
+    Codec header for fty_proto.
 
     ** WARNING *************************************************************
     THIS SOURCE FILE IS 100% GENERATED. If you edit this file, you will lose
@@ -9,7 +9,7 @@
     statements. DO NOT MAKE ANY CHANGES YOU WISH TO KEEP. The correct places
     for commits are:
 
-     * The XML model used for this code generation: bios_proto.xml, or
+     * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
     Copyright (C) 2014 - 2015 Eaton
@@ -30,12 +30,12 @@
     =========================================================================
 */
 
-#ifndef BIOS_PROTO_H_INCLUDED
-#define BIOS_PROTO_H_INCLUDED
+#ifndef FTY_PROTO_H_INCLUDED
+#define FTY_PROTO_H_INCLUDED
 
-/*  These are the bios_proto messages:
+/*  These are the fty_proto messages:
 
-    METRIC - BIOS core protocols
+    METRIC - FTY core protocols
 
 The software maintains three main types of information divided to three streams
 
@@ -59,7 +59,7 @@ The software maintains three main types of information divided to three streams
         Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
 
 
-    ALERT - BIOS core protocols
+    ALERT - FTY core protocols
 
 The software maintains three main types of information divided to three streams
 
@@ -89,7 +89,7 @@ The software maintains three main types of information divided to three streams
         list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
 
 
-    ASSET - BIOS core protocols
+    ASSET - FTY core protocols
 
 The software maintains three main types of information divided to three streams
 
@@ -108,29 +108,29 @@ The software maintains three main types of information divided to three streams
 
 */
 
-#define BIOS_PROTO_VERSION                  1
-#define BIOS_PROTO_STREAM_METRICS           "METRICS"
-#define BIOS_PROTO_STREAM_ALERTS            "ALERTS"
-#define BIOS_PROTO_STREAM_ASSETS            "ASSETS"
-#define BIOS_PROTO_STREAM_ALERTS_SYS        "_ALERTS_SYS"
-#define BIOS_PROTO_STREAM_METRICS_SENSOR    "_METRICS_SENSOR"
-#define BIOS_PROTO_STREAM_METRICS_UNAVAILABLE   "_METRICS_UNAVAILABLE"
-#define BIOS_PROTO_METRIC_ELEMENT_DEST      "element-dest"
-#define BIOS_PROTO_ASSET_TYPE               "type"
-#define BIOS_PROTO_ASSET_SUBTYPE            "subtype"
-#define BIOS_PROTO_ASSET_STATUS             "status"
-#define BIOS_PROTO_ASSET_PRIORITY           "priority"
-#define BIOS_PROTO_ASSET_PARENT             "parent"
-#define BIOS_PROTO_ASSET_OP_CREATE          "create"
-#define BIOS_PROTO_ASSET_OP_UPDATE          "update"
-#define BIOS_PROTO_ASSET_OP_DELETE          "delete"
-#define BIOS_PROTO_ASSET_OP_RETIRE          "retire"
-#define BIOS_PROTO_ASSET_OP_INVENTORY       "inventory"
-#define BIOS_PROTO_RULE_CLASS               "rule_class"
+#define FTY_PROTO_VERSION                  1
+#define FTY_PROTO_STREAM_METRICS           "METRICS"
+#define FTY_PROTO_STREAM_ALERTS            "ALERTS"
+#define FTY_PROTO_STREAM_ASSETS            "ASSETS"
+#define FTY_PROTO_STREAM_ALERTS_SYS        "_ALERTS_SYS"
+#define FTY_PROTO_STREAM_METRICS_SENSOR    "_METRICS_SENSOR"
+#define FTY_PROTO_STREAM_METRICS_UNAVAILABLE   "_METRICS_UNAVAILABLE"
+#define FTY_PROTO_METRIC_ELEMENT_DEST      "element-dest"
+#define FTY_PROTO_ASSET_TYPE               "type"
+#define FTY_PROTO_ASSET_SUBTYPE            "subtype"
+#define FTY_PROTO_ASSET_STATUS             "status"
+#define FTY_PROTO_ASSET_PRIORITY           "priority"
+#define FTY_PROTO_ASSET_PARENT             "parent"
+#define FTY_PROTO_ASSET_OP_CREATE          "create"
+#define FTY_PROTO_ASSET_OP_UPDATE          "update"
+#define FTY_PROTO_ASSET_OP_DELETE          "delete"
+#define FTY_PROTO_ASSET_OP_RETIRE          "retire"
+#define FTY_PROTO_ASSET_OP_INVENTORY       "inventory"
+#define FTY_PROTO_RULE_CLASS               "rule_class"
 
-#define BIOS_PROTO_METRIC                   1
-#define BIOS_PROTO_ALERT                    2
-#define BIOS_PROTO_ASSET                    3
+#define FTY_PROTO_METRIC                   1
+#define FTY_PROTO_ALERT                    2
+#define FTY_PROTO_ASSET                    3
 
 #include <czmq.h>
 
@@ -140,58 +140,58 @@ extern "C" {
 #endif
 
 //  Opaque class structure
-#ifndef BIOS_PROTO_T_DEFINED
-typedef struct _bios_proto_t bios_proto_t;
-#define BIOS_PROTO_T_DEFINED
+#ifndef FTY_PROTO_T_DEFINED
+typedef struct _fty_proto_t fty_proto_t;
+#define FTY_PROTO_T_DEFINED
 #endif
 
 //  @interface
-//  Create a new bios_proto
-bios_proto_t *
-    bios_proto_new (int id);
+//  Create a new fty_proto
+fty_proto_t *
+    fty_proto_new (int id);
 
-//  Destroy the bios_proto
+//  Destroy the fty_proto
 void
-    bios_proto_destroy (bios_proto_t **self_p);
+    fty_proto_destroy (fty_proto_t **self_p);
 
-//  Parse a zmsg_t and decides whether it is bios_proto. Returns
+//  Parse a zmsg_t and decides whether it is fty_proto. Returns
 //  true if it is, false otherwise. Doesn't destroy or modify the
 //  original message.
 bool
-    is_bios_proto (zmsg_t *msg_p);
+    is_fty_proto (zmsg_t *msg_p);
 
-//  Parse a bios_proto from zmsg_t. Returns a new object, or NULL if
+//  Parse a fty_proto from zmsg_t. Returns a new object, or NULL if
 //  the message could not be parsed, or was NULL. Destroys msg and
 //  nullifies the msg reference.
-bios_proto_t *
-    bios_proto_decode (zmsg_t **msg_p);
+fty_proto_t *
+    fty_proto_decode (zmsg_t **msg_p);
 
-//  Encode bios_proto into zmsg and destroy it. Returns a newly created
+//  Encode fty_proto into zmsg and destroy it. Returns a newly created
 //  object or NULL if error. Use when not in control of sending the message.
 zmsg_t *
-    bios_proto_encode (bios_proto_t **self_p);
+    fty_proto_encode (fty_proto_t **self_p);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a fty_proto from the socket. Returns new object,
 //  or NULL if error. Will block if there's no message waiting.
-bios_proto_t *
-    bios_proto_recv (void *input);
+fty_proto_t *
+    fty_proto_recv (void *input);
 
-//  Receive and parse a bios_proto from the socket. Returns new object,
+//  Receive and parse a fty_proto from the socket. Returns new object,
 //  or NULL either if there was no input waiting, or the recv was interrupted.
-bios_proto_t *
-    bios_proto_recv_nowait (void *input);
+fty_proto_t *
+    fty_proto_recv_nowait (void *input);
 
-//  Send the bios_proto to the output, and destroy it
+//  Send the fty_proto to the output, and destroy it
 int
-    bios_proto_send (bios_proto_t **self_p, void *output);
+    fty_proto_send (fty_proto_t **self_p, void *output);
 
-//  Send the bios_proto to the output, and do not destroy it
+//  Send the fty_proto to the output, and do not destroy it
 int
-    bios_proto_send_again (bios_proto_t *self, void *output);
+    fty_proto_send_again (fty_proto_t *self, void *output);
 
 //  Encode the METRIC
 zmsg_t *
-    bios_proto_encode_metric (
+    fty_proto_encode_metric (
         zhash_t *aux,
         const char *type,
         const char *element_src,
@@ -201,7 +201,7 @@ zmsg_t *
 
 //  Encode the ALERT
 zmsg_t *
-    bios_proto_encode_alert (
+    fty_proto_encode_alert (
         zhash_t *aux,
         const char *rule,
         const char *element_src,
@@ -213,7 +213,7 @@ zmsg_t *
 
 //  Encode the ASSET
 zmsg_t *
-    bios_proto_encode_asset (
+    fty_proto_encode_asset (
         zhash_t *aux,
         const char *name,
         const char *operation,
@@ -223,7 +223,7 @@ zmsg_t *
 //  Send the METRIC to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    bios_proto_send_metric (void *output,
+    fty_proto_send_metric (void *output,
         zhash_t *aux,
         const char *type,
         const char *element_src,
@@ -234,7 +234,7 @@ int
 //  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    bios_proto_send_alert (void *output,
+    fty_proto_send_alert (void *output,
         zhash_t *aux,
         const char *rule,
         const char *element_src,
@@ -247,165 +247,165 @@ int
 //  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    bios_proto_send_asset (void *output,
+    fty_proto_send_asset (void *output,
         zhash_t *aux,
         const char *name,
         const char *operation,
         zhash_t *ext);
 
-//  Duplicate the bios_proto message
-bios_proto_t *
-    bios_proto_dup (bios_proto_t *self);
+//  Duplicate the fty_proto message
+fty_proto_t *
+    fty_proto_dup (fty_proto_t *self);
 
 //  Print contents of message to stdout
 void
-    bios_proto_print (bios_proto_t *self);
+    fty_proto_print (fty_proto_t *self);
 
 //  Get/set the message routing id
 zframe_t *
-    bios_proto_routing_id (bios_proto_t *self);
+    fty_proto_routing_id (fty_proto_t *self);
 void
-    bios_proto_set_routing_id (bios_proto_t *self, zframe_t *routing_id);
+    fty_proto_set_routing_id (fty_proto_t *self, zframe_t *routing_id);
 
-//  Get the bios_proto id and printable command
+//  Get the fty_proto id and printable command
 int
-    bios_proto_id (bios_proto_t *self);
+    fty_proto_id (fty_proto_t *self);
 void
-    bios_proto_set_id (bios_proto_t *self, int id);
+    fty_proto_set_id (fty_proto_t *self, int id);
 const char *
-    bios_proto_command (bios_proto_t *self);
+    fty_proto_command (fty_proto_t *self);
 
 //  Get/set the aux field
 zhash_t *
-    bios_proto_aux (bios_proto_t *self);
+    fty_proto_aux (fty_proto_t *self);
 //  Get the aux field and transfer ownership to caller
 zhash_t *
-    bios_proto_get_aux (bios_proto_t *self);
+    fty_proto_get_aux (fty_proto_t *self);
 //  Set the aux field, transferring ownership from caller
 void
-    bios_proto_set_aux (bios_proto_t *self, zhash_t **aux_p);
+    fty_proto_set_aux (fty_proto_t *self, zhash_t **aux_p);
 
 //  Get/set a value in the aux dictionary
 const char *
-    bios_proto_aux_string (bios_proto_t *self,
+    fty_proto_aux_string (fty_proto_t *self,
         const char *key, const char *default_value);
 uint64_t
-    bios_proto_aux_number (bios_proto_t *self,
+    fty_proto_aux_number (fty_proto_t *self,
         const char *key, uint64_t default_value);
 void
-    bios_proto_aux_insert (bios_proto_t *self,
+    fty_proto_aux_insert (fty_proto_t *self,
         const char *key, const char *format, ...);
 size_t
-    bios_proto_aux_size (bios_proto_t *self);
+    fty_proto_aux_size (fty_proto_t *self);
 
 //  Get/set the type field
 const char *
-    bios_proto_type (bios_proto_t *self);
+    fty_proto_type (fty_proto_t *self);
 void
-    bios_proto_set_type (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_type (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the element_src field
 const char *
-    bios_proto_element_src (bios_proto_t *self);
+    fty_proto_element_src (fty_proto_t *self);
 void
-    bios_proto_set_element_src (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_element_src (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the value field
 const char *
-    bios_proto_value (bios_proto_t *self);
+    fty_proto_value (fty_proto_t *self);
 void
-    bios_proto_set_value (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_value (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the unit field
 const char *
-    bios_proto_unit (bios_proto_t *self);
+    fty_proto_unit (fty_proto_t *self);
 void
-    bios_proto_set_unit (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_unit (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the ttl field
 uint32_t
-    bios_proto_ttl (bios_proto_t *self);
+    fty_proto_ttl (fty_proto_t *self);
 void
-    bios_proto_set_ttl (bios_proto_t *self, uint32_t ttl);
+    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
 
 //  Get/set the rule field
 const char *
-    bios_proto_rule (bios_proto_t *self);
+    fty_proto_rule (fty_proto_t *self);
 void
-    bios_proto_set_rule (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_rule (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the state field
 const char *
-    bios_proto_state (bios_proto_t *self);
+    fty_proto_state (fty_proto_t *self);
 void
-    bios_proto_set_state (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_state (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the severity field
 const char *
-    bios_proto_severity (bios_proto_t *self);
+    fty_proto_severity (fty_proto_t *self);
 void
-    bios_proto_set_severity (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_severity (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the description field
 const char *
-    bios_proto_description (bios_proto_t *self);
+    fty_proto_description (fty_proto_t *self);
 void
-    bios_proto_set_description (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the time field
 uint64_t
-    bios_proto_time (bios_proto_t *self);
+    fty_proto_time (fty_proto_t *self);
 void
-    bios_proto_set_time (bios_proto_t *self, uint64_t time);
+    fty_proto_set_time (fty_proto_t *self, uint64_t time);
 
 //  Get/set the action field
 const char *
-    bios_proto_action (bios_proto_t *self);
+    fty_proto_action (fty_proto_t *self);
 void
-    bios_proto_set_action (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_action (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the name field
 const char *
-    bios_proto_name (bios_proto_t *self);
+    fty_proto_name (fty_proto_t *self);
 void
-    bios_proto_set_name (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_name (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the operation field
 const char *
-    bios_proto_operation (bios_proto_t *self);
+    fty_proto_operation (fty_proto_t *self);
 void
-    bios_proto_set_operation (bios_proto_t *self, const char *format, ...);
+    fty_proto_set_operation (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the ext field
 zhash_t *
-    bios_proto_ext (bios_proto_t *self);
+    fty_proto_ext (fty_proto_t *self);
 //  Get the ext field and transfer ownership to caller
 zhash_t *
-    bios_proto_get_ext (bios_proto_t *self);
+    fty_proto_get_ext (fty_proto_t *self);
 //  Set the ext field, transferring ownership from caller
 void
-    bios_proto_set_ext (bios_proto_t *self, zhash_t **ext_p);
+    fty_proto_set_ext (fty_proto_t *self, zhash_t **ext_p);
 
 //  Get/set a value in the ext dictionary
 const char *
-    bios_proto_ext_string (bios_proto_t *self,
+    fty_proto_ext_string (fty_proto_t *self,
         const char *key, const char *default_value);
 uint64_t
-    bios_proto_ext_number (bios_proto_t *self,
+    fty_proto_ext_number (fty_proto_t *self,
         const char *key, uint64_t default_value);
 void
-    bios_proto_ext_insert (bios_proto_t *self,
+    fty_proto_ext_insert (fty_proto_t *self,
         const char *key, const char *format, ...);
 size_t
-    bios_proto_ext_size (bios_proto_t *self);
+    fty_proto_ext_size (fty_proto_t *self);
 
 //  Self test of this class
 void
-    bios_proto_test (bool verbose);
+    fty_proto_test (bool verbose);
 //  @end
 
 //  For backwards compatibility with old codecs
-#define bios_proto_dump     bios_proto_print
+#define fty_proto_dump     fty_proto_print
 
 #ifdef __cplusplus
 }

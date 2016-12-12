@@ -1,5 +1,5 @@
 /*  =========================================================================
-    biosproto_selftest.c - run selftests
+    ftyproto_selftest.c - run selftests
 
     Runs all selftests.
 
@@ -27,7 +27,7 @@
     =========================================================================
 */
 
-#include "biosproto_classes.h"
+#include "ftyproto_classes.h"
 
 typedef struct {
     const char *testname;
@@ -36,7 +36,7 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
-    { "bios_proto", bios_proto_test },
+    { "fty_proto", fty_proto_test },
     { "selftest", selftest_test },
     {0, 0}          //  Sentinel
 };
@@ -65,7 +65,7 @@ static void
 test_runall (bool verbose)
 {
     test_item_t *item;
-    printf ("Running biosproto selftests...\n");
+    printf ("Running ftyproto selftests...\n");
     for (item = all_tests; item->test; item++)
         item->test (verbose);
 
@@ -81,7 +81,7 @@ main (int argc, char **argv)
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
-            puts ("biosproto_selftest.c [options] ...");
+            puts ("ftyproto_selftest.c [options] ...");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --number / -n          report number of tests");
             puts ("  --list / -l            list all tests");
@@ -102,7 +102,7 @@ main (int argc, char **argv)
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
-            puts ("    bios_proto");
+            puts ("    fty_proto");
             puts ("    selftest");
             return 0;
         }
@@ -134,7 +134,7 @@ main (int argc, char **argv)
         }
     }
     if (test) {
-        printf ("Running biosproto test '%s'...\n", test->testname);
+        printf ("Running ftyproto test '%s'...\n", test->testname);
         test->test (verbose);
     }
     else

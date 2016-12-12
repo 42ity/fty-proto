@@ -4,15 +4,15 @@ Name(7)
 
 NAME
 ----
-libbiosproto - Core protocols for BIOS
+libftyproto - Core protocols for FTY
 
 
 SYNOPSIS
 --------
 ----
-#include <libbiosproto.h>
+#include <libftyproto.h>
 
-cc ['flags'] 'files' -lbiosproto ['libraries']
+cc ['flags'] 'files' -lftyproto ['libraries']
 ----
 
 

@@ -1,6 +1,6 @@
-The following ABNF grammar defines the Core BIOS protocols:
+The following ABNF grammar defines the Core FTY protocols:
 
-    bios_proto      = *( METRIC | ALERT | ASSET )
+    fty_proto      = *( METRIC | ALERT | ASSET )
 
     ;  No description
 
