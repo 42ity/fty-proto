@@ -9,7 +9,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: libfty_proto
-Description: Core protocols for 42ity project
+Description: 42ITY core protocols
 Version: @VERSION@
 
 Requires:libzmq libczmq >= 3.0.0 libmlm >= 1.0.0

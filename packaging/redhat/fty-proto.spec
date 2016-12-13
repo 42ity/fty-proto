@@ -1,5 +1,5 @@
 #
-#    fty-proto - Core protocols for 42ity project
+#    fty-proto - 42ITY core protocols
 #
 #    Copyright (C) 2014 - 2015 Eaton                                        
 #                                                                           
@@ -31,7 +31,7 @@
 Name:           fty-proto
 Version:        1.0.0
 Release:        1
-Summary:        core protocols for 42ity project
+Summary:        42ity core protocols
 License:        MIT
 URL:            http://example.com/
 Source0:        %{name}-%{version}.tar.gz
@@ -52,15 +52,14 @@ BuildRequires:  malamute-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
-fty-proto core protocols for 42ity project.
+fty-proto 42ity core protocols.
 
 %package -n libfty_proto1
 Group:          System/Libraries
-Summary:        core protocols for 42ity project
+Summary:        42ity core protocols shared library
 
 %description -n libfty_proto1
-fty-proto core protocols for 42ity project.
-This package contains shared library.
+This package contains shared library for fty-proto: 42ity core protocols
 
 %post -n libfty_proto1 -p /sbin/ldconfig
 %postun -n libfty_proto1 -p /sbin/ldconfig
@@ -71,7 +70,7 @@ This package contains shared library.
 %{_libdir}/libfty_proto.so.*
 
 %package devel
-Summary:        core protocols for 42ity project
+Summary:        42ity core protocols
 Group:          System/Libraries
 Requires:       libfty_proto1 = %{version}
 Requires:       zeromq-devel
@@ -79,8 +78,8 @@ Requires:       czmq-devel
 Requires:       malamute-devel
 
 %description devel
-fty-proto core protocols for 42ity project.
-This package contains development files.
+42ity core protocols development tools
+This package contains development files for fty-proto: 42ity core protocols
 
 %files devel
 %defattr(-,root,root)
