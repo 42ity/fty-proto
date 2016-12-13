@@ -1,0 +1,28 @@
+<project
+    name = "fty-proto"
+    description = "Core protocols for 42ity project"
+    script = "zproject.gsl"
+    email = "EatonIPCOpenSource@eaton.com"
+    repository = "https://github.com/42ity/fty-proto"
+    header = "ftyproto.h"
+    abi = "1:0:0"
+    >
+
+    <target name = "debian" />
+    <target name = "redhat" />
+    <target name = "travis" />
+
+    <include filename = "license.xml" />
+    <version major = "1" minor = "0" patch = "0" />
+    <use project = "czmq" min_major = "3" />
+    <use project = "malamute" min_major = "1" />
+
+    <class name = "fty_proto" state = "stable" >42ity protocol</class>
+    <class name = "selftest" private="1">Selftest</class>
+    <main  name = "generate_metric">Metric generator</main>
+    <main  name = "get_metrics">Metrics getter</main>
+    <main name = "bmsg">Command line tool to work with fty proto messages</main>
+
+    <model name = "fty_proto" codec="zproto_codec_c_v1" />
+
+</project>

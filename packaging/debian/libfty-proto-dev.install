@@ -1,0 +1,5 @@
+usr/include/*
+usr/lib/*/libfty_proto.so
+usr/lib/*/pkgconfig/libfty_proto.pc
+usr/share/man/man3/*
+usr/share/man/man7/*

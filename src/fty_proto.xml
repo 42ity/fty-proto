@@ -1,0 +1,111 @@
+<class
+    name = "fty_proto"
+    signature = "1"
+    title = "Core FTY protocols"
+    script = "zproto_codec_c_v1"
+    package_dir = "../include"
+    source_dir = "."
+    >
+    FTY core protocols
+
+    The software maintains three main types of information divided to three streams
+
+    1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
+    2. Stream: METRICS - dynamic information about metric data coming from varous devices
+    3. Stream: ALERTS - information about alerts produced for given asset based on metric information
+
+<include filename = "../license.xml" />
+
+<define name = "STREAM_METRICS"         value = "&quot;METRICS&quot;" />
+<define name = "STREAM_ALERTS"          value = "&quot;ALERTS&quot;" />
+<define name = "STREAM_ASSETS"          value = "&quot;ASSETS&quot;" />
+<define name = "STREAM_ALERTS_SYS"      value = "&quot;_ALERTS_SYS&quot;" />
+<define name = "STREAM_METRICS_SENSOR"  value = "&quot;_METRICS_SENSOR&quot;" />
+<define name = "STREAM_METRICS_UNAVAILABLE"  value = "&quot;_METRICS_UNAVAILABLE&quot;" />
+
+<define name = "METRIC_ELEMENT_DEST" value = "&quot;element-dest&quot;" />
+
+<define name = "ASSET_TYPE" value = "&quot;type&quot;" />
+<define name = "ASSET_SUBTYPE" value = "&quot;subtype&quot;" />
+<define name = "ASSET_STATUS" value = "&quot;status&quot;" />
+<define name = "ASSET_PRIORITY" value = "&quot;priority&quot;" />
+<define name = "ASSET_PARENT" value = "&quot;parent&quot;" />
+
+<define name = "ASSET_OP_CREATE"        value = "&quot;create&quot;" />
+<define name = "ASSET_OP_UPDATE"        value = "&quot;update&quot;" />
+<define name = "ASSET_OP_DELETE"        value = "&quot;delete&quot;" />
+<define name = "ASSET_OP_RETIRE"        value = "&quot;retire&quot;" />
+<define name = "ASSET_OP_INVENTORY"     value = "&quot;inventory&quot;" />
+
+<define name = "RULE_CLASS" value = "&quot;rule_class&quot;" >
+    Name of aux hash key to get a rule class. Usage
+        fty_proto_aux_string (msg, FTY_PROTO_RULE_CLASS, "");
+</define>
+
+<header>
+    <field name = "aux" type = "hash"/>
+</header>
+
+<message
+    name = "METRIC"
+    id = "1"
+    >
+    <field name = "type" type = "string">
+        Type of metric send (temperature, humidity, power.load, ...)
+    </field>
+    <field name = "element_src" type = "string">
+        Name of source element to which metrics are bound to
+    </field>
+    <field name = "value" type = "string">
+        Value of metric as plain string
+    </field>
+    <field name = "unit" type = "string">
+        Unit of metric (i.e. C, F or K for temperature)
+    </field>
+    <field name = "ttl" type = "number" size = "4">
+        Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
+    </field>
+</message>
+
+<message
+    name = "ALERT"
+    id = "2"
+    >
+    <field name = "rule" type = "string">
+        a rule name, that triggers this alert
+    </field>
+    <field name = "element_src" type = "string">
+        name of the element, where alert was detected. Most of the time is would be asset element name
+    </field>
+    <field name = "state" type = "string">
+        state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
+    </field>
+    <field name = "severity" type = "string">
+        severity of the alert. Possible values are INFO/WARNING/CRITICAL
+    </field>
+    <field name = "description" type = "string">
+        a description of the alert
+    </field>
+    <field name = "time" type = "number" size = "8">
+        ALERT date/time
+    </field>
+    <field name = "action" type = "string">
+        list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+    </field>
+</message>
+
+<message
+    name = "ASSET"
+    id = "3">
+    <field name = "name" type = "string">
+        Unique name of asset.
+    </field>
+    <field name = "operation" type = "string">
+        What have hapened with asset (create|update|delete|inventory).
+    </field>
+    <field name = "ext" type = "hash">
+        Additional extended information for assets.
+    </field>
+</message>
+
+</class>
