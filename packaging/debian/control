@@ -1,5 +1,5 @@
 #
-#    fty-proto - Core protocols for 42ity project
+#    fty-proto - 42ITY core protocols
 #
 #    Copyright (C) 2014 - 2015 Eaton                                        
 #                                                                           
@@ -34,8 +34,8 @@ Build-Depends-Indep: asciidoc,
 Package: libfty-proto1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: fty-proto
- This package contains shared library for fty-proto: core protocols for 42ity project
+Description: 42ity core protocols shared library
+ This package contains shared library for fty-proto: 42ity core protocols
 
 Package: libfty-proto-dev
 Architecture: any
@@ -45,14 +45,14 @@ Depends:
     libczmq-dev,
     libmlm-dev,
     libfty-proto1 (= ${binary:Version})
-Description: development files for fty-proto
- This package contains development files for fty-proto: core protocols for 42ity project
+Description: 42ity core protocols development tools
+ This package contains development files for fty-proto: 42ity core protocols
 
 Package: fty-proto
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: core protocols for 42ity project
- Main package for fty-proto: core protocols for 42ity project
+Description: 42ity core protocols
+ Main package for fty-proto: 42ity core protocols
 
 Package: fty-proto-dbg
 Architecture: any
@@ -61,6 +61,6 @@ Priority: extra
 Depends:
     fty-proto (= ${binary:Version}),
     ${misc:Depends}
-Description: debugging symbols for fty-proto
- This package contains the debugging symbols for fty-proto : core protocols for 42ity project.
+Description: 42ity core protocols debugging symbols
+ This package contains the debugging symbols for fty-proto : 42ity core protocols.
 
