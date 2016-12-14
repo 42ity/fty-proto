@@ -6,7 +6,7 @@
 #       then comitted to SCM and maintained manually to describe the project.
 MAN1 = generate_metric.1 get_metrics.1 bmsg.1
 MAN3 = fty_proto.3
-MAN7 = fty_proto.7
+MAN7 = fty-proto.7
 MAN_DOC = $(MAN1) $(MAN3) $(MAN7)
 
 # Assumption: the .7 pages only cover the project and are maintained manually
@@ -35,7 +35,7 @@ $(builddir)/fty-proto.txt: $(srcdir)/fty-proto.txt
 
 .txt.xml:
 	asciidoc -d manpage -b docbook -f $(srcdir)/asciidoc.conf \
-        -afty_proto_version=@PACKAGE_VERSION@ -o$@ $<
+        -afty-proto_version=@PACKAGE_VERSION@ -o$@ $<
 .xml.1:
 	xmlto man $<
 .xml.3:
