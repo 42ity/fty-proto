@@ -532,7 +532,7 @@ fty_proto_destroy (fty_proto_t **self_p)
 //  true if it is, false otherwise. Doesn't destroy or modify the
 //  original message.
 bool
-is_fty_proto (zmsg_t *msg)
+fty_proto_is (zmsg_t *msg)
 {
     if (msg == NULL)
         return false;
@@ -1156,10 +1156,10 @@ fty_proto_send_metric (
     fty_proto_t *self = fty_proto_new (FTY_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
-    fty_proto_set_type (self, type);
-    fty_proto_set_element_src (self, element_src);
-    fty_proto_set_value (self, value);
-    fty_proto_set_unit (self, unit);
+    fty_proto_set_type (self, "%s", type);
+    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_value (self, "%s", value);
+    fty_proto_set_unit (self, "%s", unit);
     fty_proto_set_ttl (self, ttl);
     return fty_proto_send (&self, output);
 }
@@ -1183,13 +1183,13 @@ fty_proto_send_alert (
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ALERT);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
-    fty_proto_set_rule (self, rule);
-    fty_proto_set_element_src (self, element_src);
-    fty_proto_set_state (self, state);
-    fty_proto_set_severity (self, severity);
-    fty_proto_set_description (self, description);
+    fty_proto_set_rule (self, "%s", rule);
+    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_state (self, "%s", state);
+    fty_proto_set_severity (self, "%s", severity);
+    fty_proto_set_description (self, "%s", description);
     fty_proto_set_time (self, time);
-    fty_proto_set_action (self, action);
+    fty_proto_set_action (self, "%s", action);
     return fty_proto_send (&self, output);
 }
 
@@ -1208,8 +1208,8 @@ fty_proto_send_asset (
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ASSET);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
-    fty_proto_set_name (self, name);
-    fty_proto_set_operation (self, operation);
+    fty_proto_set_name (self, "%s", name);
+    fty_proto_set_operation (self, "%s", operation);
     zhash_t *ext_copy = zhash_dup (ext);
     fty_proto_set_ext (self, &ext_copy);
     return fty_proto_send (&self, output);
