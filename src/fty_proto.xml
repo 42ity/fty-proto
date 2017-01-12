@@ -5,6 +5,7 @@
     script = "zproto_codec_c_v1"
     package_dir = "../include"
     source_dir = "."
+    export_header = "ftyproto.h"
     >
     FTY core protocols
 

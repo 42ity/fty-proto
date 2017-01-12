@@ -43,6 +43,10 @@
 FTY_PROTO_PRIVATE void
     selftest_test (bool verbose);
 
+//  Self test for private classes
+FTY_PROTO_PRIVATE void
+    fty_proto_private_selftest (bool verbose);
+
 #endif // FTY_PROTO_BUILD_DRAFT_API
 
 #endif

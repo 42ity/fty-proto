@@ -11,6 +11,7 @@
     <target name = "debian" />
     <target name = "redhat" />
     <target name = "travis" />
+    <target name = "lua_ffi" />
 
     <include filename = "license.xml" />
     <version major = "1" minor = "0" patch = "0" />
