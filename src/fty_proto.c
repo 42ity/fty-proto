@@ -248,7 +248,7 @@ struct _fty_proto_t {
 //  Create a new fty_proto
 
 fty_proto_t *
-fty_proto_new (int id)
+fty_proto_new (uint32_t id)
 {
     fty_proto_t *self = (fty_proto_t *) zmalloc (sizeof (fty_proto_t));
     self->id = id;

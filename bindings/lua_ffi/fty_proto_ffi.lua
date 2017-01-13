@@ -21,11 +21,19 @@ typedef int SOCKET;
 ]]
 fty_proto_ffi.ffi.cdef [[
 typedef struct _fty_proto_t fty_proto_t;
+typedef struct _zconfig_t zconfig_t;
 typedef struct _zmsg_t zmsg_t;
 typedef struct _zhash_t zhash_t;
-typedef struct _zconfig_t zconfig_t;
 typedef struct _zframe_t zframe_t;
 // CLASS: fty_proto
+// Create a new fty_proto
+fty_proto_t *
+    fty_proto_new (uint32_t id);
+
+// Create a new fty_proto from zpl/zconfig_t *
+fty_proto_t *
+    fty_proto_new_zpl (zconfig_t *config);
+
 // Destroy the fty_proto
 void
     fty_proto_destroy (fty_proto_t **self_p);
