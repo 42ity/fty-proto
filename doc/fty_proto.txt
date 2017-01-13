@@ -10,6 +10,14 @@ SYNOPSIS
 ----
 //  This is a stable class, and may not change except for emergencies. It
 //  is provided in stable builds.
+//  Create a new fty_proto
+FTY_PROTO_EXPORT fty_proto_t *
+    fty_proto_new (uint32_t id);
+
+//  Create a new fty_proto from zpl/zconfig_t *
+FTY_PROTO_EXPORT fty_proto_t *
+    fty_proto_new_zpl (zconfig_t *config);
+
 //  Destroy the fty_proto
 FTY_PROTO_EXPORT void
     fty_proto_destroy (fty_proto_t **self_p);
