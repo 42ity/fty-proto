@@ -25,12 +25,21 @@ noinst_PROGRAMS =
 check_PROGRAMS =
 noinst_LTLIBRARIES =
 TESTS =
+# Prepare variables that can be populated (appended) in generated Makefiles or
+# manually maintained src/Makemodules-local.am
+EXTRA_DIST =
+CLEANFILES =
+DISTCLEANFILES =
 
-EXTRA_DIST = \
-    CMakeLists.txt \
+if ENABLE_DIST_CMAKEFILES
+EXTRA_DIST += \
     Findlibzmq.cmake \
     Findczmq.cmake \
     Findmalamute.cmake \
+    CMakeLists.txt
+endif
+
+EXTRA_DIST += \
     src/selftest.h \
     README.md \
     src/fty_proto_classes.h

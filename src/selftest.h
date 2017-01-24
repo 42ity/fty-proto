@@ -1,7 +1,7 @@
 /*  =========================================================================
     selftest - Selftest
 
-    Copyright (C) 2014 - 2015 Eaton
+    Copyright (C) 2014 - 2017 Eaton
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,10 @@
 extern "C" {
 #endif
 
+#ifndef SELFTEST_T_DEFINED
 typedef struct _selftest_t selftest_t;
+#define SELFTEST_T_DEFINED
+#endif
 
 //  @interface
 //  Create a new selftest

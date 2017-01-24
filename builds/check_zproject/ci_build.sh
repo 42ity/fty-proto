@@ -1,28 +1,41 @@
 #!/usr/bin/env bash
 set -ex
 
-cd $REPO_DIR/..
-git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq.git
-git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq.git
-git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute.git
+# NOTE: This script is not standalone, it is included from project root
+# ci_build.sh script, which sets some envvars (like REPO_DIR below).
+[ -n "${REPO_DIR-}" ] || exit 1
+
+# Verify all required dependencies with repos can be checked out
+cd "$REPO_DIR/.."
+git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq
+git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq
+git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute
 cd -
 
-cd $REPO_DIR/..
-git clone --quiet --depth 1 https://github.com/zeromq/zproject zproject.git
-cd zproject.git
-export PATH=$PATH:`pwd`
+if ! ((command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list zproject >/dev/null 2>&1) || \
+       (command -v brew >/dev/null 2>&1 && brew ls --versions zproject >/dev/null 2>&1)); then
+    cd "$REPO_DIR/.."
+    git clone --quiet --depth 1 https://github.com/zeromq/zproject zproject
+    cd zproject
+    PATH="`pwd`:$PATH"
+fi
 
-cd $REPO_DIR/..
-git clone https://github.com/imatix/gsl.git gsl.git
-cd gsl.git/src
-make
-export PATH=$PATH:`pwd`
+if ! ((command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list generator-scripting-language >/dev/null 2>&1) || \
+       (command -v brew >/dev/null 2>&1 && brew ls --versions gsl >/dev/null 2>&1)); then
+    cd "$REPO_DIR/.."
+    git clone https://github.com/imatix/gsl.git gsl
+    cd gsl/src
+    make
+    PATH="`pwd`:$PATH"
+fi
+export PATH
 
+# Verify that zproject template is up-to-date with files it can overwrite
 # As we will overwrite this script file make sure bash loads the
 # next lines into memory before executing
 # http://stackoverflow.com/questions/21096478/overwrite-executing-bash-script-files
 {
-    cd $REPO_DIR
+    cd "$REPO_DIR"
     gsl project.xml
 
     # keep an eye on git version used by CI

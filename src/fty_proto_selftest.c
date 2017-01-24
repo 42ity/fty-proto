@@ -4,7 +4,7 @@
     Runs all selftests.
 
     -------------------------------------------------------------------------
-    Copyright (C) 2014 - 2015 Eaton                                        
+    Copyright (C) 2014 - 2017 Eaton                                        
                                                                            
     This program is free software; you can redistribute it and/or modify   
     it under the terms of the GNU General Public License as published by   
@@ -36,7 +36,11 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
+// Tests for stable public classes:
     { "fty_proto", fty_proto_test },
+#ifdef FTY_PROTO_BUILD_DRAFT_API
+    { "private_classes", fty_proto_private_selftest },
+#endif // FTY_PROTO_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
 
@@ -101,8 +105,8 @@ main (int argc, char **argv)
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
-            puts ("    fty_proto");
-            puts ("    selftest");
+            puts ("    fty_proto\t\t- stable");
+            puts ("    private_classes\t- draft");
             return 0;
         }
         else
@@ -132,6 +136,12 @@ main (int argc, char **argv)
             return 1;
         }
     }
+
+    #ifdef NDEBUG
+        printf(" !!! 'assert' macro is disabled, remove NDEBUG from your compilation definitions.\n");
+        printf(" tests will be meaningless.\n");
+    #endif //
+
     if (test) {
         printf ("Running fty-proto test '%s'...\n", test->testname);
         test->test (verbose);
