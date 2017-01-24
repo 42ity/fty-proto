@@ -22,6 +22,11 @@ src_libfty_proto_la_SOURCES = \
     src/selftest.c \
     src/platform.h
 
+if ENABLE_DRAFTS
+src_libfty_proto_la_SOURCES += \
+    src/fty_proto_private_selftest.c
+endif
+
 src_libfty_proto_la_CPPFLAGS = ${AM_CPPFLAGS}
 
 src_libfty_proto_la_LDFLAGS = \
@@ -70,6 +75,11 @@ src_fty_proto_selftest_CPPFLAGS = ${AM_CPPFLAGS}
 src_fty_proto_selftest_LDADD = ${program_libs}
 src_fty_proto_selftest_SOURCES = src/fty_proto_selftest.c
 endif #ENABLE_FTY_PROTO_SELFTEST
+
+# Install api files into /usr/local/share/zproject
+apidir = @datadir@/zproject/fty-proto
+dist_api_DATA = \
+    api/fty_proto.api
 
 # define custom target for all products of /src
 src:

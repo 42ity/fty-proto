@@ -26,7 +26,21 @@ if (NOT CMAKE_BUILD_TYPE)
     if (EXISTS "${SOURCE_DIR}/.git")
         set (CMAKE_BUILD_TYPE Debug)
     else ()
-        set (CMAKE_BUILD_TYPE Release)
+# http://xit0.org/2013/04/cmake-use-git-branch-and-commit-details-in-project/
+# http://stackoverflow.com/questions/6797395/cmake-execute-process-always-fails-with-no-such-file-or-directory-when-i-cal
+        execute_process(
+            COMMAND git rev-parse --show-toplevel
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            RESULT_VARIABLE git_result
+            OUTPUT_VARIABLE git_root
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        message(STATUS "git workspace root [${git_result}]: ${git_root}")
+        if ( "${git_result}" == "0" )
+            set (CMAKE_BUILD_TYPE Debug)
+        else ()
+            set (CMAKE_BUILD_TYPE Release)
+        endif ()
     endif ()
 endif ()
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -147,6 +161,12 @@ set (fty_proto_sources
     src/fty_proto.c
     src/selftest.c
 )
+IF (ENABLE_DRAFTS)
+    list (APPEND fty_proto_sources
+        src/fty_proto_private_selftest.c
+    )
+ENDIF (ENABLE_DRAFTS)
+
 source_group("Source Files" FILES ${fty_proto_sources})
 if (NOT DEFINED BUILD_SHARED_LIBS)
     SET(BUILD_SHARED_LIBS ON)
@@ -155,8 +175,8 @@ add_library(fty_proto ${fty_proto_sources})
 set_target_properties(fty_proto
     PROPERTIES DEFINE_SYMBOL "FTY_PROTO_EXPORTS"
 )
-set_target_properties(fty_proto
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+set_target_properties (fty_proto
+    PROPERTIES SOVERSION "1.0.0"
 )
 target_link_libraries(fty_proto
     ${ZEROMQ_LIBRARIES} ${MORE_LIBRARIES}
@@ -206,9 +226,8 @@ target_link_libraries(
     ${MALAMUTE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
-set_target_properties(
-    generate_metric
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+install(TARGETS generate_metric
+    RUNTIME DESTINATION bin
 )
 add_executable(
     get_metrics
@@ -222,9 +241,8 @@ target_link_libraries(
     ${MALAMUTE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
-set_target_properties(
-    get_metrics
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+install(TARGETS get_metrics
+    RUNTIME DESTINATION bin
 )
 add_executable(
     bmsg
@@ -238,9 +256,8 @@ target_link_libraries(
     ${MALAMUTE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
-set_target_properties(
-    bmsg
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+install(TARGETS bmsg
+    RUNTIME DESTINATION bin
 )
 add_executable(
     fty_proto_selftest
@@ -253,10 +270,6 @@ target_link_libraries(
     ${CZMQ_LIBRARIES}
     ${MALAMUTE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
-)
-set_target_properties(
-    fty_proto_selftest
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
 
 ########################################################################
@@ -275,6 +288,12 @@ endif()
 set(TEST_CLASSES
     fty_proto
 )
+
+IF (ENABLE_DRAFTS)
+    list (APPEND TEST_CLASSES
+    private_classes
+    )
+ENDIF (ENABLE_DRAFTS)
 
 foreach(TEST_CLASS ${TEST_CLASSES})
     add_test(

@@ -1,3 +1,5 @@
+# This is a skeleton created by zproject.
+# You can add hand-written code here.
 save.xml
 # Object files
 *.o
@@ -19,17 +21,20 @@ save.xml
 *.lo
 
 # Executables
-src/ftyproto_selftest
+src/fty-proto_selftest
 src/generate_metric
 src/get_metrics
 src/bmsg
-src/ftyproto_selftest
+src/fty_proto_selftest
 *.exe
 *.out
 *.app
 core
 
  # Distcheck workspace and archives
+fty-proto-1.0.0/
+fty-proto-1.0.0.tar.gz
+fty-proto-1.0.0.zip
 ftyproto-0.1.0/
 ftyproto-0.1.0.tar.gz
 ftyproto-0.1.0.zip
@@ -72,7 +77,9 @@ install_manifest.txt
 Testing/
 
 # Repositories downloaded by CI integration scripts
-*.git/
+libzmq/
+czmq/
+malamute/
 
 # Travis build area
 tmp/
@@ -80,6 +87,12 @@ tmp/
 # Valgrind files
 callgrind*
 vgcore*
+
+# Vagrant files
+.vagrant
+
+# CLion / PyCharm
+.idea
 
 # GYP files
 project.Makefile
