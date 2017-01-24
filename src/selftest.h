@@ -26,7 +26,10 @@
 extern "C" {
 #endif
 
+#ifndef SELFTEST_T_DEFINED
 typedef struct _selftest_t selftest_t;
+#define SELFTEST_T_DEFINED
+#endif
 
 //  @interface
 //  Create a new selftest
