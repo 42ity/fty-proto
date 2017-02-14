@@ -48,21 +48,20 @@ struct _fty_proto_t {
     byte *ceiling;                      //  Valid upper limit for read pointer
     zhash_t *aux;                       //  aux
     size_t aux_bytes;                   //  aux
-    char *type;                         //  Type of metric send (temperature, humidity, power.load, ...)
-    char *element_src;                  //  Name of source element to which metrics are bound to
-    char *value;                        //  Value of metric as plain string
-    char *unit;                         //  Unit of metric (i.e. C, F or K for temperature)
-    uint32_t ttl;                       //  Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
-    char *rule;                         //  a rule name, that triggers this alert
-    char *state;                        //  state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
-    char *severity;                     //  severity of the alert. Possible values are INFO/WARNING/CRITICAL
-    char *description;                  //  a description of the alert
-    uint64_t time;                      //  ALERT date/time
-    char *action;                       //  list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
-    char *name;                         //  Unique name of asset.
-    char *operation;                    //  What have hapened with asset (create|update|delete|inventory).
-    zhash_t *ext;                       //  Additional extended information for assets.
-    size_t ext_bytes;                   //  Additional extended information for assets.
+    char *type;                         //  Metric name, e.g.: "temperature", "humidity", "power.load", ...
+    char *name;                         //  Name of asset where metric is produced.
+    char *value;                        //  Metric value, e.g.: "25.323" or "900".
+    char *unit;                         //  Metric unit, e.g.: "C" or "F" for temperature.
+    uint32_t ttl;                       //  Time to live in seconds.                                            
+    uint64_t time;                      //  Metric timestamp - unixtime.  
+    char *rule;                         //  Name of the rule which triggers this alert.
+    char *state;                        //  Alert state.                                                      
+    char *severity;                     //  Alert severity.          
+    char *description;                  //  Alert description.
+    char *action;                       //  List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+    char *operation;                    //  Asset operation.                                                     
+    zhash_t *ext;                       //  Additional extended information.
+    size_t ext_bytes;                   //  Additional extended information.
 };
 
 //  --------------------------------------------------------------------------
@@ -248,7 +247,7 @@ struct _fty_proto_t {
 //  Create a new fty_proto
 
 fty_proto_t *
-fty_proto_new (uint32_t id)
+fty_proto_new (int id)
 {
     fty_proto_t *self = (fty_proto_t *) zmalloc (sizeof (fty_proto_t));
     self->id = id;
@@ -326,12 +325,12 @@ fty_proto_t *
             self->type = strdup (s);
             }
             {
-            char *s = zconfig_get (content, "element_src", NULL);
+            char *s = zconfig_get (content, "name", NULL);
             if (!s) {
                 fty_proto_destroy (&self);
                 return NULL;
             }
-            self->element_src = strdup (s);
+            self->name = strdup (s);
             }
             {
             char *s = zconfig_get (content, "value", NULL);
@@ -365,6 +364,22 @@ fty_proto_t *
             }
             self->ttl = uvalue;
             }
+            {
+            char *es = NULL;
+            char *s = zconfig_get (content, "time", NULL);
+            if (!s) {
+                zsys_error ("content/time not found");
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            uint64_t uvalue = (uint64_t) strtoll (s, &es, 10);
+            if (es != s+strlen (s)) {
+                zsys_error ("content/time: %s is not a number", s);
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->time = uvalue;
+            }
             break;
         case FTY_PROTO_ALERT:
             {
@@ -390,12 +405,12 @@ fty_proto_t *
             self->rule = strdup (s);
             }
             {
-            char *s = zconfig_get (content, "element_src", NULL);
+            char *s = zconfig_get (content, "name", NULL);
             if (!s) {
                 fty_proto_destroy (&self);
                 return NULL;
             }
-            self->element_src = strdup (s);
+            self->name = strdup (s);
             }
             {
             char *s = zconfig_get (content, "state", NULL);
@@ -444,6 +459,22 @@ fty_proto_t *
                 return NULL;
             }
             self->action = strdup (s);
+            }
+            {
+            char *es = NULL;
+            char *s = zconfig_get (content, "ttl", NULL);
+            if (!s) {
+                zsys_error ("content/ttl not found");
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            uint64_t uvalue = (uint64_t) strtoll (s, &es, 10);
+            if (es != s+strlen (s)) {
+                zsys_error ("content/ttl: %s is not a number", s);
+                fty_proto_destroy (&self);
+                return NULL;
+            }
+            self->ttl = uvalue;
             }
             break;
         case FTY_PROTO_ASSET:
@@ -510,7 +541,7 @@ fty_proto_destroy (fty_proto_t **self_p)
         zframe_destroy (&self->routing_id);
         zhash_destroy (&self->aux);
         free (self->type);
-        free (self->element_src);
+        free (self->name);
         free (self->value);
         free (self->unit);
         free (self->rule);
@@ -518,7 +549,6 @@ fty_proto_destroy (fty_proto_t **self_p)
         free (self->severity);
         free (self->description);
         free (self->action);
-        free (self->name);
         free (self->operation);
         zhash_destroy (&self->ext);
 
@@ -615,10 +645,11 @@ fty_proto_decode (zmsg_t **msg_p)
                 }
             }
             GET_STRING (self->type);
-            GET_STRING (self->element_src);
+            GET_STRING (self->name);
             GET_STRING (self->value);
             GET_STRING (self->unit);
             GET_NUMBER4 (self->ttl);
+            GET_NUMBER8 (self->time);
             break;
 
         case FTY_PROTO_ALERT:
@@ -637,12 +668,13 @@ fty_proto_decode (zmsg_t **msg_p)
                 }
             }
             GET_STRING (self->rule);
-            GET_STRING (self->element_src);
+            GET_STRING (self->name);
             GET_STRING (self->state);
             GET_STRING (self->severity);
             GET_STRING (self->description);
             GET_NUMBER8 (self->time);
             GET_STRING (self->action);
+            GET_NUMBER4 (self->ttl);
             break;
 
         case FTY_PROTO_ASSET:
@@ -730,10 +762,10 @@ fty_proto_encode (fty_proto_t **self_p)
             frame_size++;       //  Size is one octet
             if (self->type)
                 frame_size += strlen (self->type);
-            //  element_src is a string with 1-byte length
+            //  name is a string with 1-byte length
             frame_size++;       //  Size is one octet
-            if (self->element_src)
-                frame_size += strlen (self->element_src);
+            if (self->name)
+                frame_size += strlen (self->name);
             //  value is a string with 1-byte length
             frame_size++;       //  Size is one octet
             if (self->value)
@@ -744,6 +776,8 @@ fty_proto_encode (fty_proto_t **self_p)
                 frame_size += strlen (self->unit);
             //  ttl is a 4-byte integer
             frame_size += 4;
+            //  time is a 8-byte integer
+            frame_size += 8;
             break;
 
         case FTY_PROTO_ALERT:
@@ -764,10 +798,10 @@ fty_proto_encode (fty_proto_t **self_p)
             frame_size++;       //  Size is one octet
             if (self->rule)
                 frame_size += strlen (self->rule);
-            //  element_src is a string with 1-byte length
+            //  name is a string with 1-byte length
             frame_size++;       //  Size is one octet
-            if (self->element_src)
-                frame_size += strlen (self->element_src);
+            if (self->name)
+                frame_size += strlen (self->name);
             //  state is a string with 1-byte length
             frame_size++;       //  Size is one octet
             if (self->state)
@@ -786,6 +820,8 @@ fty_proto_encode (fty_proto_t **self_p)
             frame_size++;       //  Size is one octet
             if (self->action)
                 frame_size += strlen (self->action);
+            //  ttl is a 4-byte integer
+            frame_size += 4;
             break;
 
         case FTY_PROTO_ASSET:
@@ -854,8 +890,8 @@ fty_proto_encode (fty_proto_t **self_p)
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
-            if (self->element_src) {
-                PUT_STRING (self->element_src);
+            if (self->name) {
+                PUT_STRING (self->name);
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
@@ -870,6 +906,7 @@ fty_proto_encode (fty_proto_t **self_p)
             else
                 PUT_NUMBER1 (0);    //  Empty string
             PUT_NUMBER4 (self->ttl);
+            PUT_NUMBER8 (self->time);
             break;
 
         case FTY_PROTO_ALERT:
@@ -889,8 +926,8 @@ fty_proto_encode (fty_proto_t **self_p)
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
-            if (self->element_src) {
-                PUT_STRING (self->element_src);
+            if (self->name) {
+                PUT_STRING (self->name);
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
@@ -915,6 +952,7 @@ fty_proto_encode (fty_proto_t **self_p)
             }
             else
                 PUT_NUMBER1 (0);    //  Empty string
+            PUT_NUMBER4 (self->ttl);
             break;
 
         case FTY_PROTO_ASSET:
@@ -1074,19 +1112,21 @@ zmsg_t *
 fty_proto_encode_metric (
     zhash_t *aux,
     const char *type,
-    const char *element_src,
+    const char *name,
     const char *value,
     const char *unit,
-    uint32_t ttl)
+    uint32_t ttl,
+    uint64_t time)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
     fty_proto_set_type (self, "%s", type);
-    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_name (self, "%s", name);
     fty_proto_set_value (self, "%s", value);
     fty_proto_set_unit (self, "%s", unit);
     fty_proto_set_ttl (self, ttl);
+    fty_proto_set_time (self, time);
     return fty_proto_encode (&self);
 }
 
@@ -1098,23 +1138,25 @@ zmsg_t *
 fty_proto_encode_alert (
     zhash_t *aux,
     const char *rule,
-    const char *element_src,
+    const char *name,
     const char *state,
     const char *severity,
     const char *description,
     uint64_t time,
-    const char *action)
+    const char *action,
+    uint32_t ttl)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ALERT);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
     fty_proto_set_rule (self, "%s", rule);
-    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_name (self, "%s", name);
     fty_proto_set_state (self, "%s", state);
     fty_proto_set_severity (self, "%s", severity);
     fty_proto_set_description (self, "%s", description);
     fty_proto_set_time (self, time);
     fty_proto_set_action (self, "%s", action);
+    fty_proto_set_ttl (self, ttl);
     return fty_proto_encode (&self);
 }
 
@@ -1148,19 +1190,21 @@ fty_proto_send_metric (
     void *output,
     zhash_t *aux,
     const char *type,
-    const char *element_src,
+    const char *name,
     const char *value,
     const char *unit,
-    uint32_t ttl)
+    uint32_t ttl,
+    uint64_t time)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_METRIC);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
     fty_proto_set_type (self, "%s", type);
-    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_name (self, "%s", name);
     fty_proto_set_value (self, "%s", value);
     fty_proto_set_unit (self, "%s", unit);
     fty_proto_set_ttl (self, ttl);
+    fty_proto_set_time (self, time);
     return fty_proto_send (&self, output);
 }
 
@@ -1173,23 +1217,25 @@ fty_proto_send_alert (
     void *output,
     zhash_t *aux,
     const char *rule,
-    const char *element_src,
+    const char *name,
     const char *state,
     const char *severity,
     const char *description,
     uint64_t time,
-    const char *action)
+    const char *action,
+    uint32_t ttl)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ALERT);
     zhash_t *aux_copy = zhash_dup (aux);
     fty_proto_set_aux (self, &aux_copy);
     fty_proto_set_rule (self, "%s", rule);
-    fty_proto_set_element_src (self, "%s", element_src);
+    fty_proto_set_name (self, "%s", name);
     fty_proto_set_state (self, "%s", state);
     fty_proto_set_severity (self, "%s", severity);
     fty_proto_set_description (self, "%s", description);
     fty_proto_set_time (self, time);
     fty_proto_set_action (self, "%s", action);
+    fty_proto_set_ttl (self, ttl);
     return fty_proto_send (&self, output);
 }
 
@@ -1232,21 +1278,23 @@ fty_proto_dup (fty_proto_t *self)
         case FTY_PROTO_METRIC:
             copy->aux = self->aux? zhash_dup (self->aux): NULL;
             copy->type = self->type? strdup (self->type): NULL;
-            copy->element_src = self->element_src? strdup (self->element_src): NULL;
+            copy->name = self->name? strdup (self->name): NULL;
             copy->value = self->value? strdup (self->value): NULL;
             copy->unit = self->unit? strdup (self->unit): NULL;
             copy->ttl = self->ttl;
+            copy->time = self->time;
             break;
 
         case FTY_PROTO_ALERT:
             copy->aux = self->aux? zhash_dup (self->aux): NULL;
             copy->rule = self->rule? strdup (self->rule): NULL;
-            copy->element_src = self->element_src? strdup (self->element_src): NULL;
+            copy->name = self->name? strdup (self->name): NULL;
             copy->state = self->state? strdup (self->state): NULL;
             copy->severity = self->severity? strdup (self->severity): NULL;
             copy->description = self->description? strdup (self->description): NULL;
             copy->time = self->time;
             copy->action = self->action? strdup (self->action): NULL;
+            copy->ttl = self->ttl;
             break;
 
         case FTY_PROTO_ASSET:
@@ -1285,10 +1333,10 @@ fty_proto_print (fty_proto_t *self)
                 zsys_debug ("    type='%s'", self->type);
             else
                 zsys_debug ("    type=");
-            if (self->element_src)
-                zsys_debug ("    element_src='%s'", self->element_src);
+            if (self->name)
+                zsys_debug ("    name='%s'", self->name);
             else
-                zsys_debug ("    element_src=");
+                zsys_debug ("    name=");
             if (self->value)
                 zsys_debug ("    value='%s'", self->value);
             else
@@ -1298,6 +1346,7 @@ fty_proto_print (fty_proto_t *self)
             else
                 zsys_debug ("    unit=");
             zsys_debug ("    ttl=%ld", (long) self->ttl);
+            zsys_debug ("    time=%ld", (long) self->time);
             break;
 
         case FTY_PROTO_ALERT:
@@ -1316,10 +1365,10 @@ fty_proto_print (fty_proto_t *self)
                 zsys_debug ("    rule='%s'", self->rule);
             else
                 zsys_debug ("    rule=");
-            if (self->element_src)
-                zsys_debug ("    element_src='%s'", self->element_src);
+            if (self->name)
+                zsys_debug ("    name='%s'", self->name);
             else
-                zsys_debug ("    element_src=");
+                zsys_debug ("    name=");
             if (self->state)
                 zsys_debug ("    state='%s'", self->state);
             else
@@ -1337,6 +1386,7 @@ fty_proto_print (fty_proto_t *self)
                 zsys_debug ("    action='%s'", self->action);
             else
                 zsys_debug ("    action=");
+            zsys_debug ("    ttl=%ld", (long) self->ttl);
             break;
 
         case FTY_PROTO_ASSET:
@@ -1407,13 +1457,14 @@ fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
             }
             if (self->type)
                 zconfig_putf (config, "type", "%s", self->type);
-            if (self->element_src)
-                zconfig_putf (config, "element_src", "%s", self->element_src);
+            if (self->name)
+                zconfig_putf (config, "name", "%s", self->name);
             if (self->value)
                 zconfig_putf (config, "value", "%s", self->value);
             if (self->unit)
                 zconfig_putf (config, "unit", "%s", self->unit);
             zconfig_putf (config, "ttl", "%ld", (long) self->ttl);
+            zconfig_putf (config, "time", "%ld", (long) self->time);
             break;
             }
         case FTY_PROTO_ALERT:
@@ -1438,8 +1489,8 @@ fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
             }
             if (self->rule)
                 zconfig_putf (config, "rule", "%s", self->rule);
-            if (self->element_src)
-                zconfig_putf (config, "element_src", "%s", self->element_src);
+            if (self->name)
+                zconfig_putf (config, "name", "%s", self->name);
             if (self->state)
                 zconfig_putf (config, "state", "%s", self->state);
             if (self->severity)
@@ -1449,6 +1500,7 @@ fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
             zconfig_putf (config, "time", "%ld", (long) self->time);
             if (self->action)
                 zconfig_putf (config, "action", "%s", self->action);
+            zconfig_putf (config, "ttl", "%ld", (long) self->ttl);
             break;
             }
         case FTY_PROTO_ASSET:
@@ -1658,24 +1710,24 @@ fty_proto_set_type (fty_proto_t *self, const char *format, ...)
 
 
 //  --------------------------------------------------------------------------
-//  Get/set the element_src field
+//  Get/set the name field
 
 const char *
-fty_proto_element_src (fty_proto_t *self)
+fty_proto_name (fty_proto_t *self)
 {
     assert (self);
-    return self->element_src;
+    return self->name;
 }
 
 void
-fty_proto_set_element_src (fty_proto_t *self, const char *format, ...)
+fty_proto_set_name (fty_proto_t *self, const char *format, ...)
 {
-    //  Format element_src from provided arguments
+    //  Format name from provided arguments
     assert (self);
     va_list argptr;
     va_start (argptr, format);
-    free (self->element_src);
-    self->element_src = zsys_vprintf (format, argptr);
+    free (self->name);
+    self->name = zsys_vprintf (format, argptr);
     va_end (argptr);
 }
 
@@ -1741,6 +1793,24 @@ fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl)
 {
     assert (self);
     self->ttl = ttl;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the time field
+
+uint64_t
+fty_proto_time (fty_proto_t *self)
+{
+    assert (self);
+    return self->time;
+}
+
+void
+fty_proto_set_time (fty_proto_t *self, uint64_t time)
+{
+    assert (self);
+    self->time = time;
 }
 
 
@@ -1837,24 +1907,6 @@ fty_proto_set_description (fty_proto_t *self, const char *format, ...)
 
 
 //  --------------------------------------------------------------------------
-//  Get/set the time field
-
-uint64_t
-fty_proto_time (fty_proto_t *self)
-{
-    assert (self);
-    return self->time;
-}
-
-void
-fty_proto_set_time (fty_proto_t *self, uint64_t time)
-{
-    assert (self);
-    self->time = time;
-}
-
-
-//  --------------------------------------------------------------------------
 //  Get/set the action field
 
 const char *
@@ -1873,29 +1925,6 @@ fty_proto_set_action (fty_proto_t *self, const char *format, ...)
     va_start (argptr, format);
     free (self->action);
     self->action = zsys_vprintf (format, argptr);
-    va_end (argptr);
-}
-
-
-//  --------------------------------------------------------------------------
-//  Get/set the name field
-
-const char *
-fty_proto_name (fty_proto_t *self)
-{
-    assert (self);
-    return self->name;
-}
-
-void
-fty_proto_set_name (fty_proto_t *self, const char *format, ...)
-{
-    //  Format name from provided arguments
-    assert (self);
-    va_list argptr;
-    va_start (argptr, format);
-    free (self->name);
-    self->name = zsys_vprintf (format, argptr);
     va_end (argptr);
 }
 
@@ -2052,10 +2081,11 @@ fty_proto_test (bool verbose)
     fty_proto_aux_insert (self, "Name", "Brutus");
     fty_proto_aux_insert (self, "Age", "%d", 43);
     fty_proto_set_type (self, "Life is short but Now lasts for ever");
-    fty_proto_set_element_src (self, "Life is short but Now lasts for ever");
+    fty_proto_set_name (self, "Life is short but Now lasts for ever");
     fty_proto_set_value (self, "Life is short but Now lasts for ever");
     fty_proto_set_unit (self, "Life is short but Now lasts for ever");
     fty_proto_set_ttl (self, 123);
+    fty_proto_set_time (self, 123);
     // convert to zpl
     config = fty_proto_zpl (self, NULL);
     if (verbose)
@@ -2079,10 +2109,11 @@ fty_proto_test (bool verbose)
         assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
         assert (fty_proto_aux_number (self, "Age", 0) == 43);
         assert (streq (fty_proto_type (self), "Life is short but Now lasts for ever"));
-        assert (streq (fty_proto_element_src (self), "Life is short but Now lasts for ever"));
+        assert (streq (fty_proto_name (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_value (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_unit (self), "Life is short but Now lasts for ever"));
         assert (fty_proto_ttl (self) == 123);
+        assert (fty_proto_time (self) == 123);
         fty_proto_destroy (&self);
     }
     self = fty_proto_new (FTY_PROTO_ALERT);
@@ -2095,12 +2126,13 @@ fty_proto_test (bool verbose)
     fty_proto_aux_insert (self, "Name", "Brutus");
     fty_proto_aux_insert (self, "Age", "%d", 43);
     fty_proto_set_rule (self, "Life is short but Now lasts for ever");
-    fty_proto_set_element_src (self, "Life is short but Now lasts for ever");
+    fty_proto_set_name (self, "Life is short but Now lasts for ever");
     fty_proto_set_state (self, "Life is short but Now lasts for ever");
     fty_proto_set_severity (self, "Life is short but Now lasts for ever");
     fty_proto_set_description (self, "Life is short but Now lasts for ever");
     fty_proto_set_time (self, 123);
     fty_proto_set_action (self, "Life is short but Now lasts for ever");
+    fty_proto_set_ttl (self, 123);
     // convert to zpl
     config = fty_proto_zpl (self, NULL);
     if (verbose)
@@ -2124,12 +2156,13 @@ fty_proto_test (bool verbose)
         assert (streq (fty_proto_aux_string (self, "Name", "?"), "Brutus"));
         assert (fty_proto_aux_number (self, "Age", 0) == 43);
         assert (streq (fty_proto_rule (self), "Life is short but Now lasts for ever"));
-        assert (streq (fty_proto_element_src (self), "Life is short but Now lasts for ever"));
+        assert (streq (fty_proto_name (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_state (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_severity (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_description (self), "Life is short but Now lasts for ever"));
         assert (fty_proto_time (self) == 123);
         assert (streq (fty_proto_action (self), "Life is short but Now lasts for ever"));
+        assert (fty_proto_ttl (self) == 123);
         fty_proto_destroy (&self);
     }
     self = fty_proto_new (FTY_PROTO_ASSET);

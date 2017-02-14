@@ -4,34 +4,64 @@ The following ABNF grammar defines the Core FTY protocols:
 
     ;  No description                                                        
 
-    METRIC          = signature %d1 aux type element_src value unit ttl
+    METRIC          = signature %d1 aux type name value unit ttl time
     signature       = %xAA %xA1             ; two octets
     aux             = hash                  ; 
-    type            = string                ; Type of metric send (temperature, humidity, power.load, ...)
-    element_src     = string                ; Name of source element to which metrics are bound to
-    value           = string                ; Value of metric as plain string
-    unit            = string                ; Unit of metric (i.e. C, F or K for temperature)
-    ttl             = number-4              ; Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
+    type            = string                ; Metric name, e.g.: "temperature", "humidity", "power.load", ...
+    name            = string                ; Name of asset where metric is produced.
+    value           = string                ; Metric value, e.g.: "25.323" or "900".
+    unit            = string                ; Metric unit, e.g.: "C" or "F" for temperature.
+    ttl             = number-4              ; Time to live in seconds.
+
+Value defines duration of validity (i.e. how long is metric valid,
+when it expires) as well as the latest time we should receive metric
+updates.
+    time            = number-8              ; Metric timestamp -
+       unixtime.
 
     ;  No description                                                        
 
-    ALERT           = signature %d2 aux rule element_src state severity description time action
+    ALERT           = signature %d2 aux rule name state severity description time action ttl
     aux             = hash                  ; 
-    rule            = string                ; a rule name, that triggers this alert
-    element_src     = string                ; name of the element, where alert was detected. Most of the time is would be asset element name
-    state           = string                ; state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
-    severity        = string                ; severity of the alert. Possible values are INFO/WARNING/CRITICAL
-    description     = string                ; a description of the alert
-    time            = number-8              ; ALERT date/time
-    action          = string                ; list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+    rule            = string                ; Name of the rule which triggers this alert.
+    name            = string                ; Name of asset where alert is trigged.
+    state           = string                ; Alert state.
+
+Permissible values:
+ACTIVE / ACK-WIP / ACK-IGNORE / ACK-PAUSE / ACK-SILENCE / RESOLVED
+    severity        = string                ; Alert severity.
+
+Permissible values:
+INFO / WARNING / CRITICAL
+    description     = string                ; Alert description.
+    time            = number-8              ; Alert timestamp - unixtime.
+    action          = string                ; List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+Can be empty.
+    ttl             = number-4              ; Time to live in seconds.
+
+Value defines duration of validity (i.e. how long is alert valid, when
+it expires).
+When current unixtime is greater than time + ttl this alert expired
+and is no longer valid.
 
     ;  No description                                                        
 
     ASSET           = signature %d3 aux name operation ext
     aux             = hash                  ; 
-    name            = string                ; Unique name of asset.
-    operation       = string                ; What have hapened with asset (create|update|delete|inventory).
-    ext             = hash                  ; Additional extended information for assets.
+    name            = string                ; Asset name.
+    operation       = string                ; Asset operation.
+
+Permissible values:
+create / update / delete / inventory / retire
+
+A little explanation. Due to historical reasons:
+* 'update' is actually 'delete' + 'create', so only it is essentially
+   a 'replace' operation: only data passed in this message become the
+   new content of asset information.
+* 'delete' is the same as 'retire'
+* 'inventory' is update of extended and/or auxilliary information
+  (ext/aux field)
+    ext             = hash                  ; Additional extended information.
 
     ; A list of name/value pairs
     hash            = hash-count *( hash-name hash-value )
