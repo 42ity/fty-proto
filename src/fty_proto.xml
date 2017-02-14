@@ -64,7 +64,7 @@
     </field>
 
     <field name = "unit" type = "string">
-        Metric unit , .e.g.: "C" or "F" for temperature.
+        Metric unit, .e.g.: "C" or "F" for temperature.
     </field>
 
     <field name = "ttl" type = "number" size = "4">
@@ -84,7 +84,7 @@
     id = "2"
     >
     <field name = "rule" type = "string">
-        Rule name that triggers this alert.
+        Name of the rule which triggers this alert
     </field>
 
     <field name = "name" type = "string">
