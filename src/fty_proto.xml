@@ -52,19 +52,30 @@
     id = "1"
     >
     <field name = "type" type = "string">
-        Type of metric send (temperature, humidity, power.load, ...)
+        Metric name, e.g.: "temperature", "humidity", "power.load", ... 
     </field>
-    <field name = "element_src" type = "string">
-        Name of source element to which metrics are bound to
+
+    <field name = "name" type = "string">
+        Name of asset where metric is produced.
     </field>
+
     <field name = "value" type = "string">
-        Value of metric as plain string
+        Metric value, e.g.: "25.323" or "900".
     </field>
+
     <field name = "unit" type = "string">
-        Unit of metric (i.e. C, F or K for temperature)
+        Metric unit , .e.g.: "C" or "F" for temperature.
     </field>
+
     <field name = "ttl" type = "number" size = "4">
-        Metric time to live seconds (i.e. How long is the metric valid - At the latest how long from now should i get a new one)
+        Time to live in seconds.
+
+        Value defines duration of validity (i.e. how long is metric valid, when
+        it expires) as well as how often we should receive metric updates.
+    </field>
+    
+    <field name = "time" type = "number" size = "8"> Metric timestamp -
+        unixtime.
     </field>
 </message>
 
@@ -73,25 +84,47 @@
     id = "2"
     >
     <field name = "rule" type = "string">
-        a rule name, that triggers this alert
+        Rule name that triggers this alert.
     </field>
-    <field name = "element_src" type = "string">
-        name of the element, where alert was detected. Most of the time is would be asset element name
+
+    <field name = "name" type = "string">
+        Name of asset where alert is trigged.
     </field>
+
     <field name = "state" type = "string">
-        state of the alert. Possible values are ACTIVE/ACK-WIP/ACK-IGNORE/ACK-PAUSE/ACK-SILENCE/RESOLVED
+        Alert state.
+
+        Permissible values:
+        ACTIVE / ACK-WIP / ACK-IGNORE / ACK-PAUSE / ACK-SILENCE / RESOLVED
     </field>
+
     <field name = "severity" type = "string">
-        severity of the alert. Possible values are INFO/WARNING/CRITICAL
+        Alert severity.
+
+        Permissible values:
+        INFO / WARNING / CRITICAL
     </field>
+
     <field name = "description" type = "string">
-        a description of the alert
+        Alert description.
     </field>
+
     <field name = "time" type = "number" size = "8">
-        ALERT date/time
+        Alert timestamp - unixtime.
     </field>
+
     <field name = "action" type = "string">
-        list of strings separated by "/" ( EMAIL/SMS ) ( is optional and can be empty )
+        List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+        Can be empty.
+    </field>
+
+    <field name = "ttl" type = "number" size = "4">
+        Time to live in seconds.
+
+        Value defines duration of validity (i.e. how long is alert valid, when
+        it expires).
+        When current unixtime is greater than time + ttl this alert expired
+        and is no longer valid.
     </field>
 </message>
 
@@ -99,13 +132,23 @@
     name = "ASSET"
     id = "3">
     <field name = "name" type = "string">
-        Unique name of asset.
+        Asset name.
     </field>
+
     <field name = "operation" type = "string">
-        What have hapened with asset (create|update|delete|inventory).
+        Asset operation.
+
+        Permissible values:
+        create / update / delete / inventory / retire
+
+        A little explanation. Due to historical reasons:
+        * 'update' is actually 'delete' + 'create'
+        * 'delete' is the same as 'retire'
+        * 'inventory' is update of extended and/or auxilliary information (ext/aux field)
     </field>
+
     <field name = "ext" type = "hash">
-        Additional extended information for assets.
+        Additional extended information.
     </field>
 </message>
 
