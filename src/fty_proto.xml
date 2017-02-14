@@ -52,7 +52,7 @@
     id = "1"
     >
     <field name = "type" type = "string">
-        Metric name, e.g.: "temperature", "humidity", "power.load", ... 
+        Metric name, e.g.: "temperature", "humidity", "power.load", ...
     </field>
 
     <field name = "name" type = "string">
@@ -64,16 +64,17 @@
     </field>
 
     <field name = "unit" type = "string">
-        Metric unit , .e.g.: "C" or "F" for temperature.
+        Metric unit, e.g.: "C" or "F" for temperature.
     </field>
 
     <field name = "ttl" type = "number" size = "4">
         Time to live in seconds.
 
-        Value defines duration of validity (i.e. how long is metric valid, when
-        it expires) as well as how often we should receive metric updates.
+        Value defines duration of validity (i.e. how long is metric valid,
+        when it expires) as well as the latest time we should receive metric
+        updates (if there are no updates by this time, something is wrong).
     </field>
-    
+
     <field name = "time" type = "number" size = "8"> Metric timestamp -
         unixtime.
     </field>
@@ -84,7 +85,7 @@
     id = "2"
     >
     <field name = "rule" type = "string">
-        Rule name that triggers this alert.
+        Name of the rule which triggers this alert.
     </field>
 
     <field name = "name" type = "string">
@@ -142,9 +143,12 @@
         create / update / delete / inventory / retire
 
         A little explanation. Due to historical reasons:
-        * 'update' is actually 'delete' + 'create'
+        * 'update' is actually 'delete' + 'create', so only it is essentially
+           a 'replace' operation: only data passed in this message become the
+           new content of asset information.
         * 'delete' is the same as 'retire'
-        * 'inventory' is update of extended and/or auxilliary information (ext/aux field)
+        * 'inventory' is update of extended and/or auxilliary information
+          (ext/aux field)
     </field>
 
     <field name = "ext" type = "hash">
