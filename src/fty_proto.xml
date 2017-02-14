@@ -72,8 +72,7 @@
 
         Value defines duration of validity (i.e. how long is metric valid,
         when it expires) as well as the latest time we should receive metric
-        updates (if there are no updates by this time, something is wrong
-        unless the asset was removed).
+        updates.
     </field>
 
     <field name = "time" type = "number" size = "8"> Metric timestamp -
