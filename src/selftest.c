@@ -66,7 +66,7 @@ s_test_metrics (zactor_t *server)
     r = zhash_insert (aux, FTY_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
     assert (r == 0);
 
-    zmsg_t *msg = fty_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", 30);
+    zmsg_t *msg = fty_proto_encode_metric (aux, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS", 30, 10);
     assert (msg);
     zhash_destroy (&aux);
 

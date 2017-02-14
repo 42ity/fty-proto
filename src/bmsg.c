@@ -447,7 +447,8 @@ int main (int argc, char *argv [])
                         severity,
                         description,
                         time,
-                        action);
+                        action,
+                        300);
 
             if (verbose)
                 s_print_bmsg ("alert", subject, msg);
@@ -501,7 +502,8 @@ int main (int argc, char *argv [])
                         element_src,
                         value,
                         unit,
-                        ttl);
+                        ttl,
+                        time (NULL));
 
             if (verbose)
                 s_print_bmsg ("metric", subject, msg);
