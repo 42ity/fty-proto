@@ -4,25 +4,32 @@ The following ABNF grammar defines the Core FTY protocols:
 
     ;  No description                                                        
 
-    METRIC          = signature %d1 aux type name value unit ttl time
+    METRIC          = signature %d1 aux time ttl type name value unit
     signature       = %xAA %xA1             ; two octets
     aux             = hash                  ; 
-    type            = string                ; Metric name, e.g.: "temperature", "humidity", "power.load", ...
-    name            = string                ; Name of asset where metric is produced.
-    value           = string                ; Metric value, e.g.: "25.323" or "900".
-    unit            = string                ; Metric unit, e.g.: "C" or "F" for temperature.
+    time            = number-8              ; Metric timestamp -
+       unixtime.
     ttl             = number-4              ; Time to live in seconds.
 
 Value defines duration of validity (i.e. how long is metric valid,
 when it expires) as well as the latest time we should receive metric
 updates.
-    time            = number-8              ; Metric timestamp -
-       unixtime.
+    type            = string                ; Metric name, e.g.: "temperature", "humidity", "power.load", ...
+    name            = string                ; Name of asset where metric is produced.
+    value           = string                ; Metric value, e.g.: "25.323" or "900".
+    unit            = string                ; Metric unit, e.g.: "C" or "F" for temperature.
 
     ;  No description                                                        
 
-    ALERT           = signature %d2 aux rule name state severity description time action ttl
+    ALERT           = signature %d2 aux time ttl rule name state severity description action
     aux             = hash                  ; 
+    time            = number-8              ; Alert timestamp - unixtime.
+    ttl             = number-4              ; Time to live in seconds.
+
+Value defines duration of validity (i.e. how long is alert valid, when
+it expires).
+When current unixtime is greater than time + ttl this alert expired
+and is no longer valid.
     rule            = string                ; Name of the rule which triggers this alert.
     name            = string                ; Name of asset where alert is trigged.
     state           = string                ; Alert state.
@@ -34,15 +41,8 @@ ACTIVE / ACK-WIP / ACK-IGNORE / ACK-PAUSE / ACK-SILENCE / RESOLVED
 Permissible values:
 INFO / WARNING / CRITICAL
     description     = string                ; Alert description.
-    time            = number-8              ; Alert timestamp - unixtime.
     action          = string                ; List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
 Can be empty.
-    ttl             = number-4              ; Time to live in seconds.
-
-Value defines duration of validity (i.e. how long is alert valid, when
-it expires).
-When current unixtime is greater than time + ttl this alert expired
-and is no longer valid.
 
     ;  No description                                                        
 

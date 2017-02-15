@@ -75,11 +75,11 @@ int
 
 // Encode the METRIC
 zmsg_t *
-    fty_proto_encode_metric (zhash_t *aux, const char *type, const char *element_src, const char *value, const char *unit, uint32_t ttl);
+    fty_proto_encode_metric (zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
 
 // Encode the ALERT
 zmsg_t *
-    fty_proto_encode_alert (zhash_t *aux, const char *rule, const char *element_src, const char *state, const char *severity, const char *description, uint64_t time, const char *action);
+    fty_proto_encode_alert (zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
 
 // Encode the ASSET
 zmsg_t *
@@ -88,12 +88,12 @@ zmsg_t *
 // Send the METRIC to the output in one step                    
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    fty_proto_send_metric (void *output, zhash_t *aux, const char *type, const char *element_src, const char *value, const char *unit, uint32_t ttl);
+    fty_proto_send_metric (void *output, zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
 
 // Send the ALERT to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    fty_proto_send_alert (void *output, zhash_t *aux, const char *rule, const char *element_src, const char *state, const char *severity, const char *description, uint64_t time, const char *action);
+    fty_proto_send_alert (void *output, zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
 
 // Send the ASSET to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -168,13 +168,13 @@ const char *
 void
     fty_proto_set_type (fty_proto_t *self, const char *format, ...);
 
-// Get/set the element_src field
+// Get/set the name field
 const char *
-    fty_proto_element_src (fty_proto_t *self);
+    fty_proto_name (fty_proto_t *self);
 
-// Get/set the element_src field
+// Get/set the name field
 void
-    fty_proto_set_element_src (fty_proto_t *self, const char *format, ...);
+    fty_proto_set_name (fty_proto_t *self, const char *format, ...);
 
 // Get/set the value field
 const char *
@@ -199,6 +199,14 @@ uint32_t
 // Get/set the ttl field
 void
     fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
+
+// Get/set the time field
+uint64_t
+    fty_proto_time (fty_proto_t *self);
+
+// Get/set the time field
+void
+    fty_proto_set_time (fty_proto_t *self, uint64_t time);
 
 // Get/set the rule field
 const char *
@@ -232,14 +240,6 @@ const char *
 void
     fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
-// Get/set the time field
-uint64_t
-    fty_proto_time (fty_proto_t *self);
-
-// Get/set the time field
-void
-    fty_proto_set_time (fty_proto_t *self, uint64_t time);
-
 // Get/set the action field
 const char *
     fty_proto_action (fty_proto_t *self);
@@ -247,14 +247,6 @@ const char *
 // Get/set the action field
 void
     fty_proto_set_action (fty_proto_t *self, const char *format, ...);
-
-// Get/set the name field
-const char *
-    fty_proto_name (fty_proto_t *self);
-
-// Get/set the name field
-void
-    fty_proto_set_name (fty_proto_t *self, const char *format, ...);
 
 // Get/set the operation field
 const char *
