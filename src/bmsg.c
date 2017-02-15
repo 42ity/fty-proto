@@ -441,14 +441,14 @@ int main (int argc, char *argv [])
 
             zmsg_t *msg = fty_proto_encode_alert (
                         aux,
+                        time,
+                        300,
                         rule,
                         element_src,
                         state,
                         severity,
                         description,
-                        time,
-                        action,
-                        300);
+                        action);
 
             if (verbose)
                 s_print_bmsg ("alert", subject, msg);
@@ -498,12 +498,12 @@ int main (int argc, char *argv [])
 
             zmsg_t *msg = fty_proto_encode_metric (
                         aux,
+                        time (NULL),
+                        ttl,
                         quantity,
                         element_src,
                         value,
-                        unit,
-                        ttl,
-                        time (NULL));
+                        unit);
 
             if (verbose)
                 s_print_bmsg ("metric", subject, msg);

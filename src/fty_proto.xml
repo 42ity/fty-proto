@@ -51,6 +51,19 @@
     name = "METRIC"
     id = "1"
     >
+
+    <field name = "time" type = "number" size = "8"> Metric timestamp -
+        unixtime.
+    </field>
+
+    <field name = "ttl" type = "number" size = "4">
+        Time to live in seconds.
+
+        Value defines duration of validity (i.e. how long is metric valid,
+        when it expires) as well as the latest time we should receive metric
+        updates.
+    </field>
+
     <field name = "type" type = "string">
         Metric name, e.g.: "temperature", "humidity", "power.load", ...
     </field>
@@ -66,24 +79,26 @@
     <field name = "unit" type = "string">
         Metric unit, e.g.: "C" or "F" for temperature.
     </field>
-
-    <field name = "ttl" type = "number" size = "4">
-        Time to live in seconds.
-
-        Value defines duration of validity (i.e. how long is metric valid,
-        when it expires) as well as the latest time we should receive metric
-        updates.
-    </field>
-
-    <field name = "time" type = "number" size = "8"> Metric timestamp -
-        unixtime.
-    </field>
 </message>
 
 <message
     name = "ALERT"
     id = "2"
     >
+
+    <field name = "time" type = "number" size = "8">
+        Alert timestamp - unixtime.
+    </field>
+
+    <field name = "ttl" type = "number" size = "4">
+        Time to live in seconds.
+
+        Value defines duration of validity (i.e. how long is alert valid, when
+        it expires).
+        When current unixtime is greater than time + ttl this alert expired
+        and is no longer valid.
+    </field>
+
     <field name = "rule" type = "string">
         Name of the rule which triggers this alert.
     </field>
@@ -110,22 +125,10 @@
         Alert description.
     </field>
 
-    <field name = "time" type = "number" size = "8">
-        Alert timestamp - unixtime.
-    </field>
 
     <field name = "action" type = "string">
         List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
         Can be empty.
-    </field>
-
-    <field name = "ttl" type = "number" size = "4">
-        Time to live in seconds.
-
-        Value defines duration of validity (i.e. how long is alert valid, when
-        it expires).
-        When current unixtime is greater than time + ttl this alert expired
-        and is no longer valid.
     </field>
 </message>
 

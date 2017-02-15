@@ -69,12 +69,12 @@ int main(int argc, char** argv) {
 
     zmsg_t *msg = fty_proto_encode_metric (
             NULL,       // aux
+            time (NULL),// time
+            ttl,        // TTL
             argv[1],    // type
             argv[2],    // name 
             argv[3],    // value
-            argv[4],    // unit
-            ttl,        // TTL
-            time (NULL) // time
+            argv[4]     // unit
             );
     assert (msg);
     zstr_free (&buff);
