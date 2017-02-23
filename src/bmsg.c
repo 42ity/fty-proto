@@ -250,6 +250,7 @@ int main (int argc, char *argv [])
     bool verbose = false;
     int argn;
     int ret = 0;
+    int r = 0;
     char *endpoint = "ipc://@/malamute";
     bool stats = false;
 
@@ -345,7 +346,7 @@ int main (int argc, char *argv [])
     assert (client);
 
     char *address;
-    int r = asprintf (&address, "bmsg.%"PRIi64, zclock_mono ());
+    r = asprintf (&address, "bmsg.%"PRIi64, zclock_mono ());
     assert (r > -1);
     if (verbose)
         zsys_info ("address: %s", address);
