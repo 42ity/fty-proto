@@ -280,15 +280,16 @@ int main (int argc, char *argv [])
             puts ("                             priority=X where X in[1,5]");
             puts ("  publish metric_unavailable <metric topic>");
             puts ("                         publish information on stream " FTY_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
-            puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl>");
+            puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl> <time>");
             puts ("                         publish metric on stream " FTY_PROTO_STREAM_METRICS " or " FTY_PROTO_STREAM_METRICS_SENSOR);
             puts ("                         <quantity> a string name for the metric type");
             puts ("                         <element_src> a string name for asset where metric was detected");
             puts ("                         <value> a string value of the metric (for now only values convertable to double should be used");
             puts ("                         <units> a string like %, W, days");
             puts ("                         <ttl>   a number time to leave [s]");
+            puts ("                         <time>  an UNIX timestamp when metric was detected");
             puts ("                         Auxilary data:");
-            puts ("                             time=Y, where Y is an UNIX timestamp when metric was detected");
+            puts ("                             quantity=Y, where Y is value");
             puts ("");
             puts ("Auxiliary data for all streams and extended attributes for stream ASSETS:");
             puts ("  those are recognized on the end of the command line");
@@ -491,6 +492,15 @@ int main (int argc, char *argv [])
             if (r < 1)
                 die ("TTL %s is not a number", s_ttl);
 
+            char *s_time = argv[++argn];
+            if (!s_time)
+                die ("missing time", NULL);
+
+            uint32_t time_m;
+            r = sscanf (s_time, "%"SCNu32, &time_m);
+            if (r < 1)
+                die ("time %s is not a number", s_time);
+                        
             zhash_t *aux = s_parse_aux (argc, argn+1, argv);
 
             char *subject;
@@ -499,7 +509,7 @@ int main (int argc, char *argv [])
 
             zmsg_t *msg = fty_proto_encode_metric (
                         aux,
-                        time (NULL),
+                        time_m,
                         ttl,
                         quantity,
                         element_src,
