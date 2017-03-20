@@ -655,6 +655,7 @@ AC_CONFIG_FILES([Makefile
                  src/libfty_proto.pc
                  ])
 
+
 AC_OUTPUT
 
 # Print configure summary and list make options
