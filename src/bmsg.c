@@ -438,7 +438,7 @@ int main (int argc, char *argv [])
             zhash_t *aux = s_parse_aux (argc, argn+1, argv);
 
             char *subject;
-            r = asprintf (&subject, "%s@%s", rule, element_src);
+            r = asprintf (&subject, "%s@%s/%s@%s", rule, element_src, severity, element_src);
             assert (r > 0);
 
             zmsg_t *msg = fty_proto_encode_alert (
@@ -500,7 +500,7 @@ int main (int argc, char *argv [])
             r = sscanf (s_time, "%"SCNu32, &time_m);
             if (r < 1)
                 die ("time %s is not a number", s_time);
-                        
+
             zhash_t *aux = s_parse_aux (argc, argn+1, argv);
 
             char *subject;
