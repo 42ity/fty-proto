@@ -74,12 +74,26 @@ int
     fty_proto_send_again (fty_proto_t *self, void *output);
 
 // Encode the METRIC
+/* NOTE: Manual edit here - two couples of old function signatures were left
+ * in place by editors before me (commented away below); I'd leave it up
+ * to experts to fix this if needed */
+
+zmsg_t *
+    fty_proto_encode_metric (zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
+
+/*
 zmsg_t *
     fty_proto_encode_metric (zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
+*/
 
 // Encode the ALERT
 zmsg_t *
+    fty_proto_encode_alert (zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
+
+/*
+zmsg_t *
     fty_proto_encode_alert (zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
+*/
 
 // Encode the ASSET
 zmsg_t *
@@ -88,12 +102,22 @@ zmsg_t *
 // Send the METRIC to the output in one step                    
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
+    fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
+
+/*
+int
     fty_proto_send_metric (void *output, zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
+*/
 
 // Send the ALERT to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
+    fty_proto_send_alert (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
+
+/*
+int
     fty_proto_send_alert (void *output, zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
+*/
 
 // Send the ASSET to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
