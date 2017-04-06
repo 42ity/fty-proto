@@ -184,6 +184,22 @@ void
 size_t
     fty_proto_aux_size (fty_proto_t *self);
 
+// Get/set the time field
+uint64_t
+    fty_proto_time (fty_proto_t *self);
+
+// Get/set the time field
+void
+    fty_proto_set_time (fty_proto_t *self, uint64_t time);
+
+// Get/set the ttl field
+uint32_t
+    fty_proto_ttl (fty_proto_t *self);
+
+// Get/set the ttl field
+void
+    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
+
 // Get/set the type field
 const char *
     fty_proto_type (fty_proto_t *self);
@@ -215,22 +231,6 @@ const char *
 // Get/set the unit field
 void
     fty_proto_set_unit (fty_proto_t *self, const char *format, ...);
-
-// Get/set the ttl field
-uint32_t
-    fty_proto_ttl (fty_proto_t *self);
-
-// Get/set the ttl field
-void
-    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
-
-// Get/set the time field
-uint64_t
-    fty_proto_time (fty_proto_t *self);
-
-// Get/set the time field
-void
-    fty_proto_set_time (fty_proto_t *self, uint64_t time);
 
 // Get/set the rule field
 const char *
