@@ -74,7 +74,9 @@ int
     fty_proto_send_again (fty_proto_t *self, void *output);
 
 // Encode the METRIC
-/* NOTE: Manual edit here - two old function signatures were left in place by editors before me; I'd leave it up to them to fix this if needed */
+/* NOTE: Manual edit here - two couples of old function signatures were left
+ * in place by editors before me (commented away below); I'd leave it up
+ * to experts to fix this if needed */
 
 zmsg_t *
     fty_proto_encode_metric (zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
@@ -99,8 +101,6 @@ zmsg_t *
 
 // Send the METRIC to the output in one step                    
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
-
-/* NOTE: Manual edit here - two old function signatures were left in place by editors before me; I'd leave it up to them to fix this if needed */
 int
     fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
 
