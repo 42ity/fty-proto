@@ -35,9 +35,6 @@ core
 fty-proto-1.0.0/
 fty-proto-1.0.0.tar.gz
 fty-proto-1.0.0.zip
-ftyproto-0.1.0/
-ftyproto-0.1.0.tar.gz
-ftyproto-0.1.0.zip
 
 # Man pages
 doc/*.1
@@ -58,6 +55,7 @@ config.log
 config.status
 config/
 configure
+configure.lineno
 libtool
 src/platform.h
 src/platform.h.in
@@ -75,6 +73,9 @@ compile_commands.json
 DartConfiguration.tcl
 install_manifest.txt
 Testing/
+builds/cmake/
+CMake*
+*.cmake
 
 # Repositories downloaded by CI integration scripts
 libzmq/

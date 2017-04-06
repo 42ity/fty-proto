@@ -2,17 +2,28 @@
 # This is a skeleton created by zproject.
 # You can add hand-written code here.
 
-language: c
+language:
+- c
 
-cache: ccache
+cache:
+- ccache
 
 os:
 - linux
 
+# Note: some packages or dependencies may require extended permissions
+# which take longer to set up and boot. If your project does not build
+# in the default container with sudo==false, consider requiring a docker
+# image and/or a newer Ubuntu Trusty baseline VM, by uncommenting below.
+# See the current docs on http://travis-ci.org for up-to-date options.
 sudo: false
+#sudo: required
 
-services:
-- docker
+#dist:
+#- trusty
+
+#services:
+#- docker
 
 # Set CI_TIME=true to enable build-step profiling in Travis
 # Set CI_TRACE=true to enable shell script tracing in Travis
@@ -21,7 +32,7 @@ env:
   global:
     - CI_TIME=false
     - CI_TRACE=false
-    - CI_QUIET=true
+    - CI_CONFIG_QUIET=true
   matrix:
     - BUILD_TYPE=default
     - BUILD_TYPE=default-Werror
@@ -29,31 +40,69 @@ env:
 #   - BUILD_TYPE=android
 #   - BUILD_TYPE=check-py
 
+pkg_deps_prereqs: &pkg_deps_prereqs
+    - libzmq3-dev
+    - libczmq-dev
+    - libmlm-dev
+
+pkg_deps_doctools: &pkg_deps_doctools
+    - asciidoc
+    - xmlto
+
+pkg_deps_doctools: &pkg_deps_devtools
+    - git
+
+pkg_src_zeromq_ubuntu12: &pkg_src_zeromq_ubuntu12
+- sourceline: 'deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-draft/xUbuntu_12.04/ ./'
+  key_url: 'http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-draft/xUbuntu_12.04/Release.key'
+
+pkg_src_zeromq_ubuntu14: &pkg_src_zeromq_ubuntu14
+- sourceline: 'deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-draft/xUbuntu_14.04/ ./'
+  key_url: 'http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-draft/xUbuntu_14.04/Release.key'
+
+addons:
+  apt:
+    sources:
+      <<: *pkg_src_zeromq_ubuntu12
+    packages: &pkg_deps_common
+    - *pkg_deps_devtools
+    - *pkg_deps_prereqs
+
 matrix:
   include:
   - env: BUILD_TYPE=valgrind
     os: linux
     dist: trusty
-    sudo: required
+#    sudo: required
     addons:
       apt:
+        sources:
+          <<: *pkg_src_zeromq_ubuntu14
         packages:
         - valgrind
-
-addons:
-  sources:
-  - sourceline: 'deb http://download.opensuse.org/repositories/home:/zeromq:/git-draft/xUbuntu_12.04/ ./'
-    key_url: 'http://download.opensuse.org/repositories/home:/zeromq:/git-draft/xUbuntu_12.04/Release.key'
-  apt:
-    packages:
-    - asciidoc
-    - xmlto
-#    - libzmq3-dev
-#    - libczmq-dev
-#    - libmlm-dev
+        - *pkg_deps_common
+  - env: BUILD_TYPE=default ADDRESS_SANITIZER=enabled
+    os: linux
+    dist: trusty
+    addons:
+      apt:
+        sources:
+          <<: *pkg_src_zeromq_ubuntu14
+        packages:
+        - *pkg_deps_common
+  - env: BUILD_TYPE=default-with-docs
+    os: linux
+    addons:
+      apt:
+        sources:
+          <<: *pkg_src_zeromq_ubuntu12
+        packages:
+        - *pkg_deps_common
+        - *pkg_deps_doctools
 
 before_install:
-- if [ $TRAVIS_OS_NAME == "osx" ] ; then brew update; brew install binutils valgrind ; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew update; brew install binutils ; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD_TYPE" == "valgrind" ] ; then brew install valgrind ; fi
 
 # Hand off to generated script for each BUILD_TYPE
 script: ./ci_build.sh
