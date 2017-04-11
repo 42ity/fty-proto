@@ -75,6 +75,9 @@ compile_commands.json
 DartConfiguration.tcl
 install_manifest.txt
 Testing/
+builds/cmake/
+CMake*
+*.cmake
 
 # Repositories downloaded by CI integration scripts
 libzmq/

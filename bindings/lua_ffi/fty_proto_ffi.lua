@@ -75,11 +75,11 @@ int
 
 // Encode the METRIC
 zmsg_t *
-    fty_proto_encode_metric (zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
+    fty_proto_encode_metric (zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
 
 // Encode the ALERT
 zmsg_t *
-    fty_proto_encode_alert (zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
+    fty_proto_encode_alert (zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
 
 // Encode the ASSET
 zmsg_t *
@@ -88,12 +88,12 @@ zmsg_t *
 // Send the METRIC to the output in one step                    
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    fty_proto_send_metric (void *output, zhash_t *aux, const char *type, const char *name, const char *value, const char *unit, uint32_t ttl, uint64_t time);
+    fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
 
 // Send the ALERT to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
-    fty_proto_send_alert (void *output, zhash_t *aux, const char *rule, const char *name, const char *state, const char *severity, const char *description, uint64_t time, const char *action, uint32_t ttl);
+    fty_proto_send_alert (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
 
 // Send the ASSET to the output in one step                     
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -160,6 +160,22 @@ void
 size_t
     fty_proto_aux_size (fty_proto_t *self);
 
+// Get/set the time field
+uint64_t
+    fty_proto_time (fty_proto_t *self);
+
+// Get/set the time field
+void
+    fty_proto_set_time (fty_proto_t *self, uint64_t time);
+
+// Get/set the ttl field
+uint32_t
+    fty_proto_ttl (fty_proto_t *self);
+
+// Get/set the ttl field
+void
+    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
+
 // Get/set the type field
 const char *
     fty_proto_type (fty_proto_t *self);
@@ -191,22 +207,6 @@ const char *
 // Get/set the unit field
 void
     fty_proto_set_unit (fty_proto_t *self, const char *format, ...);
-
-// Get/set the ttl field
-uint32_t
-    fty_proto_ttl (fty_proto_t *self);
-
-// Get/set the ttl field
-void
-    fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
-
-// Get/set the time field
-uint64_t
-    fty_proto_time (fty_proto_t *self);
-
-// Get/set the time field
-void
-    fty_proto_set_time (fty_proto_t *self, uint64_t time);
 
 // Get/set the rule field
 const char *
