@@ -24,7 +24,7 @@
     <class name = "selftest" private="1">Selftest</class>
     <main  name = "generate_metric">Metric generator</main>
     <main  name = "get_metrics">Metrics getter</main>
-    <main name = "bmsg">Command line tool to work with fty proto messages</main>
+    <main  name = "bmsg">Command line tool to work with fty proto messages</main>
 
     <model name = "fty_proto" codec="zproto_codec_c_v1" />
 
