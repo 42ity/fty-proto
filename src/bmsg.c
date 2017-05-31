@@ -265,6 +265,7 @@ int main (int argc, char *argv [])
             puts ("  --verbose / -v         verbose test output");
             puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
+            puts ("  --timeout / -t         timeout when waiting for reply");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_ASSETS ")");
             puts ("  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
@@ -304,6 +305,15 @@ int main (int argc, char *argv [])
         if (streq (argv [argn], "--verbose")
         ||  streq (argv [argn], "-v"))
             verbose = true;
+        else
+        if (streq (argv [argn], "--timeout")
+        ||  streq (argv [argn], "-t")) {
+            if (argn + 1 == argc)
+                die ("value after --timeout / -t expected", "");
+            timeout = atoi(argv [argn+1]);
+            zsys_debug ("cli specified timeout: %i", timeout);
+            argn ++;
+        }
         else
         if (streq (argv [argn], "--endpoint")
         ||  streq (argv [argn], "-e")) {
@@ -618,6 +628,7 @@ int main (int argc, char *argv [])
             argn ++;
         }
         if ( verbose ) {
+            zsys_debug ("Subject: %s", subject);
             zmsg_print (msg);
         }
         int rv = mlm_client_sendto (client, agent_name, subject, NULL, 5000, &msg);
@@ -627,29 +638,35 @@ int main (int argc, char *argv [])
         zmsg_destroy (&msg);
 
         // Listen for the result
-        msg = mlm_client_recv (client);
+        zpoller_t *poller = zpoller_new (mlm_client_msgpipe (client), NULL);
+        zsock_t *which = (zsock_t *) zpoller_wait (poller, timeout);
+        if (which == mlm_client_msgpipe (client)) {
+            msg = mlm_client_recv (client);
 
-        const char *sender = mlm_client_sender (client);
-        const char *subj = mlm_client_subject (client);
-        if (streq (sender, agent_name)) {
-            if (streq (subj, subject)) {
-                if ( verbose ) {
-                    zsys_debug ("Got reply");
-                    zmsg_print (msg);
-                }
-                char *okfail = zmsg_popstr (msg);
-                if ( okfail && streq (okfail, "OK")) {
-                    char *rc = zmsg_popstr(msg);
-                    while (rc) {
-                        printf ("%s\n", rc);
-                        zstr_free (&rc);
-                        rc = zmsg_popstr(msg);
+            const char *sender = mlm_client_sender (client);
+            const char *subj = mlm_client_subject (client);
+            if (streq (sender, agent_name)) {
+                if (streq (subj, subject)) {
+                    if ( verbose ) {
+                        zsys_debug ("Got reply");
+                        zmsg_print (msg);
                     }
+                    char *okfail = zmsg_popstr (msg);
+                    if ( okfail && streq (okfail, "OK")) {
+                        char *rc = zmsg_popstr(msg);
+                        while (rc) {
+                            printf ("%s\n", rc);
+                            zstr_free (&rc);
+                            rc = zmsg_popstr(msg);
+                        }
+                    }
+                    zstr_free (&okfail);
                 }
-                zstr_free (&okfail);
             }
+            zmsg_destroy (&msg);
         }
-        zmsg_destroy (&msg);
+        else
+            die ("Timeout while waiting for a reply", NULL);
     }
 
 exit:
