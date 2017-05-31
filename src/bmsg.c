@@ -248,6 +248,7 @@ int main (int argc, char *argv [])
 {
     puts ("bmsg - Command line tool to work with fty proto messages");
     bool verbose = false;
+    int timeout = -1;
     int argn;
     int ret = 0;
     int r = 0;
@@ -273,7 +274,7 @@ int main (int argc, char *argv [])
             puts ("                         <time> is an UNIX timestamp");
             puts ("                         <action> has possible values SMS, EMAIL, SMS/EMAIL, EMAIL/SMS");
             puts ("                         Note: Publishing on " FTY_PROTO_STREAM_ALERTS_SYS " has some restrictions - only ACTIVE/RESOLVED alerts.");
-            puts ("  publish asset <name> <operation> [auxilary_data see section bellow]");
+            puts ("  publish asset <name> <operation> [auxiliary_data see section below]");
             puts ("                         publish asset on stream " FTY_PROTO_STREAM_ASSETS);
             puts ("                         <operation> has possible values create, update, delete, inventory");
             puts ("                         Auxilary data:");
@@ -290,6 +291,7 @@ int main (int argc, char *argv [])
             puts ("                         <time>  an UNIX timestamp when metric was detected");
             puts ("                         Auxilary data:");
             puts ("                             quantity=Y, where Y is value");
+            puts ("  request <agent_name> <subject> [additional parameters]");
             puts ("");
             puts ("Auxiliary data for all streams and extended attributes for stream ASSETS:");
             puts ("  those are recognized on the end of the command line");
@@ -332,6 +334,10 @@ int main (int argc, char *argv [])
         if (streq (argv [argn], "publish")
         ||  streq (argv [argn], "pub"))
             bmsg_command = "publish";
+        else
+        if (streq (argv [argn], "request")
+        ||  streq (argv [argn], "req"))
+            bmsg_command = "request";
         else
             die ("Unknown command %s", argv[argn]);
         if ( argn +1 == argc )
@@ -584,6 +590,66 @@ int main (int argc, char *argv [])
         else {
             die ("unknown type %s", argv[argn]);
         }
+    }
+    else
+    if (streq (bmsg_command, "request")) {
+
+        char *agent_name = argv[argn];
+        if (!agent_name)
+            die ("missing agent name", NULL);
+
+        argn ++;
+        char *subject = argv[argn];
+        if (!subject)
+            die ("missing subject", NULL);
+
+        mlm_client_set_producer (client, subject);
+
+        zmsg_t *msg = zmsg_new ();
+        zmsg_addstr (msg, "GET");
+
+        argn ++;
+        // Process additional arguments
+        while (argv [argn]) {
+            char *add_arg = argv [argn];
+            zmsg_addstr (msg, add_arg);
+            if ( verbose )
+                zsys_debug ("param: '%s'", add_arg);
+            argn ++;
+        }
+        if ( verbose ) {
+            zmsg_print (msg);
+        }
+        int rv = mlm_client_sendto (client, agent_name, subject, NULL, 5000, &msg);
+        if (rv != 0)
+            die ("Request failed", NULL);
+
+        zmsg_destroy (&msg);
+
+        // Listen for the result
+        msg = mlm_client_recv (client);
+
+        const char *sender = mlm_client_sender (client);
+        const char *subj = mlm_client_subject (client);
+        if (streq (sender, agent_name)) {
+            if (streq (subj, subject)) {
+                if ( verbose ) {
+                    zsys_debug ("Got reply");
+                    zmsg_print (msg);
+                }
+                char *okfail = zmsg_popstr (msg);
+                if ( okfail && streq (okfail, "OK")) {
+                    char *rc = zmsg_popstr(msg);
+                    while (rc) {
+                        printf ("%s\n", rc);
+                        zstr_free (&rc);
+                        rc = zmsg_popstr(msg);
+                    }
+                }
+                zstr_free (&okfail);
+            }
+        }
+        zmsg_destroy (&msg);
     }
 
 exit:
