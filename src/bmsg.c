@@ -265,7 +265,7 @@ int main (int argc, char *argv [])
             puts ("  --verbose / -v         verbose test output");
             puts ("  --stats / -s           prints statistics");
             puts ("  --help / -h            this information");
-            puts ("  --timeout / -t         timeout when waiting for reply");
+            puts ("  --timeout / -t         timeout (seconds) when waiting for reply");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_ASSETS ")");
             puts ("  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
@@ -310,7 +310,7 @@ int main (int argc, char *argv [])
         ||  streq (argv [argn], "-t")) {
             if (argn + 1 == argc)
                 die ("value after --timeout / -t expected", "");
-            timeout = atoi(argv [argn+1]);
+            timeout = atoi(argv [argn+1]) * 1000;
             zsys_debug ("cli specified timeout: %i", timeout);
             argn ++;
         }
@@ -603,70 +603,56 @@ int main (int argc, char *argv [])
     }
     else
     if (streq (bmsg_command, "request")) {
-
         char *agent_name = argv[argn];
         if (!agent_name)
-            die ("missing agent name", NULL);
+             die ("missing agent name", NULL);
 
         argn ++;
         char *subject = argv[argn];
         if (!subject)
-            die ("missing subject", NULL);
-
-        mlm_client_set_producer (client, subject);
-
-        zmsg_t *msg = zmsg_new ();
-        zmsg_addstr (msg, "GET");
+             die ("missing subject", NULL);
 
         argn ++;
+        zmsg_t *request = zmsg_new ();
         // Process additional arguments
         while (argv [argn]) {
-            char *add_arg = argv [argn];
-            zmsg_addstr (msg, add_arg);
-            if ( verbose )
-                zsys_debug ("param: '%s'", add_arg);
-            argn ++;
+             char *add_arg = argv [argn];
+             zmsg_addstr (request, add_arg);
+             if ( verbose )
+                 zsys_debug ("param: '%s'", add_arg);
+             argn ++;
         }
-        if ( verbose ) {
-            zsys_debug ("Subject: %s", subject);
-            zmsg_print (msg);
-        }
-        int rv = mlm_client_sendto (client, agent_name, subject, NULL, 5000, &msg);
+        int rv = mlm_client_sendto (client, agent_name, subject, NULL, 5000, &request);
         if (rv != 0)
-            die ("Request failed", NULL);
+             die ("Request failed", NULL);
 
-        zmsg_destroy (&msg);
+        zmsg_destroy (&request);
 
         // Listen for the result
         zpoller_t *poller = zpoller_new (mlm_client_msgpipe (client), NULL);
         zsock_t *which = (zsock_t *) zpoller_wait (poller, timeout);
         if (which == mlm_client_msgpipe (client)) {
-            msg = mlm_client_recv (client);
-
-            const char *sender = mlm_client_sender (client);
-            const char *subj = mlm_client_subject (client);
-            if (streq (sender, agent_name)) {
-                if (streq (subj, subject)) {
-                    if ( verbose ) {
-                        zsys_debug ("Got reply");
-                        zmsg_print (msg);
-                    }
-                    char *okfail = zmsg_popstr (msg);
-                    if ( okfail && streq (okfail, "OK")) {
-                        char *rc = zmsg_popstr(msg);
-                        while (rc) {
-                            printf ("%s\n", rc);
-                            zstr_free (&rc);
-                            rc = zmsg_popstr(msg);
-                        }
-                    }
-                    zstr_free (&okfail);
-                }
+            zmsg_t *recv = mlm_client_recv (client);
+            // Check if positive
+            char *okfail = zmsg_popstr (recv);
+            if ( okfail && streq (okfail, "OK"))
+                ret = 0;
+            else {
+                // Display the error
+                printf ("%s\n", okfail);
+                ret = 1;
             }
-            zmsg_destroy (&msg);
+
+            zstr_free (&okfail);
+            char *rc = zmsg_popstr(recv);
+            while (rc) {
+                printf ("%s\n", rc);
+                zstr_free (&rc);
+                rc = zmsg_popstr(recv);
+            }
+
+            zmsg_destroy (&recv);
         }
-        else
-            die ("Timeout while waiting for a reply", NULL);
     }
 
 exit:
