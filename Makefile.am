@@ -40,6 +40,7 @@ EXTRA_DIST += \
 endif
 
 EXTRA_DIST += \
+    bindings \
     src/selftest.h \
     README.md \
     src/fty_proto_classes.h

@@ -32,8 +32,8 @@ Name:           fty-proto
 Version:        1.0.0
 Release:        1
 Summary:        42ity core protocols
-License:        MIT
-URL:            http://example.com/
+License:        GPL-2.0+
+URL:            https://42ity.org
 Source0:        %{name}-%{version}.tar.gz
 Group:          System/Libraries
 # Note: ghostscript is required by graphviz which is required by
