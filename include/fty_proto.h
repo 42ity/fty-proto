@@ -158,6 +158,7 @@ The software maintains three main types of information divided to three streams
 #define FTY_PROTO_ASSET_OP_DELETE           "delete"
 #define FTY_PROTO_ASSET_OP_RETIRE           "retire"
 #define FTY_PROTO_ASSET_OP_INVENTORY        "inventory"
+#define FTY_PROTO_ASSET_EXT_PORT            "port"
 #define FTY_PROTO_RULE_CLASS                "rule_class"
 #define FTY_PROTO_METRICS_AUX_PORT          "port"
 
