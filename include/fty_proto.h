@@ -159,6 +159,7 @@ The software maintains three main types of information divided to three streams
 #define FTY_PROTO_ASSET_OP_INVENTORY            "inventory"
 #define FTY_PROTO_ASSET_AUX_TYPE                "type"
 #define FTY_PROTO_ASSET_AUX_SUBTYPE             "subtype"
+#define FTY_PROTO_ASSET_AUX_PARENT_NAME_1       "parent_name.1"
 #define FTY_PROTO_ASSET_EXT_PORT                "port"
 #define FTY_PROTO_ASSET_EXT_MODEL               "model"
 #define FTY_PROTO_ASSET_EXT_DEVICE_PART         "device.part"
