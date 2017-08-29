@@ -165,6 +165,8 @@ The software maintains three main types of information divided to three streams
 #define FTY_PROTO_RULE_CLASS                    "rule_class"
 #define FTY_PROTO_METRIC_ELEMENT_DEST           "element-dest"
 #define FTY_PROTO_METRICS_AUX_PORT              "port"
+#define FTY_PROTO_METRICS_SENSOR_AUX_SNAME      "sname"
+#define FTY_PROTO_METRICS_SENSOR_AUX_PORT       "port"
 
 #define FTY_PROTO_METRIC                    1
 #define FTY_PROTO_ALERT                     2
