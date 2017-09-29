@@ -234,6 +234,18 @@ static void
     fty_proto_destroy (&bmsg);
 }
 
+
+#define STRFTIME_DATETIME_FORMAT "%FT%TZ"
+static int 
+s_calendar_to_datetime(time_t timestamp, char* buffer, size_t n) {
+    struct tm* tmp = gmtime (&timestamp);
+    if (!tmp || strftime (buffer, n, STRFTIME_DATETIME_FORMAT, tmp) == 0) { 
+        return 0;
+    }
+    return -1;
+}
+
+
 #define ACTIVE "ACTIVE"
 #define ACK_WIP "ACK-WIP"
 #define ACK_IGNORE "ACK-IGNORE"
@@ -243,6 +255,8 @@ static void
 #define s_CRITICAL "CRITICAL"
 #define s_WARNING "WARNING"
 #define s_INFO "INFO"
+#define FTY_ALERT_LIST "fty-alert-list"
+#define RFC_ALERTS_LIST "rfc-alerts-list"
 
 int main (int argc, char *argv [])
 {
@@ -293,6 +307,8 @@ int main (int argc, char *argv [])
             puts ("                         Auxilary data:");
             puts ("                             quantity=Y, where Y is value");
             puts ("  request <agent_name> <subject> [additional parameters]");
+            puts ("  alertslist <state>");
+            puts ("                        <state> among ALL | ACTIVE | ACK-WIP | ACK-IGNORE | ACK-PAUSE | ACK-SILENCE");
             puts ("");
             puts ("Auxiliary data for all streams and extended attributes for stream ASSETS:");
             puts ("  those are recognized on the end of the command line");
@@ -348,6 +364,9 @@ int main (int argc, char *argv [])
         if (streq (argv [argn], "request")
         ||  streq (argv [argn], "req"))
             bmsg_command = "request";
+        else
+        if (streq (argv [argn], "alertslist"))
+            bmsg_command = "alertslist";
         else
             die ("Unknown command %s", argv[argn]);
         if ( argn +1 == argc )
@@ -653,6 +672,70 @@ int main (int argc, char *argv [])
 
             zmsg_destroy (&recv);
         }
+    }
+    else
+    if (streq (bmsg_command, "alertslist")) {
+        //implement RFC-Alerts-List request protocol
+        char *state = argv[argn];
+        if (!state)
+            state="ALL";
+        zmsg_t *request = zmsg_new ();
+        // Process additional arguments
+        zmsg_addstr (request, "LIST");
+        zmsg_addstr (request, state);
+        //printf ("do %s %s %s %s\n",FTY_ALERT_LIST, RFC_ALERTS_LIST, "LIST", state);
+        int rv = mlm_client_sendto (client, FTY_ALERT_LIST, RFC_ALERTS_LIST, NULL, 5000, &request);
+        if (rv != 0)
+             die ("Request failed", NULL);
+        zmsg_destroy (&request);
+        // Listen for the result
+        zpoller_t *poller = zpoller_new (mlm_client_msgpipe (client), NULL);
+        zsock_t *which = (zsock_t *) zpoller_wait (poller, timeout);
+        if (which == mlm_client_msgpipe (client)) {
+            zmsg_t *recv = mlm_client_recv (client);
+            // Check if positive
+            char *okfail = zmsg_popstr (recv);
+            char *part = zmsg_popstr (recv);
+            if ( okfail && streq (okfail, "LIST") && part && streq (part, "ALL") )
+                ret = 0;
+            else {
+                // Display the error
+                printf ("%s %s\n", okfail,part);
+                ret = 1;
+            }
+            zstr_free (&okfail);
+            zstr_free (&part);
+            if(ret==0){
+                zframe_t *frame = zmsg_pop (recv);
+                while (frame) {
+
+                    #if CZMQ_VERSION_MAJOR == 3
+                        zmsg_t *decoded_zmsg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+                    #else
+                        zmsg_t *decoded_zmsg = zmsg_decode (frame);
+                    #endif
+                    zframe_destroy (&frame);
+                    fty_proto_t *decoded = fty_proto_decode (&decoded_zmsg);
+                    
+                    char buff[64];
+                    int rv = s_calendar_to_datetime (fty_proto_time (decoded), buff, 64);
+                    assert(rv);
+                    
+                    printf("%s %s %s %s %s %s %s\n",
+                        fty_proto_rule (decoded),
+                        fty_proto_name (decoded),
+                        fty_proto_state (decoded),
+                        buff,
+                        fty_proto_action (decoded),
+                        fty_proto_severity (decoded),
+                        fty_proto_description (decoded));
+                    fty_proto_destroy (&decoded);
+                    frame = zmsg_pop (recv);
+            }
+            zmsg_destroy (&recv);
+        }
+        }
+        
     }
 
 exit:
