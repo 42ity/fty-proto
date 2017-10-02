@@ -1,27 +1,27 @@
 #
 #    fty-proto - 42ITY core protocols
 #
-#    Copyright (C) 2014 - 2017 Eaton                                        
-#                                                                           
-#    This program is free software; you can redistribute it and/or modify   
-#    it under the terms of the GNU General Public License as published by   
-#    the Free Software Foundation; either version 2 of the License, or      
-#    (at your option) any later version.                                    
-#                                                                           
-#    This program is distributed in the hope that it will be useful,        
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-#    GNU General Public License for more details.                           
-#                                                                           
+#    Copyright (C) 2014 - 2017 Eaton
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
 #    You should have received a copy of the GNU General Public License along
 #    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 Source:         fty-proto
 Section:        net
 Priority:       optional
 Maintainer:     fty-proto Developers <eatonipcopensource@eaton.com>
-Standards-Version: 3.9.7
+Standards-Version: 4.0.1.0
 Build-Depends: debhelper (>= 9),
     pkg-config,
     libzmq3-dev,
@@ -33,33 +33,37 @@ Build-Depends: debhelper (>= 9),
 Package: libfty-proto1
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: 42ity core protocols shared library
- This package contains shared library for fty-proto: 42ity core protocols
+Description: fty-proto shared library
+ This package contains shared library for fty-proto:
+ 42ity core protocols
 
 Package: libfty-proto-dev
 Architecture: any
 Section: libdevel
 Depends:
+    ${misc:Depends},
     libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
     libfty-proto1 (= ${binary:Version})
-Description: 42ity core protocols development tools
- This package contains development files for fty-proto: 42ity core protocols
+Description: fty-proto development tools
+ This package contains development files for fty-proto:
+ 42ity core protocols
 
 Package: fty-proto
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
-Description: 42ity core protocols
- Main package for fty-proto: 42ity core protocols
+Description: runnable binaries from fty-proto
+ Main package for fty-proto:
+ 42ity core protocols
 
 Package: fty-proto-dbg
 Architecture: any
 Section: debug
-Priority: extra
+Priority: optional
 Depends:
     fty-proto (= ${binary:Version}),
     ${misc:Depends}
-Description: 42ity core protocols debugging symbols
- This package contains the debugging symbols for fty-proto : 42ity core protocols.
-
+Description: fty-proto debugging symbols
+ This package contains the debugging symbols for fty-proto:
+ 42ity core protocols.

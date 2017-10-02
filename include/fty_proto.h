@@ -12,21 +12,21 @@
      * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -42,29 +42,29 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
+        aux                 hash
         time                number 8     Metric timestamp -
         unixtime.
-    
-        ttl                 number 4    
+
+        ttl                 number 4
         Time to live in seconds.
 
         Value defines duration of validity (i.e. how long is metric valid,
         when it expires) as well as the latest time we should receive metric
         updates.
-    
-        type                string      
+
+        type                string
         Metric name, e.g.: "temperature", "humidity", "power.load", ...
-    
-        name                string      
+
+        name                string
         Name of asset where metric is produced.
-    
-        value               string      
+
+        value               string
         Metric value, e.g.: "25.323" or "900".
-    
-        unit                string      
+
+        unit                string
         Metric unit, e.g.: "C" or "F" for temperature.
-    
+
 
     ALERT - FTY core protocols
 
@@ -73,43 +73,43 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
-        time                number 8    
+        aux                 hash
+        time                number 8
         Alert timestamp - unixtime.
-    
-        ttl                 number 4    
+
+        ttl                 number 4
         Time to live in seconds.
 
         Value defines duration of validity (i.e. how long is alert valid, when
         it expires).
         When current unixtime is greater than time + ttl this alert expired
         and is no longer valid.
-    
-        rule                string      
+
+        rule                string
         Name of the rule which triggers this alert.
-    
-        name                string      
+
+        name                string
         Name of asset where alert is trigged.
-    
-        state               string      
+
+        state               string
         Alert state.
 
         Permissible values:
         ACTIVE / ACK-WIP / ACK-IGNORE / ACK-PAUSE / ACK-SILENCE / RESOLVED
-    
-        severity            string      
+
+        severity            string
         Alert severity.
 
         Permissible values:
         INFO / WARNING / CRITICAL
-    
-        description         string      
+
+        description         string
         Alert description.
-    
-        action              string      
+
+        action              string
         List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
         Can be empty.
-    
+
 
     ASSET - FTY core protocols
 
@@ -118,11 +118,11 @@ The software maintains three main types of information divided to three streams
 1. Stream: ASSETS - semi-static data about changes in assets, see ASSET message
 2. Stream: METRICS - dynamic information about metric data coming from varous devices
 3. Stream: ALERTS - information about alerts produced for given asset based on metric information
-        aux                 hash        
-        name                string      
+        aux                 hash
+        name                string
         Asset name.
-    
-        operation           string      
+
+        operation           string
         Asset operation.
 
         Permissible values:
@@ -135,10 +135,10 @@ The software maintains three main types of information divided to three streams
         * 'delete' is the same as 'retire'
         * 'inventory' is update of extended and/or auxilliary information
           (ext/aux field)
-    
-        ext                 hash        
+
+        ext                 hash
         Additional extended information.
-    
+
 */
 
 #define FTY_PROTO_STREAM_METRICS                "METRICS"
@@ -204,32 +204,32 @@ FTY_PROTO_EXPORT fty_proto_t *
 FTY_PROTO_EXPORT void
     fty_proto_destroy (fty_proto_t **self_p);
 
-//  Parse a zmsg_t and decides whether it is fty_proto. Returns  
+//  Parse a zmsg_t and decides whether it is fty_proto. Returns
 //  true if it is, false otherwise. Doesn't destroy or modify the
-//  original message.                                            
+//  original message.
 FTY_PROTO_EXPORT bool
     fty_proto_is (zmsg_t *msg);
 
 //  Parse a fty_proto from zmsg_t. Returns a new object, or NULL if
-//  the message could not be parsed, or was NULL. Destroys msg and 
-//  nullifies the msg reference.                                   
+//  the message could not be parsed, or was NULL. Destroys msg and
+//  nullifies the msg reference.
 //  Caller owns return value and must destroy it when done.
 FTY_PROTO_EXPORT fty_proto_t *
     fty_proto_decode (zmsg_t **msg_p);
 
-//  Encode fty_proto into zmsg and destroy it. Returns a newly created      
+//  Encode fty_proto into zmsg and destroy it. Returns a newly created
 //  object or NULL if error. Use when not in control of sending the message.
 //  Caller owns return value and must destroy it when done.
 FTY_PROTO_EXPORT zmsg_t *
     fty_proto_encode (fty_proto_t **self_p);
 
 //  Receive and parse a fty_proto from the socket. Returns new object,
-//  or NULL if error. Will block if there's no message waiting.       
+//  or NULL if error. Will block if there's no message waiting.
 //  Caller owns return value and must destroy it when done.
 FTY_PROTO_EXPORT fty_proto_t *
     fty_proto_recv (void *input);
 
-//  Receive and parse a fty_proto from the socket. Returns new object,        
+//  Receive and parse a fty_proto from the socket. Returns new object,
 //  or NULL either if there was no input waiting, or the recv was interrupted.
 //  Caller owns return value and must destroy it when done.
 FTY_PROTO_EXPORT fty_proto_t *
@@ -258,17 +258,17 @@ FTY_PROTO_EXPORT zmsg_t *
 FTY_PROTO_EXPORT zmsg_t *
     fty_proto_encode_asset (zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
 
-//  Send the METRIC to the output in one step                    
+//  Send the METRIC to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 FTY_PROTO_EXPORT int
     fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
 
-//  Send the ALERT to the output in one step                     
+//  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 FTY_PROTO_EXPORT int
     fty_proto_send_alert (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
 
-//  Send the ASSET to the output in one step                     
+//  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
 FTY_PROTO_EXPORT int
     fty_proto_send_asset (void *output, zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
