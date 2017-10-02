@@ -1,7 +1,4 @@
 usr/bin/generate_metric
-usr/share/man/man1/generate_metric.1
 usr/bin/get_metrics
-usr/share/man/man1/get_metrics.1
 usr/bin/bmsg
-usr/share/man/man1/bmsg.1
 

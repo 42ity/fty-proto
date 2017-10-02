@@ -38,29 +38,29 @@ fty_proto_t *
 void
     fty_proto_destroy (fty_proto_t **self_p);
 
-// Parse a zmsg_t and decides whether it is fty_proto. Returns  
+// Parse a zmsg_t and decides whether it is fty_proto. Returns
 // true if it is, false otherwise. Doesn't destroy or modify the
-// original message.                                            
+// original message.
 bool
     fty_proto_is (zmsg_t *msg);
 
 // Parse a fty_proto from zmsg_t. Returns a new object, or NULL if
-// the message could not be parsed, or was NULL. Destroys msg and 
-// nullifies the msg reference.                                   
+// the message could not be parsed, or was NULL. Destroys msg and
+// nullifies the msg reference.
 fty_proto_t *
     fty_proto_decode (zmsg_t **msg_p);
 
-// Encode fty_proto into zmsg and destroy it. Returns a newly created      
+// Encode fty_proto into zmsg and destroy it. Returns a newly created
 // object or NULL if error. Use when not in control of sending the message.
 zmsg_t *
     fty_proto_encode (fty_proto_t **self_p);
 
 // Receive and parse a fty_proto from the socket. Returns new object,
-// or NULL if error. Will block if there's no message waiting.       
+// or NULL if error. Will block if there's no message waiting.
 fty_proto_t *
     fty_proto_recv (void *input);
 
-// Receive and parse a fty_proto from the socket. Returns new object,        
+// Receive and parse a fty_proto from the socket. Returns new object,
 // or NULL either if there was no input waiting, or the recv was interrupted.
 fty_proto_t *
     fty_proto_recv_nowait (void *input);
@@ -85,17 +85,17 @@ zmsg_t *
 zmsg_t *
     fty_proto_encode_asset (zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
 
-// Send the METRIC to the output in one step                    
+// Send the METRIC to the output in one step
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
     fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
 
-// Send the ALERT to the output in one step                     
+// Send the ALERT to the output in one step
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
     fty_proto_send_alert (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
 
-// Send the ASSET to the output in one step                     
+// Send the ASSET to the output in one step
 // WARNING, this call will fail if output is of type ZMQ_ROUTER.
 int
     fty_proto_send_asset (void *output, zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
