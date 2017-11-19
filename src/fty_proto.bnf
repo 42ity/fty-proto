@@ -2,11 +2,11 @@ The following ABNF grammar defines the Core FTY protocols:
 
     fty_proto       = *( METRIC | ALERT | ASSET )
 
-    ;  No description                                                        
+    ;  No description
 
     METRIC          = signature %d1 aux time ttl type name value unit
     signature       = %xAA %xA1             ; two octets
-    aux             = hash                  ; 
+    aux             = hash                  ;
     time            = number-8              ; Metric timestamp -
        unixtime.
     ttl             = number-4              ; Time to live in seconds.
@@ -19,10 +19,10 @@ updates.
     value           = string                ; Metric value, e.g.: "25.323" or "900".
     unit            = string                ; Metric unit, e.g.: "C" or "F" for temperature.
 
-    ;  No description                                                        
+    ;  No description
 
     ALERT           = signature %d2 aux time ttl rule name state severity description action
-    aux             = hash                  ; 
+    aux             = hash                  ;
     time            = number-8              ; Alert timestamp - unixtime.
     ttl             = number-4              ; Time to live in seconds.
 
@@ -44,10 +44,10 @@ INFO / WARNING / CRITICAL
     action          = string                ; List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
 Can be empty.
 
-    ;  No description                                                        
+    ;  No description
 
     ASSET           = signature %d3 aux name operation ext
-    aux             = hash                  ; 
+    aux             = hash                  ;
     name            = string                ; Asset name.
     operation       = string                ; Asset operation.
 
