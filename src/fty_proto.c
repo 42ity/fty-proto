@@ -58,7 +58,7 @@ struct _fty_proto_t {
     char *state;                        //  Alert state.
     char *severity;                     //  Alert severity.
     char *description;                  //  Alert description.
-    char *action;                       //  List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+    zlist_t *action;                    //  List of actions, e.g.: "EMAIL", "SMS".
     char *operation;                    //  Asset operation.
     zhash_t *ext;                       //  Additional extended information.
     size_t ext_bytes;                   //  Additional extended information.
@@ -471,12 +471,18 @@ fty_proto_t *
             self->description = strdup (s);
             }
             {
-            char *s = zconfig_get (content, "action", NULL);
-            if (!s) {
-                fty_proto_destroy (&self);
-                return NULL;
+            zconfig_t *zstrings = zconfig_locate (content, "action");
+            if (zstrings) {
+                zlist_t *strings = zlist_new ();
+                zlist_autofree (strings);
+                for (zconfig_t *child = zconfig_child (zstrings);
+                                child != NULL;
+                                child = zconfig_next (child))
+                {
+                    zlist_append (strings, zconfig_value (child));
+                }
+                self->action = strings;
             }
-            self->action = strdup (s);
             }
             break;
         case FTY_PROTO_ASSET:
@@ -550,7 +556,8 @@ fty_proto_destroy (fty_proto_t **self_p)
         free (self->state);
         free (self->severity);
         free (self->description);
-        free (self->action);
+        if (self->action)
+            zlist_destroy (&self->action);
         free (self->operation);
         zhash_destroy (&self->ext);
 
@@ -676,7 +683,18 @@ fty_proto_decode (zmsg_t **msg_p)
             GET_STRING (self->state);
             GET_STRING (self->severity);
             GET_STRING (self->description);
-            GET_STRING (self->action);
+            {
+                size_t list_size;
+                GET_NUMBER4 (list_size);
+                self->action = zlist_new ();
+                zlist_autofree (self->action);
+                while (list_size--) {
+                    char *string;
+                    GET_LONGSTR (string);
+                    zlist_append (self->action, string);
+                    free (string);
+                }
+            }
             break;
 
         case FTY_PROTO_ASSET:
@@ -820,10 +838,16 @@ fty_proto_encode (fty_proto_t **self_p)
             frame_size++;       //  Size is one octet
             if (self->description)
                 frame_size += strlen (self->description);
-            //  action is a string with 1-byte length
-            frame_size++;       //  Size is one octet
-            if (self->action)
-                frame_size += strlen (self->action);
+            //  action is an array of strings
+            frame_size += 4;    //  Size is 4 octets
+            if (self->action) {
+                //  Add up size of list contents
+                char *action = (char *) zlist_first (self->action);
+                while (action) {
+                    frame_size += 4 + strlen (action);
+                    action = (char *) zlist_next (self->action);
+                }
+            }
             break;
 
         case FTY_PROTO_ASSET:
@@ -951,10 +975,15 @@ fty_proto_encode (fty_proto_t **self_p)
             else
                 PUT_NUMBER1 (0);    //  Empty string
             if (self->action) {
-                PUT_STRING (self->action);
+                PUT_NUMBER4 (zlist_size (self->action));
+                char *action = (char *) zlist_first (self->action);
+                while (action) {
+                    PUT_LONGSTR (action);
+                    action = (char *) zlist_next (self->action);
+                }
             }
             else
-                PUT_NUMBER1 (0);    //  Empty string
+                PUT_NUMBER4 (0);    //  Empty string array
             break;
 
         case FTY_PROTO_ASSET:
@@ -1146,7 +1175,7 @@ fty_proto_encode_alert (
     const char *state,
     const char *severity,
     const char *description,
-    const char *action)
+    zlist_t *action)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ALERT);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -1158,7 +1187,8 @@ fty_proto_encode_alert (
     fty_proto_set_state (self, "%s", state);
     fty_proto_set_severity (self, "%s", severity);
     fty_proto_set_description (self, "%s", description);
-    fty_proto_set_action (self, "%s", action);
+    zlist_t *action_copy = zlist_dup (action);
+    fty_proto_set_action (self, &action_copy);
     return fty_proto_encode (&self);
 }
 
@@ -1225,7 +1255,7 @@ fty_proto_send_alert (
     const char *state,
     const char *severity,
     const char *description,
-    const char *action)
+    zlist_t *action)
 {
     fty_proto_t *self = fty_proto_new (FTY_PROTO_ALERT);
     zhash_t *aux_copy = zhash_dup (aux);
@@ -1237,7 +1267,8 @@ fty_proto_send_alert (
     fty_proto_set_state (self, "%s", state);
     fty_proto_set_severity (self, "%s", severity);
     fty_proto_set_description (self, "%s", description);
-    fty_proto_set_action (self, "%s", action);
+    zlist_t *action_copy = zlist_dup (action);
+    fty_proto_set_action (self, &action_copy);
     return fty_proto_send (&self, output);
 }
 
@@ -1296,7 +1327,7 @@ fty_proto_dup (fty_proto_t *self)
             copy->state = self->state? strdup (self->state): NULL;
             copy->severity = self->severity? strdup (self->severity): NULL;
             copy->description = self->description? strdup (self->description): NULL;
-            copy->action = self->action? strdup (self->action): NULL;
+            copy->action = self->action? zlist_dup (self->action): NULL;
             break;
 
         case FTY_PROTO_ASSET:
@@ -1385,10 +1416,14 @@ fty_proto_print (fty_proto_t *self)
                 zsys_debug ("    description='%s'", self->description);
             else
                 zsys_debug ("    description=");
-            if (self->action)
-                zsys_debug ("    action='%s'", self->action);
-            else
-                zsys_debug ("    action=");
+            zsys_debug ("    action=");
+            if (self->action) {
+                char *action = (char *) zlist_first (self->action);
+                while (action) {
+                    zsys_debug ("        '%s'", action);
+                    action = (char *) zlist_next (self->action);
+                }
+            }
             break;
 
         case FTY_PROTO_ASSET:
@@ -1501,8 +1536,18 @@ fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
                 zconfig_putf (config, "severity", "%s", self->severity);
             if (self->description)
                 zconfig_putf (config, "description", "%s", self->description);
-            if (self->action)
-                zconfig_putf (config, "action", "%s", self->action);
+            if (self->action) {
+                zconfig_t *strings = zconfig_new ("action", config);
+                size_t i = 0;
+                char *action = (char *) zlist_first (self->action);
+                while (action) {
+                    char *key = zsys_sprintf ("%zu", i);
+                    zconfig_putf (strings, key, "%s", action);
+                    zstr_free (&key);
+                    i++;
+                    action = (char *) zlist_next (self->action);
+                }
+            }
             break;
             }
         case FTY_PROTO_ASSET:
@@ -1909,25 +1954,84 @@ fty_proto_set_description (fty_proto_t *self, const char *format, ...)
 
 
 //  --------------------------------------------------------------------------
-//  Get/set the action field
+//  Get the action field, without transferring ownership
 
-const char *
+zlist_t *
 fty_proto_action (fty_proto_t *self)
 {
     assert (self);
     return self->action;
 }
 
-void
-fty_proto_set_action (fty_proto_t *self, const char *format, ...)
+//  Get the action field and transfer ownership to caller
+
+zlist_t *
+fty_proto_get_action (fty_proto_t *self)
 {
-    //  Format action from provided arguments
+    assert (self);
+    zlist_t *action = self->action;
+    self->action = NULL;
+    return action;
+}
+
+//  Set the action field, transferring ownership from caller
+
+void
+fty_proto_set_action (fty_proto_t *self, zlist_t **action_p)
+{
+    assert (self);
+    assert (action_p);
+    zlist_destroy (&self->action);
+    self->action = *action_p;
+    *action_p = NULL;
+}
+
+//  --------------------------------------------------------------------------
+//  Iterate through the action field, and append a action value
+
+const char *
+fty_proto_action_first (fty_proto_t *self)
+{
+    assert (self);
+    if (self->action)
+        return (char *) (zlist_first (self->action));
+    else
+        return NULL;
+}
+
+const char *
+fty_proto_action_next (fty_proto_t *self)
+{
+    assert (self);
+    if (self->action)
+        return (char *) (zlist_next (self->action));
+    else
+        return NULL;
+}
+
+void
+fty_proto_action_append (fty_proto_t *self, const char *format, ...)
+{
+    //  Format into newly allocated string
     assert (self);
     va_list argptr;
     va_start (argptr, format);
-    free (self->action);
-    self->action = zsys_vprintf (format, argptr);
+    char *string = zsys_vprintf (format, argptr);
     va_end (argptr);
+
+    //  Attach string to list
+    if (!self->action) {
+        self->action = zlist_new ();
+        zlist_autofree (self->action);
+    }
+    zlist_append (self->action, string);
+    free (string);
+}
+
+size_t
+fty_proto_action_size (fty_proto_t *self)
+{
+    return zlist_size (self->action);
 }
 
 
@@ -2134,7 +2238,8 @@ fty_proto_test (bool verbose)
     fty_proto_set_state (self, "Life is short but Now lasts for ever");
     fty_proto_set_severity (self, "Life is short but Now lasts for ever");
     fty_proto_set_description (self, "Life is short but Now lasts for ever");
-    fty_proto_set_action (self, "Life is short but Now lasts for ever");
+    fty_proto_action_append (self, "Name: %s", "Brutus");
+    fty_proto_action_append (self, "Age: %d", 43);
     // convert to zpl
     config = fty_proto_zpl (self, NULL);
     if (verbose)
@@ -2164,7 +2269,9 @@ fty_proto_test (bool verbose)
         assert (streq (fty_proto_state (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_severity (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_description (self), "Life is short but Now lasts for ever"));
-        assert (streq (fty_proto_action (self), "Life is short but Now lasts for ever"));
+        assert (fty_proto_action_size (self) == 2);
+        assert (streq (fty_proto_action_first (self), "Name: Brutus"));
+        assert (streq (fty_proto_action_next (self), "Age: 43"));
         fty_proto_destroy (&self);
     }
     self = fty_proto_new (FTY_PROTO_ASSET);
