@@ -12,21 +12,21 @@
      * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
     ************************************************************************
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -49,17 +49,17 @@ struct _fty_proto_t {
     zhash_t *aux;                       //  aux
     size_t aux_bytes;                   //  aux
     uint64_t time;                      //  Metric timestamp -
-    uint32_t ttl;                       //  Time to live in seconds.                                            
+    uint32_t ttl;                       //  Time to live in seconds.
     char *type;                         //  Metric name, e.g.: "temperature", "humidity", "power.load", ...
     char *name;                         //  Name of asset where metric is produced.
     char *value;                        //  Metric value, e.g.: "25.323" or "900".
     char *unit;                         //  Metric unit, e.g.: "C" or "F" for temperature.
     char *rule;                         //  Name of the rule which triggers this alert.
-    char *state;                        //  Alert state.                                                      
-    char *severity;                     //  Alert severity.          
+    char *state;                        //  Alert state.
+    char *severity;                     //  Alert severity.
     char *description;                  //  Alert description.
     char *action;                       //  List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
-    char *operation;                    //  Asset operation.                                                     
+    char *operation;                    //  Asset operation.
     zhash_t *ext;                       //  Additional extended information.
     size_t ext_bytes;                   //  Additional extended information.
 };
@@ -212,8 +212,9 @@ struct _fty_proto_t {
 \
     size_t strlen_2 = strlen (str) / 2; \
     byte *mem = (byte*) zmalloc (strlen_2); \
+    size_t i; \
 \
-    for (size_t i = 0; i != strlen_2; i++) \
+    for (i = 0; i != strlen_2; i++) \
     { \
         char buff[3] = {0x0, 0x0, 0x0}; \
         strncpy (buff, str, 2); \
@@ -233,7 +234,8 @@ struct _fty_proto_t {
     size_t len = (size_t) (_len); \
     char* ret = (char*) zmalloc (2*len + 1); \
     char* aux = ret; \
-    for (size_t i = 0; i != len; i++) \
+    size_t i; \
+    for (i = 0; i != len; i++) \
     { \
         sprintf (aux, "%02x", mem [i]); \
         aux+=2; \
@@ -247,7 +249,7 @@ struct _fty_proto_t {
 //  Create a new fty_proto
 
 fty_proto_t *
-fty_proto_new (uint32_t id)
+fty_proto_new (int id)
 {
     fty_proto_t *self = (fty_proto_t *) zmalloc (sizeof (fty_proto_t));
     self->id = id;
@@ -2211,6 +2213,9 @@ fty_proto_test (bool verbose)
     zconfig_destroy (&config);
     zsock_destroy (&input);
     zsock_destroy (&output);
+#if defined (__WINDOWS__)
+    zsys_shutdown();
+#endif
     //  @end
 
     printf ("OK\n");
