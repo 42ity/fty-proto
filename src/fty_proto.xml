@@ -135,8 +135,8 @@
     </field>
 
 
-    <field name = "action" type = "string">
-        List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+    <field name = "action" type = "strings">
+        List of actions, e.g.: "EMAIL", "SMS".
         Can be empty.
     </field>
 </message>

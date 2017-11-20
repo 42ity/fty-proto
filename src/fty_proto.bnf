@@ -41,7 +41,7 @@ ACTIVE / ACK-WIP / ACK-IGNORE / ACK-PAUSE / ACK-SILENCE / RESOLVED
 Permissible values:
 INFO / WARNING / CRITICAL
     description     = string                ; Alert description.
-    action          = string                ; List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+    action          = strings               ; List of actions, e.g.: "EMAIL", "SMS".
 Can be empty.
 
     ;  No description
@@ -62,6 +62,11 @@ A little explanation. Due to historical reasons:
 * 'inventory' is update of extended and/or auxilliary information
   (ext/aux field)
     ext             = hash                  ; Additional extended information.
+
+    ; A list of string values
+    strings         = strings-count *strings-value
+    strings-count   = number-4
+    strings-value   = longstr
 
     ; A list of name/value pairs
     hash            = hash-count *( hash-name hash-value )
