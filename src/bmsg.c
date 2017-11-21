@@ -172,7 +172,7 @@ static zhash_t *
     int ret=EXIT_SUCCESS;    // to make die working here
     zhash_t *hash = zhash_new ();
 
-    for (int i = argn; i != argc; i++)
+    for (int i = argn; i < argc; i++)
     {
         char *key = argv [i];
 
@@ -469,14 +469,16 @@ int main (int argc, char *argv [])
             zlist_t *action = zlist_new ();
             if (!action)
                     die ("zlist_new: %s", strerror(errno))
-            while (argv[++argn]) {
-                if (zlist_append (action, argv[++argn]) < 0)
+            for (++argn; argv[argn]; ++argn) {
+                if (strchr(argv[argn], '='))
+                    break;
+                if (zlist_append (action, argv[argn]) < 0)
                     die ("zlist_append: %s", strerror(errno))
             }
             if (!zlist_size(action))
                 die ("missing action", NULL);
 
-            zhash_t *aux = s_parse_aux (argc, argn+1, argv);
+            zhash_t *aux = s_parse_aux (argc, argn, argv);
 
             char *subject;
             r = asprintf (&subject, "%s@%s/%s@%s", rule, element_src, severity, element_src);
