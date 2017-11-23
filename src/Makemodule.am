@@ -118,6 +118,7 @@ $(abs_top_builddir)/$(SELFTEST_DIR_RO): $(abs_top_srcdir)/$(SELFTEST_DIR_RO)
 	echo "   COPYDIR  $(SELFTEST_DIR_RO)"; \
 	rm -rf "$@"; \
 	cp -r "$<" "$@"
+endif
 
 $(top_builddir)/$(SELFTEST_DIR_RO): $(abs_top_builddir)/$(SELFTEST_DIR_RO)
 endif
