@@ -13,6 +13,9 @@
     <target name = "redhat" />
     <target name = "travis" />
     <target name = "lua_ffi" />
+    <target name = "jenkins" >
+        <option name = "agent_label" value = "devel-image" />
+    </target>
 
     <include filename = "license.xml" />
     <version major = "1" minor = "0" patch = "0" />
