@@ -11,6 +11,9 @@
 
      * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
+    NOTE: During recent regeneration, the old contents were kept rather than
+    generated ones, since the purpose of regeneration was structural changes.
+    Revise this change separately.
     ************************************************************************
     Copyright (C) 2014 - 2017 Eaton
 

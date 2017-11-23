@@ -22,9 +22,10 @@
     <abi current = "1" revision = "0" age = "0" />
 
     <use project = "czmq"
-        repository="https://github.com/42ity/czmq.git" release = "v3.0.2"
+        repository="https://github.com/42ity/czmq.git" release = "release/IPM_Infra-1.3"
         min_major = "3" min_minor = "0" min_patch = "2" />
-    <use project = "malamute" min_major = "1" test = "mlm_server_test" />
+    <use project = "malamute" min_major = "1" test = "mlm_server_test"
+        repository="https://github.com/42ity/malamute.git" release = "release/IPM_Infra-1.3" />
 
     <class name = "fty_proto" state = "stable" >42ity protocol</class>
     <class name = "selftest" private="1">Selftest</class>
