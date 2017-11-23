@@ -113,12 +113,12 @@ $(abs_top_builddir)/$(SELFTEST_DIR_RW):
 	rm -rf "$@"
 	mkdir -p "$@"
 
+if USING_VPATH
 $(abs_top_builddir)/$(SELFTEST_DIR_RO): $(abs_top_srcdir)/$(SELFTEST_DIR_RO)
-	@if test "$@" != "$<" ; then \
-		echo "    COPYDIR  $(SELFTEST_DIR_RO)"; \
-		rm -rf "$@"; \
-		cp -r "$<" "$@" ; \
-		fi
+	echo "   COPYDIR  $(SELFTEST_DIR_RO)"; \
+	rm -rf "$@"; \
+	cp -r "$<" "$@"
+endif
 
 CLEANFILES += $(abs_top_builddir)/$(SELFTEST_DIR_RW)/*
 
@@ -167,6 +167,7 @@ memcheck: src/fty_proto_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_to
 	$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
 		--leak-check=full --show-reachable=yes --error-exitcode=1 \
 		--suppressions=$(srcdir)/src/.valgrind.supp \
+		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/fty_proto_selftest
 	$(MAKE) check-empty-selftest-rw
 
@@ -174,17 +175,20 @@ memcheck-verbose: src/fty_proto_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) 
 	$(LIBTOOL) --mode=execute valgrind --tool=memcheck \
 		--leak-check=full --show-reachable=yes --error-exitcode=1 \
 		--suppressions=$(srcdir)/src/.valgrind.supp \
+		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/fty_proto_selftest -v
 	$(MAKE) check-empty-selftest-rw
 
 # Run the selftest binary under valgrind to check for performance leaks
 callcheck: src/fty_proto_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_top_builddir)/$(SELFTEST_DIR_RO)
 	$(LIBTOOL) --mode=execute valgrind --tool=callgrind \
+		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/fty_proto_selftest
 	$(MAKE) check-empty-selftest-rw
 
 callcheck-verbose: src/fty_proto_selftest $(abs_top_builddir)/$(SELFTEST_DIR_RW) $(abs_top_builddir)/$(SELFTEST_DIR_RO)
 	$(LIBTOOL) --mode=execute valgrind --tool=callgrind \
+		$(VALGRIND_OPTIONS) \
 		$(builddir)/src/fty_proto_selftest -v
 	$(MAKE) check-empty-selftest-rw
 

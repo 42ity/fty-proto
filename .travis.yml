@@ -75,7 +75,7 @@ pkg_src_zeromq_ubuntu14: &pkg_src_zeromq_ubuntu14
 # is needed for C++11 support; docker envs are usually faster to start up
 addons:
   apt:
-    sources: *pkg_src_zeromq_ubuntu12
+    sources: *pkg_src_zeromq_ubuntu14
     packages: &pkg_deps_common
     - *pkg_deps_devtools
     - *pkg_deps_prereqs
@@ -86,7 +86,7 @@ matrix:
     os: linux
     addons:
       apt:
-        sources: *pkg_src_zeromq_ubuntu12
+        sources: *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - *pkg_deps_doctools
@@ -110,7 +110,7 @@ matrix:
         - *pkg_deps_common
 
 before_install:
-- if [ "$TRAVIS_OS_NAME" == "osx" ] ; then brew update; brew install binutils ; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD_TYPE" == "android" ] ; then brew install binutils ; fi
 - if [ "$TRAVIS_OS_NAME" == "osx" -a "$BUILD_TYPE" == "valgrind" ] ; then brew install valgrind ; fi
 
 # Hand off to generated script for each BUILD_TYPE

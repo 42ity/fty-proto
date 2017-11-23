@@ -39,6 +39,9 @@ AC_SUBST(PACKAGE_VERSION)
 LTVER="1:0:0"
 AC_SUBST(LTVER)
 
+# building in a subdirectory?
+AM_CONDITIONAL([USING_VPATH], [test "x${srcdir}" != "x."])
+
 # Capture c flags
 FTY_PROTO_ORIG_CFLAGS="${CFLAGS:-none}"
 
@@ -51,6 +54,9 @@ AC_PROG_LIBTOOL
 AC_PROG_SED
 AC_PROG_AWK
 PKG_PROG_PKG_CONFIG
+
+# Check endianess of the system
+AC_C_BIGENDIAN
 
 # Code coverage
 AC_MSG_CHECKING([whether to enable GCov])
