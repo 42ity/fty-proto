@@ -58,6 +58,9 @@
 #       define FTY_PROTO_EXPORT __declspec(dllimport)
 #   endif
 #   define FTY_PROTO_PRIVATE
+#elif defined (__CYGWIN__)
+#   define FTY_PROTO_EXPORT
+#   define FTY_PROTO_PRIVATE
 #else
 #   define FTY_PROTO_EXPORT
 #   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
