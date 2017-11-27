@@ -1,4 +1,7 @@
 /*  =========================================================================
+*** NOTE: Current (Dec'17) zproject generates a different markup for this file
+*** Research and application of these differences is to happen some other time
+
     fty_proto - Core FTY protocols
 
     Codec header for fty_proto.
