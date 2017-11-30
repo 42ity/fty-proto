@@ -49,6 +49,7 @@ BuildRequires:  xmlto
 BuildRequires:  zeromq-devel
 BuildRequires:  czmq-devel
 BuildRequires:  malamute-devel
+BuildRequires:  libsodium-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
