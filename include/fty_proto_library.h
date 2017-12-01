@@ -30,6 +30,7 @@
 //  Set up environment for the application
 
 //  External dependencies
+#include <zmq.h>
 #include <czmq.h>
 #include <malamute.h>
 

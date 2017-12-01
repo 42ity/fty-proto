@@ -17,6 +17,7 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
+# NOTE: File was edited - added dependency on libsodium (TODO: move to project.xml)
 
 # To build with draft APIs, use "--with drafts" in rpmbuild for local builds or add
 #   Macros:
