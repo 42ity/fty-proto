@@ -117,6 +117,93 @@ PREVIOUS_CFLAGS="${CFLAGS}"
 PREVIOUS_LIBS="${LIBS}"
 
 
+was_libsodium_check_lib_detected=no
+
+search_libsodium="yes"
+
+AC_ARG_WITH([libsodium],
+    [
+        AS_HELP_STRING([--with-libsodium],
+        [yes or no. Optionally specify libsodium prefix (directory where its include/ and lib/ are located), but that is only used if pkgconfig metadata is not found first])
+    ],
+    [
+        search_libsodium="yes"
+    ],
+    [])
+AS_CASE([x"${with_libsodium}"],
+    [xyes], [search_libsodium="yes"],
+    [xno],  [search_libsodium="no"])
+
+dnl We do not abort right now, because the maintainer/developer may have
+dnl something particular in mind, e.g. to build just parts of a project.
+AS_IF([test x"${search_libsodium}" = xno],
+    [AC_MSG_WARN([Required dependency on libsodium was explicitly disabled during configuration by '--with-libsodium=no'; subsequent full build of fty-proto may fail])])
+
+AS_IF([test x"${search_libsodium}" = xyes], [
+    # Archive previously detected and supplied flags
+    PRE_SEARCH_CFLAGS="${CFLAGS}"
+    PRE_SEARCH_LIBS="${LIBS}"
+
+    found_pkgconfig=""
+    found_linkname=""
+    PKG_CHECK_MODULES([libsodium], [libsodium >= 0.0.0],
+    [
+        PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE $libsodium_LIBS"
+        was_libsodium_check_lib_detected=pkgcfg
+        found_pkgconfig="libsodium"
+    ],
+    [
+        AC_MSG_NOTICE([Package libsodium not found; falling back to defined compilability tests])
+
+        libsodium_synthetic_cflags=""
+        libsodium_synthetic_libs="-lsodium"
+
+        if test -n "${with_libsodium}" && test x"${with_libsodium}" != xyes && test x"${with_libsodium}" != xno; then
+            if test -r "${with_libsodium}/include/sodium.h"; then
+                libsodium_synthetic_cflags="-I${with_libsodium}/include"
+                libsodium_synthetic_libs="-L${with_libsodium}/lib -lsodium"
+            else
+            AC_MSG_ERROR([Header file ${with_libsodium}/include/sodium.h was not found. Please check libsodium prefix])
+            fi
+        else
+            AC_CHECK_HEADER([sodium.h], [],
+            AC_MSG_ERROR([Header file sodium.h was not found in default search paths])
+                )
+        fi
+
+        AC_CHECK_LIB([sodium], [sodium_init],
+            [
+                was_libsodium_check_lib_detected=yes
+                PKGCFG_LIBS_PRIVATE="$PKGCFG_LIBS_PRIVATE -lsodium"
+                found_linkname="sodium"
+            ],
+            [AC_MSG_ERROR([cannot link with -lsodium, install libsodium])])
+    ])
+
+dnl END of PKG_CHECK_MODULES and/or direct tests for libsodium
+    AS_CASE(["x${was_libsodium_check_lib_detected}"],
+        [xpkgcfg], [
+                AC_SUBST([pkgconfig_name_libsodium],[${found_pkgconfig}])
+                CFLAGS="${libsodium_CFLAGS} ${CFLAGS}"
+                LIBS="${libsodium_LIBS} ${LIBS}"
+            ],
+        [xyes], [
+                AC_SUBST([pkgconfig_name_libsodium],[${found_linkname}])
+                CFLAGS="${libsodium_synthetic_cflags} ${CFLAGS}"
+                LDFLAGS="${libsodium_synthetic_libs} ${LDFLAGS}"
+                LIBS="${libsodium_synthetic_libs} ${LIBS}"
+
+                AC_SUBST([libsodium_CFLAGS],[${libsodium_synthetic_cflags}])
+                AC_SUBST([libsodium_LIBS],[${libsodium_synthetic_libs}])
+            ],
+        [xno], [
+                AC_SUBST([pkgconfig_name_libsodium],[libsodium])
+            AC_MSG_ERROR([Cannot find pkg-config metadata for libsodium 0.0.0 or higher])
+    ])
+])
+dnl END of enabled attempts to search for libsodium
+
+
 was_libzmq_check_lib_detected=no
 
 search_libzmq="yes"

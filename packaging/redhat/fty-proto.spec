@@ -17,7 +17,6 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
-# NOTE: File was edited - added dependency on libsodium (TODO: move to project.xml)
 
 # To build with draft APIs, use "--with drafts" in rpmbuild for local builds or add
 #   Macros:
@@ -47,10 +46,10 @@ BuildRequires:  autoconf
 BuildRequires:  libtool
 BuildRequires:  pkgconfig
 BuildRequires:  xmlto
+BuildRequires:  libsodium-devel
 BuildRequires:  zeromq-devel
 BuildRequires:  czmq-devel
 BuildRequires:  malamute-devel
-BuildRequires:  libsodium-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -75,6 +74,7 @@ This package contains shared library for fty-proto: 42ity core protocols
 Summary:        42ity core protocols
 Group:          System/Libraries
 Requires:       libfty_proto1 = %{version}
+Requires:       libsodium-devel
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel
