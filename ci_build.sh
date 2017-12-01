@@ -181,7 +181,7 @@ default|default-Werror|default-with-docs|valgrind)
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'libsodium' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 -b 1.0.5-FTY-master https://github.com/42ity/libsodium.git libsodium
+        $CI_TIME git clone --quiet --depth 1 -b release/IPM_Infra-1.3 https://github.com/42ity/libsodium.git libsodium
         cd libsodium
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
