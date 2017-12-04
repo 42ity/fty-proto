@@ -26,7 +26,15 @@
 
     <use project = "czmq"
         repository="https://github.com/42ity/czmq.git" release = "v3.0.2-FTY-master"
-        min_major = "3" min_minor = "0" min_patch = "2" />
+        min_major = "3" min_minor = "0" min_patch = "2" >
+        <use project = "libzmq"
+            repository="https://github.com/42ity/libzmq.git" release = "4.2.0-FTY-master" >
+            <use project = "libsodium" prefix = "sodium"
+                repository = "https://github.com/42ity/libsodium.git"
+                release = "1.0.5-FTY-master"
+                test = "sodium_init" />
+        </use>
+    </use>
 
     <use project = "malamute" min_major = "1" test = "mlm_server_test"
         repository="https://github.com/42ity/malamute.git"

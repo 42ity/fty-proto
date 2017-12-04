@@ -46,10 +46,10 @@ BuildRequires:  autoconf
 BuildRequires:  libtool
 BuildRequires:  pkgconfig
 BuildRequires:  xmlto
+BuildRequires:  libsodium-devel
 BuildRequires:  zeromq-devel
 BuildRequires:  czmq-devel
 BuildRequires:  malamute-devel
-BuildRequires:  libsodium-devel
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 
 %description
@@ -74,6 +74,7 @@ This package contains shared library for fty-proto: 42ity core protocols
 Summary:        42ity core protocols
 Group:          System/Libraries
 Requires:       libfty_proto1 = %{version}
+Requires:       libsodium-devel
 Requires:       zeromq-devel
 Requires:       czmq-devel
 Requires:       malamute-devel

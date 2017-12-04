@@ -6,6 +6,7 @@ Maintainer: fty-proto Developers <eatonipcopensource@eaton.com>
 Architecture: any
 Build-Depends: debhelper (>= 9),
     pkg-config,
+    libsodium-dev,
     libzmq3-dev,
     libczmq-dev,
     libmlm-dev,
