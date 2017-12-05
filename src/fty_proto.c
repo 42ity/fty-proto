@@ -58,7 +58,7 @@ struct _fty_proto_t {
     char *state;                        //  Alert state.
     char *severity;                     //  Alert severity.
     char *description;                  //  Alert description.
-    char *action;                       //  List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+    zlist_t *action;                    //  List of actions, e.g.: "EMAIL", "SMS".
     char *operation;                    //  Asset operation.
     zhash_t *ext;                       //  Additional extended information.
     size_t ext_bytes;                   //  Additional extended information.
