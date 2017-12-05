@@ -112,8 +112,8 @@ The software maintains three main types of information divided to three streams
         description         string
         Alert description.
 
-        action              string
-        List of slash-separated ('/') actions, e.g.: "EMAIL/SMS".
+        action              strings
+        List of actions, e.g.: "EMAIL", "SMS".
         Can be empty.
 
 
@@ -263,7 +263,7 @@ zmsg_t *
         const char *state,
         const char *severity,
         const char *description,
-        const char *action);
+        zlist_t *action);
 
 //  Encode the ASSET
 zmsg_t *
@@ -298,7 +298,7 @@ int
         const char *state,
         const char *severity,
         const char *description,
-        const char *action);
+        zlist_t *action);
 
 //  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
@@ -419,10 +419,24 @@ void
     fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the action field
-const char *
+zlist_t *
     fty_proto_action (fty_proto_t *self);
+//  Get the action field and transfer ownership to caller
+zlist_t *
+    fty_proto_get_action (fty_proto_t *self);
+//  Set the action field, transferring ownership from caller
 void
-    fty_proto_set_action (fty_proto_t *self, const char *format, ...);
+    fty_proto_set_action (fty_proto_t *self, zlist_t **action_p);
+
+//  Iterate through the action field, and append a action value
+const char *
+    fty_proto_action_first (fty_proto_t *self);
+const char *
+    fty_proto_action_next (fty_proto_t *self);
+void
+    fty_proto_action_append (fty_proto_t *self, const char *format, ...);
+size_t
+    fty_proto_action_size (fty_proto_t *self);
 
 //  Get/set the operation field
 const char *
