@@ -194,10 +194,10 @@ pipeline {
                             sh 'cppcheck --std=c++11 --enable=all --inconclusive --xml --xml-version=2 . 2>cppcheck.xml'
                             archiveArtifacts artifacts: '**/cppcheck.xml'
                             sh 'rm -f cppcheck.xml'
-                        }
-                        script {
-                            if ( params.DO_CLEANUP_AFTER_BUILD ) {
-                                deleteDir()
+                            script {
+                                if ( params.DO_CLEANUP_AFTER_BUILD ) {
+                                    deleteDir()
+                                }
                             }
                         }
                     }
