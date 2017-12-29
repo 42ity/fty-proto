@@ -18,6 +18,7 @@
         <option name = "triggers_pollSCM" value = "H/2 * * * *" />
         <option name = "test_cppcheck" value = "1" />
         <option name = "build_docs" value = "1" />
+        <option name = "dist_docs" value = "1" />
     </target>
 
     <include filename = "license.xml" />
