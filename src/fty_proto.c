@@ -575,6 +575,7 @@ fty_proto_is (zmsg_t *msg)
 {
     if (msg == NULL)
         return false;
+    assert (zmsg_is (msg));
 
     zframe_t *frame = zmsg_first (msg);
     if (frame == NULL)
