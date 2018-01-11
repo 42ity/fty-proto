@@ -45,9 +45,9 @@
     </destructor>
 
     <method name = "is" singleton = "1">
-        Parse a zmsg_t and decides whether it is fty_proto. Returns
-        true if it is, false otherwise. Doesn't destroy or modify the
-        original message.
+        Parses a zmsg_t and decides whether it carries a fty_proto.
+        Returns true if it does, false otherwise.
+        Doesn't destroy or modify the original message.
         <argument name = "msg" type = "zmsg" />
         <return type = "boolean" />
     </method>
