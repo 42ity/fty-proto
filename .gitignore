@@ -81,6 +81,7 @@ CMake*
 libzmq/
 czmq/
 malamute/
+libsodium/
 
 # Travis build area
 tmp/

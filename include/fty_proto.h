@@ -206,9 +206,9 @@ fty_proto_t *
 void
     fty_proto_destroy (fty_proto_t **self_p);
 
-//  Parse a zmsg_t and decides whether it is fty_proto. Returns
-//  true if it is, false otherwise. Doesn't destroy or modify the
-//  original message.
+//  Parses a zmsg_t and decides whether it carries a fty_proto.
+//  Returns true if it does, false otherwise.
+//  Doesn't destroy or modify the original message.
 bool
     fty_proto_is (zmsg_t *msg_p);
 
