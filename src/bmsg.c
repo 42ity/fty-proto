@@ -236,10 +236,10 @@ static void
 
 
 #define STRFTIME_DATETIME_FORMAT "%FT%TZ"
-static int 
+static int
 s_calendar_to_datetime(time_t timestamp, char* buffer, size_t n) {
     struct tm* tmp = gmtime (&timestamp);
-    if (!tmp || strftime (buffer, n, STRFTIME_DATETIME_FORMAT, tmp) == 0) { 
+    if (!tmp || strftime (buffer, n, STRFTIME_DATETIME_FORMAT, tmp) == 0) {
         return 0;
     }
     return -1;
@@ -786,11 +786,11 @@ int main (int argc, char *argv [])
                     #endif
                     zframe_destroy (&frame);
                     fty_proto_t *decoded = fty_proto_decode (&decoded_zmsg);
-                    
+
                     char buff[64];
                     int rv = s_calendar_to_datetime (fty_proto_time (decoded), buff, 64);
                     assert(rv);
-                    
+
                     printf("%s %s %s %s [",
                         fty_proto_rule (decoded),
                         fty_proto_name (decoded),
@@ -814,7 +814,7 @@ int main (int argc, char *argv [])
             zmsg_destroy (&recv);
         }
         }
-        
+
     }
 
 exit:
