@@ -23,6 +23,7 @@
 <define name = "STREAM_ALERTS_SYS"      value = "&quot;_ALERTS_SYS&quot;" />
 <define name = "STREAM_METRICS_SENSOR"  value = "&quot;_METRICS_SENSOR&quot;" />
 <define name = "STREAM_METRICS_UNAVAILABLE"  value = "&quot;_METRICS_UNAVAILABLE&quot;" />
+<define name = "STREAM_EULA"          value = "&quot;_EULA&quot;" />
 
 <define name = "ASSET_TYPE" value = "&quot;type&quot;" />
 <define name = "ASSET_SUBTYPE" value = "&quot;subtype&quot;" />

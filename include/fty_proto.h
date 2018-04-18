@@ -1,7 +1,4 @@
 /*  =========================================================================
-*** NOTE: Current (Dec'17) zproject generates a different markup for this file
-*** Research and application of these differences is to happen some other time
-
     fty_proto - Core FTY protocols
 
     Codec header for fty_proto.
@@ -153,6 +150,7 @@ The software maintains three main types of information divided to three streams
 #define FTY_PROTO_STREAM_ALERTS_SYS         "_ALERTS_SYS"
 #define FTY_PROTO_STREAM_METRICS_SENSOR     "_METRICS_SENSOR"
 #define FTY_PROTO_STREAM_METRICS_UNAVAILABLE  "_METRICS_UNAVAILABLE"
+#define FTY_PROTO_STREAM_EULA               "_EULA"
 #define FTY_PROTO_ASSET_TYPE                "type"
 #define FTY_PROTO_ASSET_SUBTYPE             "subtype"
 #define FTY_PROTO_ASSET_STATUS              "status"
