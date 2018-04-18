@@ -281,7 +281,7 @@ int main (int argc, char *argv [])
             puts ("  --help / -h            this information");
             puts ("  --timeout / -t         timeout (seconds) when waiting for reply");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_ASSETS ")");
+            puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_METRICS_UNAVAILABLE ", " FTY_PROTO_STREAM_EULA ")");
             puts ("  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
             puts ("                         publish alert on stream " FTY_PROTO_STREAM_ALERTS " or " FTY_PROTO_STREAM_ALERTS_SYS);
             puts ("                         <state> has possible values " ACTIVE "," ACK_WIP "," ACK_PAUSE "," ACK_IGNORE "," ACK_SILENCE "," RESOLVED);
@@ -306,6 +306,9 @@ int main (int argc, char *argv [])
             puts ("                         <time>  an UNIX timestamp when metric was detected");
             puts ("                         Auxilary data:");
             puts ("                             quantity=Y, where Y is value");
+            puts ("  publish eula <state>");
+            puts ("                         publish <state> of EULA on stream " FTY_PROTO_STREAM_EULA );
+            puts ("                         Currently the only state used by the system is ACCEPTED.");
             puts ("  request <agent_name> <subject> [additional parameters]");
             puts ("  alertslist <state>");
             puts ("                        <state> among ALL | ACTIVE | ACK-WIP | ACK-IGNORE | ACK-PAUSE | ACK-SILENCE");
@@ -624,6 +627,26 @@ int main (int argc, char *argv [])
             // to get all the threads behind enough time to send it
             zclock_sleep (500);
         }
+        else
+            if (streq (argv[argn], "eula")) {
+
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_EULA);
+
+                char *state = argv[++argn];
+                if (!state)
+                    die ("missing EULA state", NULL);
+
+                zmsg_t *msg = zmsg_new();
+                zmsg_addstr (msg, "EULA");
+                zmsg_addstr (msg, state);
+
+                if (verbose)
+                    zmsg_print (msg);
+
+                mlm_client_send (client, "eula", &msg);
+                // to get all the threads behind enough time to send it
+                zclock_sleep (500);
+            }
         else {
             die ("unknown type %s", argv[argn]);
         }
