@@ -11,9 +11,6 @@
 
      * The XML model used for this code generation: fty_proto.xml, or
      * The code generation script that built this file: zproto_codec_c_v1
-    NOTE: During recent regeneration, the old contents were kept rather than
-    generated ones, since the purpose of regeneration was structural changes.
-    Revise this change separately.
     ************************************************************************
     Copyright (C) 2014 - 2017 Eaton
 
@@ -151,6 +148,7 @@ The software maintains three main types of information divided to three streams
 #define FTY_PROTO_STREAM_METRICS_SENSOR     "_METRICS_SENSOR"
 #define FTY_PROTO_STREAM_METRICS_UNAVAILABLE  "_METRICS_UNAVAILABLE"
 #define FTY_PROTO_STREAM_EULA               "_EULA"
+#define FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS  "LICENSING-ANNOUNCEMENTS"
 #define FTY_PROTO_ASSET_TYPE                "type"
 #define FTY_PROTO_ASSET_SUBTYPE             "subtype"
 #define FTY_PROTO_ASSET_STATUS              "status"

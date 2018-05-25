@@ -17,41 +17,42 @@
 
 <include filename = "../license.xml" />
 
-<define name = "STREAM_METRICS"         value = "&quot;METRICS&quot;" />
-<define name = "STREAM_ALERTS"          value = "&quot;ALERTS&quot;" />
-<define name = "STREAM_ASSETS"          value = "&quot;ASSETS&quot;" />
-<define name = "STREAM_ALERTS_SYS"      value = "&quot;_ALERTS_SYS&quot;" />
-<define name = "STREAM_METRICS_SENSOR"  value = "&quot;_METRICS_SENSOR&quot;" />
-<define name = "STREAM_METRICS_UNAVAILABLE"  value = "&quot;_METRICS_UNAVAILABLE&quot;" />
-<define name = "STREAM_EULA"          value = "&quot;_EULA&quot;" />
+<define name = "STREAM_METRICS"                     value = "&quot;METRICS&quot;" />
+<define name = "STREAM_ALERTS"                      value = "&quot;ALERTS&quot;" />
+<define name = "STREAM_ASSETS"                      value = "&quot;ASSETS&quot;" />
+<define name = "STREAM_ALERTS_SYS"                  value = "&quot;_ALERTS_SYS&quot;" />
+<define name = "STREAM_METRICS_SENSOR"              value = "&quot;_METRICS_SENSOR&quot;" />
+<define name = "STREAM_METRICS_UNAVAILABLE"         value = "&quot;_METRICS_UNAVAILABLE&quot;" />
+<define name = "STREAM_EULA"                        value = "&quot;_EULA&quot;" />
+<define name = "STREAM_LICENSING_ANNOUNCEMENTS"     value = "&quot;LICENSING-ANNOUNCEMENTS&quot;" />
 
-<define name = "ASSET_TYPE" value = "&quot;type&quot;" />
-<define name = "ASSET_SUBTYPE" value = "&quot;subtype&quot;" />
-<define name = "ASSET_STATUS" value = "&quot;status&quot;" />
-<define name = "ASSET_PRIORITY" value = "&quot;priority&quot;" />
-<define name = "ASSET_PARENT" value = "&quot;parent&quot;" />
+<define name = "ASSET_TYPE"         value = "&quot;type&quot;" />
+<define name = "ASSET_SUBTYPE"      value = "&quot;subtype&quot;" />
+<define name = "ASSET_STATUS"       value = "&quot;status&quot;" />
+<define name = "ASSET_PRIORITY"     value = "&quot;priority&quot;" />
+<define name = "ASSET_PARENT"       value = "&quot;parent&quot;" />
 
-<define name = "ASSET_OP_CREATE"        value = "&quot;create&quot;" />
-<define name = "ASSET_OP_UPDATE"        value = "&quot;update&quot;" />
-<define name = "ASSET_OP_DELETE"        value = "&quot;delete&quot;" />
-<define name = "ASSET_OP_RETIRE"        value = "&quot;retire&quot;" />
-<define name = "ASSET_OP_INVENTORY"     value = "&quot;inventory&quot;" />
-<define name = "ASSET_AUX_TYPE"         value = "&quot;type&quot;" />
-<define name = "ASSET_AUX_SUBTYPE"      value = "&quot;subtype&quot;" />
-<define name = "ASSET_AUX_PARENT_NAME_1" value = "&quot;parent_name.1&quot;" />
-<define name = "ASSET_EXT_PORT"         value = "&quot;port&quot;" />
-<define name = "ASSET_EXT_MODEL"        value = "&quot;model&quot;" />
-<define name = "ASSET_EXT_DEVICE_PART"  value = "&quot;device.part&quot;" />
+<define name = "ASSET_OP_CREATE"            value = "&quot;create&quot;" />
+<define name = "ASSET_OP_UPDATE"            value = "&quot;update&quot;" />
+<define name = "ASSET_OP_DELETE"            value = "&quot;delete&quot;" />
+<define name = "ASSET_OP_RETIRE"            value = "&quot;retire&quot;" />
+<define name = "ASSET_OP_INVENTORY"         value = "&quot;inventory&quot;" />
+<define name = "ASSET_AUX_TYPE"             value = "&quot;type&quot;" />
+<define name = "ASSET_AUX_SUBTYPE"          value = "&quot;subtype&quot;" />
+<define name = "ASSET_AUX_PARENT_NAME_1"    value = "&quot;parent_name.1&quot;" />
+<define name = "ASSET_EXT_PORT"             value = "&quot;port&quot;" />
+<define name = "ASSET_EXT_MODEL"            value = "&quot;model&quot;" />
+<define name = "ASSET_EXT_DEVICE_PART"      value = "&quot;device.part&quot;" />
 
 <define name = "RULE_CLASS" value = "&quot;rule_class&quot;" >
     Name of aux hash key to get a rule class. Usage
         fty_proto_aux_string (msg, FTY_PROTO_RULE_CLASS, "");
 </define>
 
-<define name = "METRIC_ELEMENT_DEST" value = "&quot;element-dest&quot;" />
-<define name = "METRICS_AUX_PORT" value = "&quot;port&quot;" />
-<define name = "METRICS_SENSOR_AUX_SNAME" value = "&quot;sname&quot;" />
-<define name = "METRICS_SENSOR_AUX_PORT" value = "&quot;port&quot;" />
+<define name = "METRIC_ELEMENT_DEST"        value = "&quot;element-dest&quot;" />
+<define name = "METRICS_AUX_PORT"           value = "&quot;port&quot;" />
+<define name = "METRICS_SENSOR_AUX_SNAME"   value = "&quot;sname&quot;" />
+<define name = "METRICS_SENSOR_AUX_PORT"    value = "&quot;port&quot;" />
 
 <header>
     <field name = "aux" type = "hash"/>

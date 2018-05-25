@@ -281,7 +281,7 @@ int main (int argc, char *argv [])
             puts ("  --help / -h            this information");
             puts ("  --timeout / -t         timeout (seconds) when waiting for reply");
             puts ("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
-            puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_METRICS_UNAVAILABLE ", " FTY_PROTO_STREAM_EULA ")");
+            puts ("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_METRICS_UNAVAILABLE ", " FTY_PROTO_STREAM_EULA ", " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS ")");
             puts ("  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> <action>");
             puts ("                         publish alert on stream " FTY_PROTO_STREAM_ALERTS " or " FTY_PROTO_STREAM_ALERTS_SYS);
             puts ("                         <state> has possible values " ACTIVE "," ACK_WIP "," ACK_PAUSE "," ACK_IGNORE "," ACK_SILENCE "," RESOLVED);
@@ -295,7 +295,7 @@ int main (int argc, char *argv [])
             puts ("                         Auxilary data:");
             puts ("                             priority=X where X in[1,5]");
             puts ("  publish metric_unavailable <metric topic>");
-            puts ("                         publish information on stream " FTY_PROTO_STREAM_METRICS_UNAVAILABLE "that this metric is no longer  monitored by system");
+            puts ("                         publish information on stream " FTY_PROTO_STREAM_METRICS_UNAVAILABLE " that this metric is no longer  monitored by system");
             puts ("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl> <time>");
             puts ("                         publish metric on stream " FTY_PROTO_STREAM_METRICS " or " FTY_PROTO_STREAM_METRICS_SENSOR);
             puts ("                         <quantity> a string name for the metric type");
@@ -309,6 +309,9 @@ int main (int argc, char *argv [])
             puts ("  publish eula <state>");
             puts ("                         publish <state> of EULA on stream " FTY_PROTO_STREAM_EULA );
             puts ("                         Currently the only state used by the system is ACCEPTED.");
+            puts ("  publish licensing-limitation <value> <item> <category> [<value> <item> <category> ...]");
+            puts ("                         publish <value> <item> <category> on stream " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS);
+            puts ("                         See description details in licensing agent for valid items and categories.");
             puts ("  request <agent_name> <subject> [additional parameters]");
             puts ("  alertslist <state>");
             puts ("                        <state> among ALL | ACTIVE | ACK-WIP | ACK-IGNORE | ACK-PAUSE | ACK-SILENCE");
@@ -644,6 +647,42 @@ int main (int argc, char *argv [])
                     zmsg_print (msg);
 
                 mlm_client_send (client, "eula", &msg);
+                // to get all the threads behind enough time to send it
+                zclock_sleep (500);
+            }
+        else
+            if (streq (argv[argn], "licensing-limitation")) {
+
+                mlm_client_set_producer (client, FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS);
+
+                zmsg_t *msg = zmsg_new();
+                int tripplets = 0;
+                char *value;
+                char *item;
+                char *category;
+                while (argn + 3 < argc) {
+                    value = argv[++argn];
+                    item = argv[++argn];
+                    category = argv[++argn];
+                    if (!value)
+                        die ("missing value", NULL);
+                    if (!item)
+                        die ("missing item", NULL);
+                    if (!category)
+                        die ("missing category", NULL);
+                    zmsg_addstr (msg, value);
+                    zmsg_addstr (msg, item);
+                    zmsg_addstr (msg, category);
+                    ++tripplets;
+                }
+                if (tripplets <= 0) {
+                    die("No arguments provided, expected value,item,category tripplets.", NULL);
+                }
+
+                if (verbose)
+                    zmsg_print (msg);
+
+                mlm_client_send (client, "LIMITATIONS", &msg);
                 // to get all the threads behind enough time to send it
                 zclock_sleep (500);
             }
