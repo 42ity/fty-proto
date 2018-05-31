@@ -62,11 +62,12 @@
 #   define FTY_PROTO_EXPORT
 #   define FTY_PROTO_PRIVATE
 #else
-#   define FTY_PROTO_EXPORT
 #   if (defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER
 #       define FTY_PROTO_PRIVATE __attribute__ ((visibility ("hidden")))
+#       define FTY_PROTO_EXPORT __attribute__ ((visibility ("default")))
 #   else
 #       define FTY_PROTO_PRIVATE
+#       define FTY_PROTO_EXPORT
 #   endif
 #endif
 
@@ -80,9 +81,18 @@ typedef struct _fty_proto_t fty_proto_t;
 #include "fty_proto.h"
 
 #ifdef FTY_PROTO_BUILD_DRAFT_API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //  Self test for private classes
 FTY_PROTO_EXPORT void
-    fty_proto_private_selftest (bool verbose);
+    fty_proto_private_selftest (bool verbose, const char *subtest);
+
+#ifdef __cplusplus
+}
+#endif
 #endif // FTY_PROTO_BUILD_DRAFT_API
 
 #endif
