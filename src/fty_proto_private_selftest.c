@@ -35,10 +35,11 @@
 //
 
 void
-fty_proto_private_selftest (bool verbose)
+fty_proto_private_selftest (bool verbose, const char *subtest)
 {
 // Tests for stable private classes:
-    selftest_test (verbose);
+    if (streq (subtest, "$ALL") || streq (subtest, "selftest_test"))
+        selftest_test (verbose);
 }
 /*
 ################################################################################
