@@ -26,27 +26,19 @@
 extern "C" {
 #endif
 
-#ifndef SELFTEST_T_DEFINED
-typedef struct _selftest_t selftest_t;
-#define SELFTEST_T_DEFINED
-#endif
-
 //  @interface
 //  Create a new selftest
-FTY_PROTO_EXPORT selftest_t *
+FTY_PROTO_PRIVATE selftest_t *
     selftest_new (void);
 
 //  Destroy the selftest
-FTY_PROTO_EXPORT void
+FTY_PROTO_PRIVATE void
     selftest_destroy (selftest_t **self_p);
 
-//  Print properties of object
-FTY_PROTO_EXPORT void
-    selftest_print (selftest_t *self);
-
 //  Self test of this class
-FTY_PROTO_EXPORT void
+FTY_PROTO_PRIVATE void
     selftest_test (bool verbose);
+
 //  @end
 
 #ifdef __cplusplus
