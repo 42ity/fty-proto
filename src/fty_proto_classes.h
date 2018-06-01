@@ -54,7 +54,7 @@ FTY_PROTO_PRIVATE void
 
 //  Self test for private classes
 FTY_PROTO_PRIVATE void
-    fty_proto_private_selftest (bool verbose);
+    fty_proto_private_selftest (bool verbose, const char *subtest);
 
 #endif // FTY_PROTO_BUILD_DRAFT_API
 
