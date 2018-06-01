@@ -93,7 +93,7 @@ This package contains development files for fty-proto: 42ity core protocols
 # Install api files into /usr/local/share/zproject
 %dir %{_datadir}/zproject/
 %dir %{_datadir}/zproject/fty-proto
-%{_datadir}/zproject/fty-proto/*.api
+%{_datadir}/zproject/fty-proto/*
 
 %prep
 

@@ -57,10 +57,10 @@ env:
 
 # NOTE: Our forks are checked out and built without pkg dependencies in use
 pkg_deps_prereqs: &pkg_deps_prereqs
-    - libsodium-dev
-    - libzmq3-dev
-    - libczmq-dev
-    - libmlm-dev
+#   - libsodium-dev
+#   - libzmq3-dev
+#   - libczmq-dev
+#   - libmlm-dev
 
 pkg_deps_doctools: &pkg_deps_doctools
     - asciidoc

@@ -42,9 +42,9 @@ SUFFIXES=.txt .adoc .xml .xml7 .1 .3 .7
 	asciidoc -d manpage -b docbook -f $(srcdir)/asciidoc.conf \
         -afty-proto_version=@PACKAGE_VERSION@ -o$@ $<
 .xml.1:
-	xmlto man $<
+	xmlto -o $(@D) man $<
 .xml.3:
-	xmlto man $<
+	xmlto -o $(@D) man $<
 
 # Special handling for project overview whose basename may collide
 # with a main or class name
@@ -52,7 +52,7 @@ SUFFIXES=.txt .adoc .xml .xml7 .1 .3 .7
 	asciidoc -d manpage -b docbook -f $(srcdir)/asciidoc.conf \
         -afty-proto_version=@PACKAGE_VERSION@ -o$@ $<
 .xml7.7:
-	xmlto man $<
+	xmlto -o $(@D) man $<
 
 # List of *.txt and *.doc files generated during build from comments
 # in project program source files and further processed into manpages.
@@ -68,16 +68,22 @@ GENERATED_DOCS += fty_proto.txt fty_proto.doc
 fty_proto.txt: $(top_srcdir)/src/fty_proto.c
 	"$(srcdir)/mkman" "fty_proto" "$(builddir)/fty_proto.txt" "$(srcdir)/.."
 
+### Note: for mains, we keep the source name rather than flattened name:c
+### so that the manpages for binary programs match their name, at expense
+### of perhaps being built in a subdirectory under doc/.
 GENERATED_DOCS += generate_metric.txt generate_metric.doc
 generate_metric.txt: $(top_srcdir)/src/generate_metric.c
+	mkdir -p "$(builddir)/$(@D)"
 	"$(srcdir)/mkman" "generate_metric" "$(builddir)/generate_metric.txt" "$(srcdir)/.."
 
 GENERATED_DOCS += get_metrics.txt get_metrics.doc
 get_metrics.txt: $(top_srcdir)/src/get_metrics.c
+	mkdir -p "$(builddir)/$(@D)"
 	"$(srcdir)/mkman" "get_metrics" "$(builddir)/get_metrics.txt" "$(srcdir)/.."
 
 GENERATED_DOCS += bmsg.txt bmsg.doc
 bmsg.txt: $(top_srcdir)/src/bmsg.c
+	mkdir -p "$(builddir)/$(@D)"
 	"$(srcdir)/mkman" "bmsg" "$(builddir)/bmsg.txt" "$(srcdir)/.."
 
 
