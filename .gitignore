@@ -1,6 +1,9 @@
 # This is a skeleton created by zproject.
 # You can add hand-written code here.
+### Note: Customized after generation; take care upon regens
+
 save.xml
+
 # Object files
 *.o
 *.so
