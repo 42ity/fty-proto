@@ -800,8 +800,8 @@ int main (int argc, char *argv [])
                     bool first = true;
                     while (action) {
                         if (!first)
-                            puts(",");
-                        puts(action);
+                            fputs(",", stdout);
+                        fputs(action, stdout);
                         first = false;
                         action = fty_proto_action_next(decoded);
                     }
