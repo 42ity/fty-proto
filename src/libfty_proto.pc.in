@@ -12,7 +12,7 @@ Name: libfty_proto
 Description: 42ITY core protocols
 Version: @VERSION@
 
-Requires:@pkgconfig_name_libsodium@ @pkgconfig_name_libzmq@ @pkgconfig_name_libczmq@ >= 3.0.2 @pkgconfig_name_libmlm@ >= 1.0.0
+Requires:@pkgconfig_name_libsodium@ @pkgconfig_name_libzmq@ @pkgconfig_name_libczmq@ >= 3.0.2 @pkgconfig_name_libmlm@ >= 1.0.0 @pkgconfig_name_log4cplus@ @pkgconfig_name_libfty_common_logging@
 
 Libs: -L${libdir} -lfty_proto
 Cflags: -I${includedir} @pkg_config_defines@

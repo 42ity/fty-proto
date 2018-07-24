@@ -25,10 +25,11 @@
 @discuss
 @end
 */
+#define LOG_CONFIG "/etc/fty/fty-log.cfg"
 
 #define die(format, ...) \
     do { \
-        zsys_error (format, ##__VA_ARGS__); \
+        log_error (format, ##__VA_ARGS__); \
         ret = EXIT_FAILURE; \
         goto exit; \
     } while (0);
@@ -47,7 +48,7 @@ s_number_destructor (void ** item_p)
 static void
 s_add_cnt (zlistx_t *stat_list, size_t cnt)
 {
-    zsys_info ("got [%zu] messages in 10 seconds", cnt);
+    log_info ("got [%zu] messages in 10 seconds", cnt);
     size_t *item_p = (size_t*) zmalloc (sizeof (size_t));
     *item_p = cnt;
     zlistx_add_end (stat_list, (void*) item_p);
@@ -79,7 +80,7 @@ s_print_stats (zlistx_t *stat_list)
     else
         min = 0;
 
-    zsys_info ("interval/count/min/avg/max = %"PRIi64 " ms/%zu/%zu/%.3f/%zu",
+    log_info ("interval/count/min/avg/max = %"PRIi64 " ms/%zu/%zu/%.3f/%zu",
             STAT_INTERVAL,
             zlistx_size (stat_list),
             min,
@@ -227,7 +228,7 @@ exit:
 static void
     s_print_bmsg (const char *prefix, const char *subject, zmsg_t *msg)
 {
-    zsys_info ("%s, subject=%s", prefix, subject);
+    log_info ("%s, subject=%s", prefix, subject);
     zmsg_t *msg2 = zmsg_dup (msg);
     fty_proto_t *bmsg = fty_proto_decode (&msg2);
     fty_proto_print (bmsg);
@@ -236,10 +237,10 @@ static void
 
 
 #define STRFTIME_DATETIME_FORMAT "%FT%TZ"
-static int 
+static int
 s_calendar_to_datetime(time_t timestamp, char* buffer, size_t n) {
     struct tm* tmp = gmtime (&timestamp);
-    if (!tmp || strftime (buffer, n, STRFTIME_DATETIME_FORMAT, tmp) == 0) { 
+    if (!tmp || strftime (buffer, n, STRFTIME_DATETIME_FORMAT, tmp) == 0) {
         return 0;
     }
     return -1;
@@ -333,7 +334,7 @@ int main (int argc, char *argv [])
             if (argn + 1 == argc)
                 die ("value after --timeout / -t expected", "");
             timeout = atoi(argv [argn+1]) * 1000;
-            zsys_debug ("cli specified timeout: %i", timeout);
+            log_debug ("cli specified timeout: %i", timeout);
             argn ++;
         }
         else
@@ -342,7 +343,7 @@ int main (int argc, char *argv [])
             if (argn + 1 == argc)
                 die ("value after --endpoint / -e expected", "");
             endpoint = argv [argn+1];
-            zsys_debug ("cli specified endpoint: %s", endpoint);
+            log_debug ("cli specified endpoint: %s", endpoint);
             argn ++;
         }
         else
@@ -357,6 +358,9 @@ int main (int argc, char *argv [])
             return 1;
         }
     }
+    ftylog_setInstance("bmsg", LOG_CONFIG);
+    if (verbose)
+        ftylog_setVeboseMode(ftylog_getInstance());
 
     // identify the main command here
     if (argv [argn]) {
@@ -380,8 +384,7 @@ int main (int argc, char *argv [])
         ++argn;
     }
 
-    if (verbose)
-        zsys_info ("command=%s", bmsg_command);
+    log_trace ("command=%s", bmsg_command);
 
     // connect to malamute
     client = mlm_client_new ();
@@ -390,8 +393,7 @@ int main (int argc, char *argv [])
     char *address;
     r = asprintf (&address, "bmsg.%"PRIi64, zclock_mono ());
     assert (r > -1);
-    if (verbose)
-        zsys_info ("address: %s", address);
+    log_trace ("address: %s", address);
 
     r = mlm_client_connect (client, endpoint, 5000, address);
     zstr_free (&address);
@@ -403,8 +405,7 @@ int main (int argc, char *argv [])
 
         if (!argv [argn]) {
             // set all streams
-            if (verbose)
-                zsys_info ("setting consumer on " FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS);
+            log_trace ("setting consumer on " FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS);
             r = mlm_client_set_consumer (client, FTY_PROTO_STREAM_METRICS, ".*");
             if (r == -1)
                 die ("set consumer on" FTY_PROTO_STREAM_METRICS " failed", NULL);
@@ -425,8 +426,7 @@ int main (int argc, char *argv [])
                 pattern = argv [++argn];
             argn ++;
 
-            if (verbose)
-                zsys_info ("set consumer (%s, %s)", stream, pattern);
+            log_trace ("set consumer (%s, %s)", stream, pattern);
             r = mlm_client_set_consumer (client, stream, pattern);
             if (r == -1)
                 die ("set consumer (%s, %s) failed", stream, pattern);
@@ -707,8 +707,7 @@ int main (int argc, char *argv [])
         while (argv [argn]) {
              char *add_arg = argv [argn];
              zmsg_addstr (request, add_arg);
-             if ( verbose )
-                 zsys_debug ("param: '%s'", add_arg);
+             log_trace ("param: '%s'", add_arg);
              argn ++;
         }
         int rv = mlm_client_sendto (client, agent_name, subject, NULL, 5000, &request);
@@ -786,11 +785,11 @@ int main (int argc, char *argv [])
                     #endif
                     zframe_destroy (&frame);
                     fty_proto_t *decoded = fty_proto_decode (&decoded_zmsg);
-                    
+
                     char buff[64];
                     int rv = s_calendar_to_datetime (fty_proto_time (decoded), buff, 64);
                     assert(rv);
-                    
+
                     printf("%s %s %s %s [",
                         fty_proto_rule (decoded),
                         fty_proto_name (decoded),
@@ -814,7 +813,7 @@ int main (int argc, char *argv [])
             zmsg_destroy (&recv);
         }
         }
-        
+
     }
 
 exit:
