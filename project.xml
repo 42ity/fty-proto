@@ -43,6 +43,17 @@
         repository="https://github.com/42ity/malamute.git"
         release = "1.0-FTY-master" />
 
+    <use project = "fty-common-logging" libname = "libfty_common_logging" header="fty-log/fty_logger.h"
+        repository = "https://github.com/42ity/fty-common-logging.git"
+        release = "master"
+        test = "fty_common_logging_selftest" >
+
+        <use project = "log4cplus" header = "log4cplus/logger.h" test = "appender_test"
+            repository = "https://github.com/42ity/log4cplus.git"
+            release = "1.1.2-FTY-master"
+            />
+    </use>
+
     <class name = "fty_proto" state = "stable" >42ity protocol</class>
     <class name = "selftest" private="1">Selftest</class>
     <main  name = "generate_metric">Metric generator</main>
