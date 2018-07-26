@@ -1,7 +1,7 @@
 /*  =========================================================================
     bmsg - Command line tool to work with fty proto messages
 
-    Copyright (C) 2014 - 2017 Eaton
+    Copyright (C) 2014 - 2018 Eaton
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 @discuss
 @end
 */
-#define LOG_CONFIG "/etc/fty/fty-log.cfg"
+#define LOG_CONFIG "/etc/fty/ftylog.cfg"
 
 #define die(format, ...) \
     do { \
