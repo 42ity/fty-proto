@@ -71,4 +71,44 @@ fty-proto is developed through a test-driven process that guarantees no memory v
 * Run the 'selftest' script, which uses the Valgrind memcheck tool.
 * Repeat until perfect.
 
-Allways ask - can I make it simpler?
+Always ask - can I make it simpler?
+
+## How to use fty-proto from other components
+
+### project.xml
+
+Add this block in the `project.xml` file :
+
+````
+    <use project = "fty-proto" libname = "libfty_proto" header="ftyproto.h" prefix="fty_proto"
+        min_major = "1" min_minor = "0" min_patch = "0"
+        repository = "https://github.com/42ity/fty-proto.git"
+        test = "fty_proto_test" >
+        <use project = "czmq"
+            repository="https://github.com/42ity/czmq.git"
+            release = "v3.0.2-FTY-master"
+            min_major = "3" min_minor = "0" min_patch = "2" >
+            <use project = "libzmq"
+                repository="https://github.com/42ity/libzmq.git"
+                release = "4.2.0-FTY-master" >
+                <use project = "libsodium" prefix = "sodium"
+                    repository = "https://github.com/42ity/libsodium.git"
+                    release = "1.0.5-FTY-master"
+                    test = "sodium_init" />
+            </use>
+        </use>
+        <use project = "malamute" min_major = "1" test = "mlm_server_test"
+            repository="https://github.com/42ity/malamute.git"
+            release = "1.0-FTY-master"
+            />
+        <use project = "fty-common-logging" libname = "libfty_common_logging" header="fty_log.h"
+            repository = "https://github.com/42ity/fty-common-logging.git"
+            release = "master"
+            test = "fty_common_logging_selftest" >
+            <use project = "log4cplus" header = "log4cplus/logger.h" test = "appender_test"
+                repository = "https://github.com/42ity/log4cplus.git"
+                release = "1.1.2-FTY-master"
+                />
+        </use>
+    </use>
+````
