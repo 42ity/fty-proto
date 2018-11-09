@@ -11,7 +11,13 @@
 
     <target name = "debian" />
     <target name = "redhat" />
-    <target name = "travis" />
+    <target name = "travis" >
+        <!-- option name = "clangformat_implem" value = "autotools" / -->
+        <option name = "use_cmake" value = "0" />
+        <!-- option name = "clangformat_require_good" value = "1" / -->
+        <option name = "clangformat_allow_failures" value = "1" />
+        <option name = "use_pkg_deps_prereqs_source" value = "0" />
+    </target>
     <target name = "lua_ffi" />
     <target name = "jenkins" >
         <option name = "agent_label" value = "devel-image &amp;&amp; x86_64" />
@@ -29,9 +35,11 @@
         repository="https://github.com/42ity/czmq.git"
         release = "v3.0.2-FTY-master"
         min_major = "3" min_minor = "0" min_patch = "2" >
+
         <use project = "libzmq"
             repository="https://github.com/42ity/libzmq.git"
             release = "4.2.0-FTY-master" >
+
             <use project = "libsodium" prefix = "sodium"
                 repository = "https://github.com/42ity/libsodium.git"
                 release = "1.0.5-FTY-master"
