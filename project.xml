@@ -17,6 +17,7 @@
         <!-- option name = "clangformat_require_good" value = "1" / -->
         <option name = "clangformat_allow_failures" value = "1" />
         <option name = "use_pkg_deps_prereqs_source" value = "0" />
+        <option name = "require_gitignore" value = "1" />
     </target>
     <target name = "lua_ffi" />
     <target name = "jenkins" >
@@ -25,6 +26,11 @@
         <option name = "test_cppcheck" value = "1" />
         <option name = "build_docs" value = "1" />
         <option name = "dist_docs" value = "1" />
+
+        <!-- Try to avoid avalanche rebuilds of same code on our CI -->
+        <option name = "use_earlymilestone" value = "1" />
+        <option name = "use_build_nonconcurrent" value = "1" />
+        <option name = "use_checkout_explicit" value = "1" />
     </target>
 
     <include filename = "license.xml" />
