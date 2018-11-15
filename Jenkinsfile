@@ -132,11 +132,26 @@ pipeline {
     triggers {
         pollSCM 'H/2 * * * *'
     }
+
+    // Jenkins tends to reschedule jobs that have not yet completed if they took
+    // too long, maybe this happens in combination with polling. Either way, if
+    // the server gets into this situation, the snowball of same builds grows as
+    // the build system lags more and more. Let the devs avoid it in a few ways.
+    options {
+        disableConcurrentBuilds()
+        // Jenkins community suggested that instead of a default checkout, we can do
+        // an explicit step for that. It is expected that either way Jenkins "should"
+        // record that a particular commit is being processed, but the explicit ways
+        // might work better. In either case it honors SCM settings like refrepo if
+        // set up in the Pipeline or MultiBranchPipeline job.
+        skipDefaultCheckout()
+    }
 // Note: your Jenkins setup may benefit from similar setup on side of agents:
 //        PATH="/usr/lib64/ccache:/usr/lib/ccache:/usr/bin:/bin:${PATH}"
     stages {
         stage ('pre-clean') {
                     steps {
+                        milestone ordinal: 20, label: "${env.JOB_NAME}@${env.BRANCH_NAME}"
                         dir("tmp") {
                             sh 'if [ -s Makefile ]; then make -k distclean || true ; fi'
                             sh 'chmod -R u+w .'
@@ -145,10 +160,19 @@ pipeline {
                         sh 'rm -f ccache.log cppcheck.xml'
                     }
         }
+        stage ('git') {
+                    steps {
+                        retry(3) {
+                            checkout scm
+                        }
+                        milestone ordinal: 30, label: "${env.JOB_NAME}@${env.BRANCH_NAME}"
+                    }
+        }
         stage ('prepare') {
                     steps {
                         sh './autogen.sh'
                         stash (name: 'prepped', includes: '**/*', excludes: '**/cppcheck.xml')
+                        milestone ordinal: 40, label: "${env.JOB_NAME}@${env.BRANCH_NAME}"
                     }
         }
         stage ('compile') {
