@@ -29,6 +29,7 @@
 
         <!-- Try to avoid avalanche rebuilds of same code on our CI -->
         <option name = "use_earlymilestone" value = "1" />
+        <option name = "use_deploymilestone" value = "1" />
         <option name = "use_build_nonconcurrent" value = "1" />
         <option name = "use_checkout_explicit" value = "1" />
     </target>
