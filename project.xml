@@ -56,7 +56,7 @@
     </use>
 
     <use project = "malamute" min_major = "1" test = "mlm_server_test"
-        repository="https://github.com/42ity/malamute.git"
+        repository = "https://github.com/42ity/malamute.git"
         release = "1.0-FTY-master" />
 
     <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty-log/fty_logger.h"
@@ -71,11 +71,11 @@
     </use>
 
     <class name = "fty_proto" state = "stable" >42ity protocol</class>
-    <class name = "selftest" private="1">Selftest</class>
+    <class name = "selftest" private = "1">Selftest</class>
     <main  name = "generate_metric">Metric generator</main>
     <main  name = "get_metrics">Metrics getter</main>
     <main  name = "bmsg">Command line tool to work with fty proto messages</main>
 
-    <model name = "fty_proto" codec="zproto_codec_c_v1" />
+    <model name = "fty_proto" codec = "zproto_codec_c_v1" />
 
 </project>
