@@ -57,9 +57,10 @@
 
     <use project = "malamute" min_major = "1" test = "mlm_server_test"
         repository = "https://github.com/42ity/malamute.git"
-        release = "release/IPM_Infra-1.5.0" />
+        release = "release/IPM_Infra-1.5.0"
+        />
 
-    <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty-log/fty_logger.h"
+    <use project = "fty-common-logging" libname = "libfty_common_logging" header = "fty_log.h"
         repository = "https://github.com/42ity/fty-common-logging.git"
         release = "release/IPM_Infra-1.5.0"
         test = "fty_common_logging_selftest" >
