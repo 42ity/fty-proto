@@ -13,6 +13,8 @@
     <target name = "redhat" />
     <target name = "travis" >
         <!-- option name = "clangformat_implem" value = "autotools" / -->
+        <option name = "dist" value = "trusty" />
+        <option name = "shadow_gcc" value = "2" />
         <option name = "use_cmake" value = "0" />
         <!-- option name = "clangformat_require_good" value = "1" / -->
         <option name = "clangformat_allow_failures" value = "1" />
