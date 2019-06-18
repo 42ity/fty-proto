@@ -32,13 +32,13 @@
 //  External API
 #include "../include/ftyproto.h"
 
-//  Extra headers
-
 //  Opaque class structures to allow forward references
 #ifndef SELFTEST_T_DEFINED
 typedef struct _selftest_t selftest_t;
 #define SELFTEST_T_DEFINED
 #endif
+
+//  Extra headers
 
 //  Internal API
 
