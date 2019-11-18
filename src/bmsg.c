@@ -310,9 +310,9 @@ int main (int argc, char *argv [])
             puts ("  publish eula <state>");
             puts ("                         publish <state> of EULA on stream " FTY_PROTO_STREAM_EULA );
             puts ("                         Currently the only state used by the system is ACCEPTED.");
-            puts ("  publish licensing-limitation <value> <item> <category> [<value> <item> <category> ...]");
-            puts ("                         publish <value> <item> <category> on stream " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS);
-            puts ("                         See description details in licensing agent for valid items and categories.");
+            puts ("  publish licensing-limitation <quantity> <value> [unit] ");
+            puts ("                         publish fty-proto metric on stream " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS);
+            puts ("                         See description details in licensing agent for valid values of quantity parameter.");
             puts ("  request <agent_name> <subject> [additional parameters]");
             puts ("  alertslist <state>");
             puts ("                        <state> among ALL | ACTIVE | ACK-WIP | ACK-IGNORE | ACK-PAUSE | ACK-SILENCE");
@@ -655,29 +655,26 @@ int main (int argc, char *argv [])
 
                 mlm_client_set_producer (client, FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS);
 
-                zmsg_t *msg = zmsg_new();
-                int tripplets = 0;
-                char *value;
-                char *item;
-                char *category;
-                while (argn + 3 < argc) {
-                    value = argv[++argn];
-                    item = argv[++argn];
-                    category = argv[++argn];
-                    if (!value)
-                        die ("missing value", NULL);
-                    if (!item)
-                        die ("missing item", NULL);
-                    if (!category)
-                        die ("missing category", NULL);
-                    zmsg_addstr (msg, value);
-                    zmsg_addstr (msg, item);
-                    zmsg_addstr (msg, category);
-                    ++tripplets;
-                }
-                if (tripplets <= 0) {
-                    die("No arguments provided, expected value,item,category tripplets.", NULL);
-                }
+                char *quantity = argv[++argn];
+                if (!quantity)
+                    die ("missing quantity", NULL);
+
+                char *value = argv[++argn];
+                if (!value)
+                    die ("missing value", NULL);
+
+                char *unit = argv[++argn];
+                if (!unit)
+                    unit = strdup ("");
+
+                zmsg_t *msg = fty_proto_encode_metric (
+                            NULL,
+                            time (NULL),
+                            24*60*60,
+                            quantity,
+                            "rackcontroller-0",
+                            value,
+                            unit);
 
                 if (verbose)
                     zmsg_print (msg);
