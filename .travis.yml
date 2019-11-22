@@ -11,6 +11,9 @@ cache:
 os:
 - linux
 
+#Sudo is need because we need to be able to install package for the depencies using apt-get
+sudo: required
+
 # The default distro for env:/matrix:/* and unspecified-dist matrix:/* tests;
 # for the latter see also addons/apt/sources with the package repos in use.
 # See https://docs.travis-ci.com/user/reference/overview/ for up-to-date
@@ -62,7 +65,6 @@ pkg_deps_prereqs_source: &pkg_deps_prereqs_source
     - libzmq3-dev
     - libczmq-dev
     - libmlm-dev
-    - log4cplus-dev
     - libfty-common-logging-dev
 
 # NOTE: Our forks are checked out and built without pkg dependencies in use

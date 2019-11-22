@@ -1,6 +1,6 @@
 # This is a skeleton created by zproject.
 # You can add hand-written code here.
-### Note: Customized after generation; take care upon regens
+### Note: General ignorance of CMake files has been added in gitignore; take care upon regens
 
 save.xml
 # Object files
@@ -76,11 +76,6 @@ DartConfiguration.tcl
 install_manifest.txt
 Testing/
 
-# CMake in general
-builds/cmake/
-CMake*
-*.cmake
-
 # Repositories downloaded by CI integration scripts
 tmp-deps/
 
@@ -138,3 +133,7 @@ nbproject/
 
 # editor backups
 *~
+# CMake in general
+builds/cmake/
+CMake*
+*.cmake
