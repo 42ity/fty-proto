@@ -12,6 +12,7 @@
     <target name = "debian" />
     <target name = "redhat" />
     <target name = "travis" >
+        <option name = "recursive_dependencies" value = "true"/>
         <!-- option name = "clangformat_implem" value = "autotools" / -->
         <option name = "dist" value = "trusty" />
         <option name = "shadow_gcc" value = "2" />
@@ -42,16 +43,13 @@
 
     <use project = "czmq"
         repository = "https://github.com/42ity/czmq.git"
-        release = "v3.0.2-FTY-master"
         min_major = "3" min_minor = "0" min_patch = "2" >
 
         <use project = "libzmq"
-            repository = "https://github.com/42ity/libzmq.git"
-            release = "4.2.0-FTY-master" >
+            repository = "https://github.com/42ity/libzmq.git">
 
             <use project = "libsodium" prefix = "sodium"
                 repository = "https://github.com/42ity/libsodium.git"
-                release = "1.0.5-FTY-master"
                 test = "sodium_init"
                 />
         </use>
@@ -65,17 +63,7 @@
     <!-- Note: pure C projects should use fty-log/fty_logger.h, C++ use fty_log.h -->
     <use project = "fty-common-logging" libname = "libfty_common_logging"
         header = "fty_log.h"
-        repository = "https://github.com/42ity/fty-common-logging.git"
-        release = "master"
-        test = "fty_common_logging_selftest" >
-
-        <!-- Note: pure C projects should use clogger.h, C++ use logger.h -->
-        <use project = "log4cplus"
-            header = "log4cplus/logger.h"
-            test = "appender_test"
-            repository = "https://github.com/42ity/log4cplus.git"
-            release = "1.1.2-FTY-master"
-            />
+        repository = "https://github.com/42ity/fty-common-logging.git">
     </use>
 
     <class name = "fty_proto" state = "stable" >42ity protocol</class>

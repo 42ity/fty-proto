@@ -39,14 +39,14 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
-// Tests for stable public classes:
-    { "fty_proto", fty_proto_test, true, true, NULL },
 #ifdef FTY_PROTO_BUILD_DRAFT_API
 // Tests for stable/draft private classes:
 // Now built only with --enable-drafts, so even stable builds are hidden behind the flag
     { "selftest", NULL, true, false, "selftest_test" },
     { "private_classes", NULL, false, false, "$ALL" }, // compat option for older projects
 #endif // FTY_PROTO_BUILD_DRAFT_API
+// Tests for stable public classes:
+    { "fty_proto", fty_proto_test, true, true, NULL },
     {NULL, NULL, 0, 0, NULL}          //  Sentinel
 };
 
