@@ -19,7 +19,7 @@ sudo: required
 # See https://docs.travis-ci.com/user/reference/overview/ for up-to-date
 # allowed values of "dist" supported by the Travis CI service.
 dist:
-- trusty
+- xenial
 
 #services:
 #- docker
@@ -101,8 +101,6 @@ pkg_deps_common: &pkg_deps_common
 # A newer dist==xenial completes the C++11 support with gcc-5+
 addons:
   apt:
-    sources:
-    - *pkg_src_zeromq_ubuntu14
     packages:
     - *pkg_deps_common
 
@@ -110,78 +108,61 @@ matrix:
   include:
   - env: BUILD_TYPE=default-with-docs
     os: linux
-    dist: trusty
     addons:
       apt:
-        sources:
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - *pkg_deps_doctools
   - env: BUILD_TYPE=valgrind
     os: linux
-    dist: trusty
     addons:
       apt:
-        sources:
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - valgrind
         - *pkg_deps_common
   - env: BUILD_TYPE=default ADDRESS_SANITIZER=enabled
     os: linux
-    dist: trusty
     addons:
       apt:
-        sources:
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
 # Shadow-compilation setups below inspired by https://docs.travis-ci.com/user/languages/cpp/
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9 && export CC CXX"
     os: linux
-    dist: trusty
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - g++-4.9
         - gcc-4.9
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-5 && CXX=g++-5 && export CC CXX"
     os: linux
-    dist: trusty
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - g++-5
         - gcc-5
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-6 && CXX=g++-6 && export CC CXX"
     os: linux
-    dist: trusty
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - g++-6
         - gcc-6
   - env: BUILD_TYPE=default-Werror MATRIX_EVAL="CC=gcc-7 && CXX=g++-7 && export CC CXX"
     os: linux
-    dist: trusty
     addons:
       apt:
         sources:
         - ubuntu-toolchain-r-test
-        - *pkg_src_zeromq_ubuntu14
         packages:
         - *pkg_deps_common
         - g++-7
