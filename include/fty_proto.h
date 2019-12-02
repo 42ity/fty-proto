@@ -201,277 +201,280 @@ typedef struct _fty_proto_t fty_proto_t;
 //  This is a stable class, and may not change except for emergencies. It
 //  is provided in stable builds.
 //  Create a new fty_proto
-FTY_PROTO_EXPORT fty_proto_t *
-    fty_proto_new (uint32_t id);
+fty_proto_t *
+    fty_proto_new (int id);
 
 //  Create a new fty_proto from zpl/zconfig_t *
-FTY_PROTO_EXPORT fty_proto_t *
+fty_proto_t *
     fty_proto_new_zpl (zconfig_t *config);
 
 //  Destroy the fty_proto
-FTY_PROTO_EXPORT void
+void
     fty_proto_destroy (fty_proto_t **self_p);
 
 //  Parses a zmsg_t and decides whether it carries a fty_proto.
 //  Returns true if it does, false otherwise.
 //  Doesn't destroy or modify the original message.
-FTY_PROTO_EXPORT bool
-    fty_proto_is (zmsg_t *msg);
+bool
+    fty_proto_is (zmsg_t *msg_p);
 
 //  Parse a fty_proto from zmsg_t. Returns a new object, or NULL if
 //  the message could not be parsed, or was NULL. Destroys msg and
 //  nullifies the msg reference.
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT fty_proto_t *
+fty_proto_t *
     fty_proto_decode (zmsg_t **msg_p);
 
 //  Encode fty_proto into zmsg and destroy it. Returns a newly created
 //  object or NULL if error. Use when not in control of sending the message.
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zmsg_t *
+zmsg_t *
     fty_proto_encode (fty_proto_t **self_p);
 
 //  Receive and parse a fty_proto from the socket. Returns new object,
 //  or NULL if error. Will block if there's no message waiting.
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT fty_proto_t *
+fty_proto_t *
     fty_proto_recv (void *input);
 
 //  Receive and parse a fty_proto from the socket. Returns new object,
 //  or NULL either if there was no input waiting, or the recv was interrupted.
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT fty_proto_t *
+fty_proto_t *
     fty_proto_recv_nowait (void *input);
 
 //  Send the fty_proto to the output, and destroy it
-FTY_PROTO_EXPORT int
+int
     fty_proto_send (fty_proto_t **self_p, void *output);
 
 //  Send the fty_proto to the output, and do not destroy it
-FTY_PROTO_EXPORT int
+int
     fty_proto_send_again (fty_proto_t *self, void *output);
 
 //  Encode the METRIC
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zmsg_t *
-    fty_proto_encode_metric (zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
+zmsg_t *
+    fty_proto_encode_metric (
+        zhash_t *aux,
+        uint64_t time,
+        uint32_t ttl,
+        const char *type,
+        const char *name,
+        const char *value,
+        const char *unit);
 
 //  Encode the ALERT
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zmsg_t *
-    fty_proto_encode_alert (zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
+zmsg_t *
+    fty_proto_encode_alert (
+        zhash_t *aux,
+        uint64_t time,
+        uint32_t ttl,
+        const char *rule,
+        const char *name,
+        const char *state,
+        const char *severity,
+        const char *description,
+        zlist_t *action);
 
 //  Encode the ASSET
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zmsg_t *
-    fty_proto_encode_asset (zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
+zmsg_t *
+    fty_proto_encode_asset (
+        zhash_t *aux,
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
+
 
 //  Send the METRIC to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
-FTY_PROTO_EXPORT int
-    fty_proto_send_metric (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *type, const char *name, const char *value, const char *unit);
+int
+    fty_proto_send_metric (void *output,
+        zhash_t *aux,
+        uint64_t time,
+        uint32_t ttl,
+        const char *type,
+        const char *name,
+        const char *value,
+        const char *unit);
 
 //  Send the ALERT to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
-FTY_PROTO_EXPORT int
-    fty_proto_send_alert (void *output, zhash_t *aux, uint64_t time, uint32_t ttl, const char *rule, const char *name, const char *state, const char *severity, const char *description, const char *action);
+int
+    fty_proto_send_alert (void *output,
+        zhash_t *aux,
+        uint64_t time,
+        uint32_t ttl,
+        const char *rule,
+        const char *name,
+        const char *state,
+        const char *severity,
+        const char *description,
+        zlist_t *action);
 
 //  Send the ASSET to the output in one step
 //  WARNING, this call will fail if output is of type ZMQ_ROUTER.
-FTY_PROTO_EXPORT int
-    fty_proto_send_asset (void *output, zhash_t *aux, const char *name, const char *operation, zhash_t *ext);
+int
+    fty_proto_send_asset (void *output,
+        zhash_t *aux,
+        const char *name,
+        const char *operation,
+        zhash_t *ext);
 
 //  Duplicate the fty_proto message
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT fty_proto_t *
+fty_proto_t *
     fty_proto_dup (fty_proto_t *self);
 
 //  Print contents of message to stdout
-FTY_PROTO_EXPORT void
+void
     fty_proto_print (fty_proto_t *self);
 
 //  Export class as zconfig_t*. Caller is responsibe for destroying the instance
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zconfig_t *
-    fty_proto_zpl (fty_proto_t *self, zconfig_t *parent);
+zconfig_t *
+    fty_proto_zpl (fty_proto_t *self, zconfig_t* parent);
 
-//  Get the message routing id
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zframe_t *
+//  Get/set the message routing id
+zframe_t *
     fty_proto_routing_id (fty_proto_t *self);
-
-//  Set the message routing id
-FTY_PROTO_EXPORT void
+void
     fty_proto_set_routing_id (fty_proto_t *self, zframe_t *routing_id);
 
-//  Get the fty_proto id
-FTY_PROTO_EXPORT int
+//  Get the fty_proto id and printable command
+int
     fty_proto_id (fty_proto_t *self);
-
-//  Set the fty_proto id
-FTY_PROTO_EXPORT void
+void
     fty_proto_set_id (fty_proto_t *self, int id);
-
-//  Return the printable command
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_command (fty_proto_t *self);
 
 //  Get/set the aux field
-FTY_PROTO_EXPORT zhash_t *
+zhash_t *
     fty_proto_aux (fty_proto_t *self);
-
-//  Get/set the aux field and transfer ownership to caller
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zhash_t *
+//  Get the aux field and transfer ownership to caller
+zhash_t *
     fty_proto_get_aux (fty_proto_t *self);
-
-//  Get/set the aux field, transferring ownership from caller
-FTY_PROTO_EXPORT void
+//  Set the aux field, transferring ownership from caller
+void
     fty_proto_set_aux (fty_proto_t *self, zhash_t **aux_p);
 
 //  Get/set a value in the aux dictionary
-FTY_PROTO_EXPORT const char *
-    fty_proto_aux_string (fty_proto_t *self, const char *key, const char *default_value);
-
-//  Get/set a value in the aux dictionary
-FTY_PROTO_EXPORT uint64_t
-    fty_proto_aux_number (fty_proto_t *self, const char *key, uint64_t default_value);
-
-//  Get/set a value in the aux dictionary
-FTY_PROTO_EXPORT void
-    fty_proto_aux_insert (fty_proto_t *self, const char *key, const char *format, ...) CHECK_PRINTF (3);
-
-//  Get/set a value in the aux dictionary
-FTY_PROTO_EXPORT size_t
+const char *
+    fty_proto_aux_string (fty_proto_t *self,
+        const char *key, const char *default_value);
+uint64_t
+    fty_proto_aux_number (fty_proto_t *self,
+        const char *key, uint64_t default_value);
+void
+    fty_proto_aux_insert (fty_proto_t *self,
+        const char *key, const char *format, ...);
+size_t
     fty_proto_aux_size (fty_proto_t *self);
 
 //  Get/set the time field
-FTY_PROTO_EXPORT uint64_t
+uint64_t
     fty_proto_time (fty_proto_t *self);
-
-//  Get/set the time field
-FTY_PROTO_EXPORT void
+void
     fty_proto_set_time (fty_proto_t *self, uint64_t time);
 
 //  Get/set the ttl field
-FTY_PROTO_EXPORT uint32_t
+uint32_t
     fty_proto_ttl (fty_proto_t *self);
-
-//  Get/set the ttl field
-FTY_PROTO_EXPORT void
+void
     fty_proto_set_ttl (fty_proto_t *self, uint32_t ttl);
 
 //  Get/set the type field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_type (fty_proto_t *self);
-
-//  Get/set the type field
-FTY_PROTO_EXPORT void
-    fty_proto_set_type (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_type (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the name field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_name (fty_proto_t *self);
-
-//  Get/set the name field
-FTY_PROTO_EXPORT void
-    fty_proto_set_name (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_name (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the value field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_value (fty_proto_t *self);
-
-//  Get/set the value field
-FTY_PROTO_EXPORT void
-    fty_proto_set_value (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_value (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the unit field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_unit (fty_proto_t *self);
-
-//  Get/set the unit field
-FTY_PROTO_EXPORT void
-    fty_proto_set_unit (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_unit (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the rule field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_rule (fty_proto_t *self);
-
-//  Get/set the rule field
-FTY_PROTO_EXPORT void
-    fty_proto_set_rule (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_rule (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the state field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_state (fty_proto_t *self);
-
-//  Get/set the state field
-FTY_PROTO_EXPORT void
-    fty_proto_set_state (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_state (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the severity field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_severity (fty_proto_t *self);
-
-//  Get/set the severity field
-FTY_PROTO_EXPORT void
-    fty_proto_set_severity (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_severity (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the description field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_description (fty_proto_t *self);
-
-//  Get/set the description field
-FTY_PROTO_EXPORT void
-    fty_proto_set_description (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the action field
-FTY_PROTO_EXPORT const char *
+zlist_t *
     fty_proto_action (fty_proto_t *self);
+//  Get the action field and transfer ownership to caller
+zlist_t *
+    fty_proto_get_action (fty_proto_t *self);
+//  Set the action field, transferring ownership from caller
+void
+    fty_proto_set_action (fty_proto_t *self, zlist_t **action_p);
 
-//  Get/set the action field
-FTY_PROTO_EXPORT void
-    fty_proto_set_action (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+//  Iterate through the action field, and append a action value
+const char *
+    fty_proto_action_first (fty_proto_t *self);
+const char *
+    fty_proto_action_next (fty_proto_t *self);
+void
+    fty_proto_action_append (fty_proto_t *self, const char *format, ...);
+size_t
+    fty_proto_action_size (fty_proto_t *self);
 
 //  Get/set the operation field
-FTY_PROTO_EXPORT const char *
+const char *
     fty_proto_operation (fty_proto_t *self);
-
-//  Get/set the operation field
-FTY_PROTO_EXPORT void
-    fty_proto_set_operation (fty_proto_t *self, const char *format, ...) CHECK_PRINTF (2);
+void
+    fty_proto_set_operation (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the ext field
-FTY_PROTO_EXPORT zhash_t *
+zhash_t *
     fty_proto_ext (fty_proto_t *self);
-
-//  Get/set the ext field and transfer ownership to caller
-//  Caller owns return value and must destroy it when done.
-FTY_PROTO_EXPORT zhash_t *
+//  Get the ext field and transfer ownership to caller
+zhash_t *
     fty_proto_get_ext (fty_proto_t *self);
-
-//  Get/set the ext field, transferring ownership from caller
-FTY_PROTO_EXPORT void
+//  Set the ext field, transferring ownership from caller
+void
     fty_proto_set_ext (fty_proto_t *self, zhash_t **ext_p);
 
 //  Get/set a value in the ext dictionary
-FTY_PROTO_EXPORT const char *
-    fty_proto_ext_string (fty_proto_t *self, const char *key, const char *default_value);
-
-//  Get/set a value in the ext dictionary
-FTY_PROTO_EXPORT uint64_t
-    fty_proto_ext_number (fty_proto_t *self, const char *key, uint64_t default_value);
-
-//  Get/set a value in the ext dictionary
-FTY_PROTO_EXPORT void
-    fty_proto_ext_insert (fty_proto_t *self, const char *key, const char *format, ...) CHECK_PRINTF (3);
-
-//  Get/set a value in the ext dictionary
-FTY_PROTO_EXPORT size_t
+const char *
+    fty_proto_ext_string (fty_proto_t *self,
+        const char *key, const char *default_value);
+uint64_t
+    fty_proto_ext_number (fty_proto_t *self,
+        const char *key, uint64_t default_value);
+void
+    fty_proto_ext_insert (fty_proto_t *self,
+        const char *key, const char *format, ...);
+size_t
     fty_proto_ext_size (fty_proto_t *self);
 
 //  Self test of this class
-FTY_PROTO_EXPORT void
+void
     fty_proto_test (bool verbose);
 
 //  @end
