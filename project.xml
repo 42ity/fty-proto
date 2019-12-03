@@ -55,9 +55,7 @@
     </use>
 
     <use project = "malamute" min_major = "1" test = "mlm_server_test"
-        repository = "https://github.com/42ity/malamute.git"
-        release = "1.0-FTY-master"
-        />
+        repository = "https://github.com/42ity/malamute.git" />
 
     <!-- Note: pure C projects should use fty-log/fty_logger.h, C++ use fty_log.h -->
     <use project = "fty-common-logging" libname = "libfty_common_logging"
