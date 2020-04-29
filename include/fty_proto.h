@@ -112,6 +112,10 @@ The software maintains three main types of information divided to three streams
         description         string
         Alert description.
 
+        metadata            string
+        Alert metadata.
+        Opaque string payload (unspecified) passing through codec and zpl persistency.
+
         action              strings
         List of actions, e.g.: "EMAIL", "SMS".
         Can be empty.
@@ -423,6 +427,12 @@ const char *
     fty_proto_description (fty_proto_t *self);
 void
     fty_proto_set_description (fty_proto_t *self, const char *format, ...);
+
+//  Get/set the metadata field
+const char *
+    fty_proto_metadata (fty_proto_t *self);
+void
+    fty_proto_set_metadata (fty_proto_t *self, const char *format, ...);
 
 //  Get/set the action field
 zlist_t *
