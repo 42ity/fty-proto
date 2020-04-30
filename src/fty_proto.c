@@ -702,7 +702,9 @@ fty_proto_decode (zmsg_t **msg_p)
                     free (string);
                 }
             }
-            // backward compatibility, **shall** be removed when the lib will be officially supported
+
+            // handle backward compatibility
+            // **shall** be removed when the lib will be fully integrated
             if ((self->needle + 4) <= self->ceiling) {
                 GET_LONGSTR (self->metadata); // << keep that
             }
