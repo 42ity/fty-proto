@@ -343,6 +343,15 @@
         <argument name = "format" type = "format"/>
     </method>
 
+    <method name = "metadata">
+        Get/set the metadata field
+        <return type = "string" />
+    </method>
+    <method name = "set_metadata">
+        Get/set the metadata field
+        <argument name = "format" type = "format"/>
+    </method>
+
     <method name = "action">
         Get/set the action field
         <return type = "string" />

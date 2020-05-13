@@ -58,6 +58,7 @@ struct _fty_proto_t {
     char *state;                        //  Alert state.
     char *severity;                     //  Alert severity.
     char *description;                  //  Alert description.
+    char *metadata;                     //  Alert metadata (opaque string payload, optional).
     zlist_t *action;                    //  List of actions, e.g.: "EMAIL", "SMS".
     char *operation;                    //  Asset operation.
     zhash_t *ext;                       //  Additional extended information.
@@ -471,6 +472,10 @@ fty_proto_t *
             self->description = strdup (s);
             }
             {
+            char *s = zconfig_get (content, "metadata", NULL);
+            self->metadata = strdup (s ? s : ""); // optional (backward compatibility)
+            }
+            {
             zconfig_t *zstrings = zconfig_locate (content, "action");
             if (zstrings) {
                 zlist_t *strings = zlist_new ();
@@ -556,6 +561,7 @@ fty_proto_destroy (fty_proto_t **self_p)
         free (self->state);
         free (self->severity);
         free (self->description);
+        zstr_free (&self->metadata);
         if (self->action)
             zlist_destroy (&self->action);
         free (self->operation);
@@ -695,6 +701,15 @@ fty_proto_decode (zmsg_t **msg_p)
                     zlist_append (self->action, string);
                     free (string);
                 }
+            }
+
+            // handle backward compatibility
+            // **shall** be removed when the lib will be fully integrated
+            if ((self->needle + 4) <= self->ceiling) {
+                GET_LONGSTR (self->metadata); // << keep that
+            }
+            else {
+                self->metadata = strdup(""); // empty
             }
             break;
 
@@ -849,6 +864,10 @@ fty_proto_encode (fty_proto_t **self_p)
                     action = (char *) zlist_next (self->action);
                 }
             }
+            //  metadata is a long string with 4-byte length
+            frame_size += 4;       //  Size is 4 octet
+            if (self->metadata)
+                frame_size += strlen (self->metadata);
             break;
 
         case FTY_PROTO_ASSET:
@@ -985,6 +1004,12 @@ fty_proto_encode (fty_proto_t **self_p)
             }
             else
                 PUT_NUMBER4 (0);    //  Empty string array
+            if (self->metadata) {
+                PUT_LONGSTR (self->metadata);
+            }
+            else {
+                PUT_NUMBER4 (0);    //  Empty string
+            }
             break;
 
         case FTY_PROTO_ASSET:
@@ -1190,6 +1215,7 @@ fty_proto_encode_alert (
     fty_proto_set_description (self, "%s", description);
     zlist_t *action_copy = zlist_dup (action);
     fty_proto_set_action (self, &action_copy);
+    fty_proto_set_metadata(self, "%s", "");
     return fty_proto_encode (&self);
 }
 
@@ -1329,6 +1355,7 @@ fty_proto_dup (fty_proto_t *self)
             copy->severity = self->severity? strdup (self->severity): NULL;
             copy->description = self->description? strdup (self->description): NULL;
             copy->action = self->action? zlist_dup (self->action): NULL;
+            copy->metadata = self->metadata? strdup (self->metadata): NULL;
             break;
 
         case FTY_PROTO_ASSET:
@@ -1417,6 +1444,10 @@ fty_proto_print (fty_proto_t *self)
                 zsys_debug ("    description='%s'", self->description);
             else
                 zsys_debug ("    description=");
+            if (self->metadata)
+                zsys_debug ("    metadata='%s'", self->metadata);
+            else
+                zsys_debug ("    metadata=");
             zsys_debug ("    action=");
             if (self->action) {
                 char *action = (char *) zlist_first (self->action);
@@ -1537,6 +1568,8 @@ fty_proto_zpl (fty_proto_t *self, zconfig_t *parent)
                 zconfig_putf (config, "severity", "%s", self->severity);
             if (self->description)
                 zconfig_putf (config, "description", "%s", self->description);
+            if (self->metadata)
+                zconfig_putf (config, "metadata", "%s", self->metadata);
             if (self->action) {
                 zconfig_t *strings = zconfig_new ("action", config);
                 size_t i = 0;
@@ -1955,6 +1988,28 @@ fty_proto_set_description (fty_proto_t *self, const char *format, ...)
 
 
 //  --------------------------------------------------------------------------
+//  Get/set the metadata field
+
+const char *
+fty_proto_metadata (fty_proto_t *self)
+{
+    assert (self);
+    return self->metadata;
+}
+
+void
+fty_proto_set_metadata (fty_proto_t *self, const char *format, ...)
+{
+    //  Format description from provided arguments
+    assert (self);
+    va_list argptr;
+    va_start (argptr, format);
+    zstr_free (&self->metadata);
+    self->metadata = zsys_vprintf (format, argptr);
+    va_end (argptr);
+}
+
+//  --------------------------------------------------------------------------
 //  Get the action field, without transferring ownership
 
 zlist_t *
@@ -2178,6 +2233,8 @@ fty_proto_test (bool verbose)
     int instance;
     fty_proto_t *copy;
     zconfig_t *config;
+
+
     self = fty_proto_new (FTY_PROTO_METRIC);
 
     //  Check that _dup works on empty message
@@ -2221,8 +2278,11 @@ fty_proto_test (bool verbose)
         assert (streq (fty_proto_name (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_value (self), "Life is short but Now lasts for ever"));
         assert (streq (fty_proto_unit (self), "Life is short but Now lasts for ever"));
+        assert (fty_proto_metadata (self) == NULL); // out of scope
         fty_proto_destroy (&self);
     }
+
+
     self = fty_proto_new (FTY_PROTO_ALERT);
 
     //  Check that _dup works on empty message
@@ -2241,6 +2301,10 @@ fty_proto_test (bool verbose)
     fty_proto_set_description (self, "Life is short but Now lasts for ever");
     fty_proto_action_append (self, "Name: %s", "Brutus");
     fty_proto_action_append (self, "Age: %d", 43);
+
+    const char* METADATA = "{ \"Life\": \"is short but Now lasts for ever\" }";
+    fty_proto_set_metadata (self, METADATA);
+
     // convert to zpl
     config = fty_proto_zpl (self, NULL);
     if (verbose)
@@ -2273,8 +2337,11 @@ fty_proto_test (bool verbose)
         assert (fty_proto_action_size (self) == 2);
         assert (streq (fty_proto_action_first (self), "Name: Brutus"));
         assert (streq (fty_proto_action_next (self), "Age: 43"));
+        assert (streq(fty_proto_metadata (self), METADATA));
         fty_proto_destroy (&self);
     }
+
+
     self = fty_proto_new (FTY_PROTO_ASSET);
 
     //  Check that _dup works on empty message
@@ -2315,6 +2382,7 @@ fty_proto_test (bool verbose)
         assert (fty_proto_ext_size (self) == 2);
         assert (streq (fty_proto_ext_string (self, "Name", "?"), "Brutus"));
         assert (fty_proto_ext_number (self, "Age", 0) == 43);
+        assert (fty_proto_metadata (self) == NULL); // out of scope
         fty_proto_destroy (&self);
     }
 

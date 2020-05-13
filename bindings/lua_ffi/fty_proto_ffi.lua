@@ -240,6 +240,14 @@ const char *
 void
     fty_proto_set_description (fty_proto_t *self, const char *format, ...);
 
+// Get/set the metadata field
+const char *
+    fty_proto_metadata (fty_proto_t *self);
+
+// Get/set the metadata field
+void
+    fty_proto_set_metadata (fty_proto_t *self, const char *format, ...);
+
 // Get/set the action field
 const char *
     fty_proto_action (fty_proto_t *self);
