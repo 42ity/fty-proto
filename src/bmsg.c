@@ -34,6 +34,15 @@
         goto exit; \
     } while (0);
 
+/* asprintf() */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <stdio.h>
+#undef _GNU_SOURCE
+#else
+#include <stdio.h>
+#endif
+
 #include "fty_proto_classes.h"
 
 static const int64_t STAT_INTERVAL = 10000;     // we'll count messages in 10 seconds intervals
