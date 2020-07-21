@@ -16,6 +16,15 @@ Copyright (C) 2014 - 2020 Eaton
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/* asprintf() */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <stdio.h>
+#undef _GNU_SOURCE
+#else
+#include <stdio.h>
+#endif
+
 #include <fty_proto.h>
 #include <malamute.h>
 
