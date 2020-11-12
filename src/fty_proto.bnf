@@ -7,17 +7,16 @@ The following ABNF grammar defines the Core FTY protocols:
     METRIC          = signature %d1 aux time ttl type name value unit
     signature       = %xAA %xA1             ; two octets
     aux             = hash                  ;
-    time            = number-8              ; Metric timestamp -
-       unixtime.
+    time            = number-8              ; Metric timestamp -  unixtime.
     ttl             = number-4              ; Time to live in seconds.
-
-Value defines duration of validity (i.e. how long is metric valid,
-when it expires) as well as the latest time we should receive metric
-updates.
     type            = string                ; Metric name, e.g.: "temperature", "humidity", "power.load", ...
     name            = string                ; Name of asset where metric is produced.
     value           = string                ; Metric value, e.g.: "25.323" or "900".
     unit            = string                ; Metric unit, e.g.: "C" or "F" for temperature.
+
+Value defines duration of validity (i.e. how long is metric valid,
+when it expires) as well as the latest time we should receive metric
+updates.
 
     ;  No description
 
