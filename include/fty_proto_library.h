@@ -77,7 +77,6 @@
 typedef struct _fty_proto_t fty_proto_t;
 #define FTY_PROTO_T_DEFINED
 
-
 //  Public classes, each with its own header file
 #include "fty_proto.h"
 

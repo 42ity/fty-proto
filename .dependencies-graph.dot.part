@@ -1,5 +1,0 @@
-   fty-proto -> libsodium;
-   fty-proto -> libzmq;
-   fty-proto -> czmq;
-   fty-proto -> malamute;
-   fty-proto -> fty-common-logging;

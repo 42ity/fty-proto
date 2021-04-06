@@ -187,8 +187,6 @@ The software maintains three main types of information divided to three streams
 
 #include <czmq.h>
 
-#include "ftyproto.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
