@@ -1,4 +1,5 @@
 # Core protocol implementation for FTY
+
 ## How to build
 
 To build, run:
@@ -12,10 +13,9 @@ sudo make install
 
 ## Scope and goals
 
-Implementation of core protocols (assets, metrics, alerts messages) for 42ity
-project. fty-proto defines [grammar](src/fty_proto.bnf) of messages as well as [C API](doc/fty_proto.txt) to serialize/deserialize messages.
+Implementation of core protocols (assets, metrics, alerts messages) for 42ity project.
 
-It defines three types of main messages on the system
+It defines three types of main messages/objects on the system
 * metrics
 * assets
 * alerts
@@ -63,14 +63,15 @@ Then build fty-proto itself
 
     git clone git://github.com/42ity/fty-proto.git
     cd fty-proto
-    ./autogen.sh && ./configure && make check
+    cmake -B build && cd build
+    make
     sudo make install
     sudo ldconfig
     cd ..
 
 ## API summary
 
-See [fty_proto.txt](doc/fty_proto.txt) for API summary and example code.
+See [fty_proto.h](include/fty_proto.h) for API.
 
 ## Development
 
@@ -85,10 +86,12 @@ Always ask - can I make it simpler?
 
 ## How to compile and test projects using fty-proto by 42ITy standards
 
-### project.xml
-Add this block in the `project.xml` file :
+### zproject
+Add this block in the project.xml file :
 ````
-    <use project = "fty-proto" libname = "libfty_proto" header = "ftyproto.h" prefix = "fty_proto"
+    <use project = "fty-proto" libname = "libfty_proto" header = "fty_proto.h" prefix = "fty_proto"
         min_major = "1"
         repository = "https://github.com/42ity/fty-proto.git" />
 ````
+### CMake/ CMakeLists.txt
+Make your target depends on `fty_proto`.
