@@ -25,7 +25,11 @@
 @discuss
 @end
 */
-#define LOG_CONFIG "/etc/fty/ftylog.cfg"
+
+#include <czmq.h>
+#include <malamute.h>
+#include <fty_log.h>
+#include "fty_proto.h"
 
 #define die(format, ...) \
     do { \
@@ -42,8 +46,6 @@
 #else
 #include <stdio.h>
 #endif
-
-#include "fty_proto_classes.h"
 
 static const int64_t STAT_INTERVAL = 10000;     // we'll count messages in 10 seconds intervals
 
@@ -367,9 +369,9 @@ int main (int argc, char *argv [])
             return 1;
         }
     }
-    ftylog_setInstance("bmsg", LOG_CONFIG);
+    ftylog_setInstance("bmsg", FTY_COMMON_LOGGING_DEFAULT_CFG);
     if (verbose)
-        ftylog_setVeboseMode(ftylog_getInstance());
+        ftylog_setVerboseMode(ftylog_getInstance());
 
     // identify the main command here
     if (argv [argn]) {

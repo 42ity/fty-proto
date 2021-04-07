@@ -151,7 +151,6 @@ The software maintains three main types of information divided to three streams
 
 */
 
-
 //  FTY_PROTO version macros for compile-time API detection
 #define FTY_PROTO_VERSION_MAJOR 1
 #define FTY_PROTO_VERSION_MINOR 0
@@ -500,7 +499,7 @@ void
 //  @end
 
 //  For backwards compatibility with old codecs
-#define fty_proto_dump      fty_proto_print
+#define fty_proto_dump fty_proto_print
 #define is_fty_proto fty_proto_is
 
 #ifdef __cplusplus

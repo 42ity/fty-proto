@@ -11,4 +11,8 @@ find_package(fty-cmake PATHS ${CMAKE_BINARY_DIR})
 
 ########################################################################################################################
 
+# lib & tests
 add_subdirectory(lib)
+
+# bmsg
+add_subdirectory(bmsg)

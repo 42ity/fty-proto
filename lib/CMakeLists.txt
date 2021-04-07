@@ -34,17 +34,10 @@ if (BUILD_TESTING)
             mlm
             Catch2::Catch2
             stdc++fs
+            log4cplus
     )
-
-    #copy selftest-ro, build selftest-rw for test in/out
-    #file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/selftest-ro DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-    #file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/selftest-rw)
 
     #enable coverage
     etn_coverage(${PROJECT_NAME}-test)
-
-    #copy selftest-ro, build selftest-rw for test coverage
-    #file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/tests/selftest-ro DESTINATION ${CMAKE_BINARY_DIR})
-    #file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/selftest-rw)
 
 endif()
