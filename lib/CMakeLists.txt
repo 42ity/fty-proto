@@ -14,7 +14,6 @@ etn_target(shared ${PROJECT_NAME}
         fty_proto.h
     USES
         czmq
-    PRIVATE
 )
 
 if (BUILD_TESTING)

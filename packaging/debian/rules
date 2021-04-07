@@ -1,51 +1,8 @@
 #!/usr/bin/make -f
-# -*- makefile -*-
-
-DRAFTS=no
-DOCS=yes
-
-# OBS build: add
-#   Macros:
-#   %_with_drafts 1
-# at the BOTTOM of the OBS prjconf
-OBS_BUILD_CFG=/.build/build.dist
-ifeq ("$(wildcard $(OBS_BUILD_CFG))","")
-BUILDCONFIG=$(shell ls -1 /usr/src/packages/SOURCES/_buildconfig* | head -n 1)
-endif
-ifneq ("$(wildcard $(OBS_BUILD_CFG))","")
-ifneq ("$(shell grep drafts $(OBS_BUILD_CFG))","")
-DRAFTS=yes
-endif
-endif
-
-# User build: DEB_BUILD_OPTIONS=drafts dpkg-buildpackage
-ifneq (,$(findstring drafts,$(DEB_BUILD_OPTIONS)))
-DRAFTS=yes
-endif
-
-ifneq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
-DOCS=no
-endif
-ifneq (,$(findstring nodoc,$(DEB_BUILD_PROFILES)))
-DOCS=no
-endif
-
-# Workaround for automake < 1.14 bug
-$(shell dpkg --compare-versions `dpkg-query -W -f='$${Version}\n' automake` lt 1:1.14 && mkdir -p config)
-$(shell test -f src/Makemodule-local.am || touch src/Makemodule-local.am)
-
-override_dh_strip:
-	dh_strip --dbg-package=fty-proto-dbg
-
-override_dh_auto_test:
-	echo "Skipped for now"
-
-override_dh_auto_configure:
-	dh_auto_configure -- \
-		--with-docs=$(DOCS) \
-		--enable-drafts=$(DRAFTS)
 
 %:
-	dh $@ \
-		--parallel \
-		--with autoreconf
+	$(info *** dh $(@) ***)
+	dh $(@) --buildsystem=cmake
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DBUILD_DOC=OFF
