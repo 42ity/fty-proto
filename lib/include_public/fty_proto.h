@@ -151,6 +151,18 @@ The software maintains three main types of information divided to three streams
 
 */
 
+
+//  FTY_PROTO version macros for compile-time API detection
+#define FTY_PROTO_VERSION_MAJOR 1
+#define FTY_PROTO_VERSION_MINOR 0
+#define FTY_PROTO_VERSION_PATCH 0
+
+#define FTY_PROTO_MAKE_VERSION(major, minor, patch) \
+    ((major) * 10000 + (minor) * 100 + (patch))
+#define FTY_PROTO_VERSION \
+    FTY_PROTO_MAKE_VERSION(FTY_PROTO_VERSION_MAJOR, FTY_PROTO_VERSION_MINOR, FTY_PROTO_VERSION_PATCH)
+
+
 #define FTY_PROTO_STREAM_METRICS            "METRICS"
 #define FTY_PROTO_STREAM_ALERTS             "ALERTS"
 #define FTY_PROTO_STREAM_ASSETS             "ASSETS"

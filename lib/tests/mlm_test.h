@@ -19,25 +19,18 @@
     =========================================================================
 */
 
-#ifndef SELFTEST_H_INCLUDED
-#define SELFTEST_H_INCLUDED
+#ifndef MLM_TEST_H_INCLUDED
+#define MLM_TEST_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 //  @interface
-//  Create a new selftest
-FTY_PROTO_PRIVATE selftest_t *
-    selftest_new (void);
-
-//  Destroy the selftest
-FTY_PROTO_PRIVATE void
-    selftest_destroy (selftest_t **self_p);
 
 //  Self test of this class
-FTY_PROTO_PRIVATE void
-    selftest_test (bool verbose);
+void
+    mlm_test (bool verbose);
 
 //  @end
 

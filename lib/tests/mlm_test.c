@@ -1,6 +1,3 @@
-#include <fty_proto.h>
-#include <malamute.h>
-
 /*
 Copyright (C) 2014 - 2020 Eaton
 
@@ -19,7 +16,7 @@ Copyright (C) 2014 - 2020 Eaton
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-// Selftest for FTY core protocols using malamute client API
+// Selftest for FTY core protocols using czmq client API
 
 /*
  *
@@ -45,11 +42,16 @@ Copyright (C) 2014 - 2020 Eaton
  *
  */
 
+#include "fty_proto.h"
+#include <malamute.h>
+
 static const char *endpoint = "inproc://@/malamute";
 
 static void
-s_test_metrics (zactor_t *server)
+s_test_metrics (zactor_t* server)
 {
+    assert(server);
+
     int r = 0;
     mlm_client_t *producer = mlm_client_new();
     mlm_client_connect (producer, endpoint, 5000, "producer");
@@ -94,10 +96,11 @@ s_test_metrics (zactor_t *server)
 }
 
 int
-selftest_test(bool verbose) {
-    printf (" * selftest_test: ");
+mlm_test(bool verbose) {
+    printf (" * mlm_test: \n");
 
     zactor_t *server = zactor_new (mlm_server, "Malamute");
+    assert(server);
     zstr_sendx (server, "BIND", endpoint, NULL);
     if (verbose)
         zstr_send (server, "VERBOSE");
@@ -105,5 +108,6 @@ selftest_test(bool verbose) {
     s_test_metrics(server);
 
     zactor_destroy (&server);
+    printf (" * mlm_test: OK\n");
     return 0;
 }
