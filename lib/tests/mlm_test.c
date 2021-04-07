@@ -16,7 +16,7 @@ Copyright (C) 2014 - 2020 Eaton
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-// Selftest for FTY core protocols using czmq client API
+// Selftest for FTY core protocols using malamute client API
 
 /*
  *

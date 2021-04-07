@@ -38,8 +38,6 @@
 */
 
 #include "fty_proto.h"
-//#include <malamute.h>
-//#include <fty_log.h>
 
 //  Structure of our class
 
