@@ -12,6 +12,7 @@ etn_target(shared ${PROJECT_NAME}
         include_public
     PUBLIC_HEADERS
         fty_proto.h
+        ftyproto.h #backward compatibility (deprecated)
     USES
         czmq
 )
