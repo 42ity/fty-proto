@@ -17,6 +17,8 @@ etn_target(shared ${PROJECT_NAME}
         czmq
 )
 
+set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
+
 if (BUILD_TESTING)
 
     etn_test_target(${PROJECT_NAME}
