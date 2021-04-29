@@ -1,4 +1,4 @@
 usr/include/*
 usr/share/cmake/*
+usr/lib/*/libfty_proto.so
 usr/lib/*/pkgconfig/*
-

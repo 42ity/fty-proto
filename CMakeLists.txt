@@ -16,3 +16,5 @@ add_subdirectory(lib)
 
 # bmsg
 add_subdirectory(bmsg)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
