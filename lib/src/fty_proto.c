@@ -37,7 +37,7 @@
 @end
 */
 
-#include "../include/fty_proto.h"
+#include "fty_proto.h"
 
 //  Structure of our class
 
@@ -2209,7 +2209,7 @@ fty_proto_ext_size (fty_proto_t *self)
 void
 fty_proto_test (bool verbose)
 {
-    printf (" * fty_proto: ");
+    printf (" * fty_proto: \n");
 
     //  Silence an "unused" warning by "using" the verbose variable
     if (verbose) {;}
@@ -2394,5 +2394,5 @@ fty_proto_test (bool verbose)
 #endif
     //  @end
 
-    printf ("OK\n");
+    printf (" * fty_proto: OK\n");
 }
