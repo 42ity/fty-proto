@@ -16,6 +16,10 @@ Copyright (C) 2014 - 2020 Eaton
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "fty_proto.h"
+#include <catch2/catch.hpp>
+#include <malamute.h>
+
 // Selftest for FTY core protocols using malamute client API
 
 /*
@@ -45,69 +49,57 @@ Copyright (C) 2014 - 2020 Eaton
 #include "fty_proto.h"
 #include <malamute.h>
 
-static const char *endpoint = "inproc://@/malamute";
+static const char* endpoint = "inproc://@/malamute";
 
-static void
-s_test_metrics (zactor_t* server)
+static void s_test_metrics()
 {
-    assert(server);
-
     int r = 0;
-    mlm_client_t *producer = mlm_client_new();
-    mlm_client_connect (producer, endpoint, 5000, "producer");
-    mlm_client_set_producer (producer, "METRICS");
 
-    mlm_client_t *consumer = mlm_client_new();
-    mlm_client_connect (consumer, endpoint, 5000, "consumer");
-    mlm_client_set_consumer (consumer, "METRICS", ".*");
+    mlm_client_t* producer = mlm_client_new();
+    mlm_client_connect(producer, endpoint, 5000, "producer");
+    mlm_client_set_producer(producer, "METRICS");
+
+    mlm_client_t* consumer = mlm_client_new();
+    mlm_client_connect(consumer, endpoint, 5000, "consumer");
+    mlm_client_set_consumer(consumer, "METRICS", ".*");
 
     // METRICS stream: Test case: send all values
     // send
-    zhash_t *aux = zhash_new ();
-    assert (aux);
-    r = zhash_insert (aux, FTY_PROTO_METRIC_ELEMENT_DEST, "ELEMENT_DEST");
-    assert (r == 0);
+    zhash_t* aux = zhash_new();
+    REQUIRE(aux);
+    r = zhash_insert(aux, FTY_PROTO_METRIC_ELEMENT_DEST, const_cast<char*>("ELEMENT_DEST"));
+    REQUIRE(r == 0);
 
-    zmsg_t *msg = fty_proto_encode_metric (aux, 30, 10, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS");
-    assert (msg);
-    zhash_destroy (&aux);
+    zmsg_t* msg = fty_proto_encode_metric(aux, 30, 10, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS");
+    REQUIRE(msg);
+    zhash_destroy(&aux);
 
-    r = mlm_client_send (producer, "TYPE@ELEMENT_SRC", &msg);
-    assert (r == 0);
+    r = mlm_client_send(producer, "TYPE@ELEMENT_SRC", &msg);
+    REQUIRE(r == 0);
 
     // recv
-    msg = mlm_client_recv (consumer);
-    assert (msg);
+    msg = mlm_client_recv(consumer);
+    REQUIRE(msg);
 
-    const char* subject = mlm_client_subject (consumer);
-    assert (streq (subject, "TYPE@ELEMENT_SRC"));
+    const char* subject = mlm_client_subject(consumer);
+    CHECK(streq(subject, "TYPE@ELEMENT_SRC"));
 
-    fty_proto_t *recv = fty_proto_decode (&msg);
-    assert (recv);
+    fty_proto_t* recv = fty_proto_decode(&msg);
+    REQUIRE(recv);
 
-    assert (streq (fty_proto_value (recv), "VALUE"));
-    assert (streq (
-                fty_proto_aux_string (recv, FTY_PROTO_METRIC_ELEMENT_DEST, "N/A"),
-                "ELEMENT_DEST"));
+    CHECK(streq(fty_proto_value(recv), "VALUE"));
+    CHECK(streq(fty_proto_aux_string(recv, FTY_PROTO_METRIC_ELEMENT_DEST, "N/A"), "ELEMENT_DEST"));
 
-    fty_proto_destroy (&recv);
-    mlm_client_destroy (&producer);
-    mlm_client_destroy (&consumer);
+    fty_proto_destroy(&recv);
+    mlm_client_destroy(&producer);
+    mlm_client_destroy(&consumer);
 }
 
-int
-mlm_test(bool verbose) {
-    printf (" * mlm_test: \n");
-
-    zactor_t *server = zactor_new (mlm_server, "Malamute");
-    assert(server);
-    zstr_sendx (server, "BIND", endpoint, NULL);
-    if (verbose)
-        zstr_send (server, "VERBOSE");
-
-    s_test_metrics(server);
-
-    zactor_destroy (&server);
-    printf (" * mlm_test: OK\n");
-    return 0;
+TEST_CASE("mlm test")
+{
+    zactor_t* server = zactor_new(mlm_server, const_cast<char*>("Malamute"));
+    REQUIRE(server);
+    zstr_sendx(server, "BIND", endpoint, NULL);
+    s_test_metrics();
+    zactor_destroy(&server);
 }
