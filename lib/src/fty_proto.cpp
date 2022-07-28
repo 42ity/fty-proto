@@ -186,18 +186,20 @@
         if (!str || (strlen(str) % 2) != 0) {                                                                          \
             dst = nullptr;                                                                                             \
         } else {                                                                                                       \
-            size_t strlen_2 = strlen(str) / 2;                                                                         \
+            char* str_ = str;                                                                                          \
+            size_t strlen_2 = strlen(str_) / 2;                                                                        \
             byte*  mem      = static_cast<byte*>(zmalloc(strlen_2));                                                   \
+            assert(mem);                                                                                               \
             size_t i;                                                                                                  \
                                                                                                                        \
             for (i = 0; i != strlen_2; i++) {                                                                          \
                 char buff[3] = {0x0, 0x0, 0x0};                                                                        \
-                strncpy(buff, str, 2);                                                                                 \
+                strncpy(buff, str_, 2);                                                                                \
                 unsigned int _uint;                                                                                    \
                 sscanf(buff, "%x", &_uint);                                                                            \
                 assert(_uint <= 0xff);                                                                                 \
                 mem[i] = static_cast<byte>(0xff & _uint);                                                              \
-                str += 2;                                                                                              \
+                str_ += 2;                                                                                             \
             }                                                                                                          \
             dst = mem;                                                                                                 \
         }                                                                                                              \
