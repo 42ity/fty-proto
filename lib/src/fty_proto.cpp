@@ -268,6 +268,7 @@ fty_proto_t* fty_proto_new_zpl(zconfig_t* config)
     zconfig_t* content = zconfig_locate(config, "content");
     if (!content) {
         zsys_error("Can't find 'content' section");
+        fty_proto_destroy(&self);
         return nullptr;
     }
 
