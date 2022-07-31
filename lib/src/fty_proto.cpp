@@ -228,7 +228,10 @@
 fty_proto_t* fty_proto_new(int id)
 {
     fty_proto_t* self = static_cast<fty_proto_t*>(zmalloc(sizeof(fty_proto_t)));
-    self->id          = id;
+    if (!self) return NULL;
+
+    memset(self, 0, sizeof(*self));
+    self->id = id;
     return self;
 }
 
@@ -238,13 +241,13 @@ fty_proto_t* fty_proto_new(int id)
 fty_proto_t* fty_proto_new_zpl(zconfig_t* config)
 {
     assert(config);
-    fty_proto_t* self    = nullptr;
-    char*        message = zconfig_get(config, "message", nullptr);
+    char* message = zconfig_get(config, "message", nullptr);
     if (!message) {
         zsys_error("Can't find 'message' section");
         return nullptr;
     }
 
+    fty_proto_t* self = nullptr;
     if (streq("FTY_PROTO_METRIC", message))
         self = fty_proto_new(FTY_PROTO_METRIC);
     else if (streq("FTY_PROTO_ALERT", message))
@@ -539,6 +542,7 @@ bool fty_proto_is(zmsg_t* msg)
     fty_proto_t* self = fty_proto_new(0);
     self->needle      = zframe_data(frame);
     self->ceiling     = self->needle + zframe_size(frame);
+
     uint16_t signature;
     GET_NUMBER2(signature);
     if (signature != (0xAAA0 | 1))
@@ -973,7 +977,7 @@ zmsg_t* fty_proto_encode(fty_proto_t** self_p)
             break;
     }
     //  Now send the data frame
-    if (zmsg_append(msg, &frame)) {
+    if (zmsg_append(msg, &frame) != 0) {
         zmsg_destroy(&msg);
         fty_proto_destroy(self_p);
         return nullptr;

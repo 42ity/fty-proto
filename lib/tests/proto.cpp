@@ -226,12 +226,14 @@ TEST_CASE("proto new/encode/decode")
         fty_proto_t* dup = fty_proto_dup(self);
         REQUIRE(dup);
         fty_proto_print(dup);
+
         zmsg_t* msg = fty_proto_encode(&dup);
         REQUIRE(!dup);
         dup = fty_proto_decode(&msg);
         REQUIRE(dup);
         REQUIRE(!msg);
         fty_proto_print(dup);
+
         fty_proto_destroy(&dup);
         REQUIRE(!dup);
 
@@ -252,6 +254,7 @@ TEST_CASE("proto encode/decode")
 
         zmsg_t* msg = fty_proto_encode_metric(aux, 42, 60, "type", "name", "value", "unit");
         REQUIRE(msg);
+        REQUIRE(fty_proto_is(msg));
 
         zhash_destroy(&aux);
         REQUIRE(!aux);
@@ -277,6 +280,7 @@ TEST_CASE("proto encode/decode")
 
         zmsg_t* msg = fty_proto_encode_alert(aux, 42, 60, "rule", "name", "state", "severity", "descripttion", action);
         REQUIRE(msg);
+        REQUIRE(fty_proto_is(msg));
 
         zhash_destroy(&aux);
         REQUIRE(!aux);
@@ -304,6 +308,7 @@ TEST_CASE("proto encode/decode")
 
         zmsg_t* msg = fty_proto_encode_asset(aux, "name", "operation", ext);
         REQUIRE(msg);
+        REQUIRE(fty_proto_is(msg));
 
         zhash_destroy(&aux);
         REQUIRE(!aux);
@@ -317,5 +322,33 @@ TEST_CASE("proto encode/decode")
 
         fty_proto_destroy(&dup);
         REQUIRE(!dup);
+    }
+}
+
+TEST_CASE("proto is")
+{
+    {
+        REQUIRE(!fty_proto_is(NULL));
+    }
+    {
+        zmsg_t* msg = zmsg_new();
+        REQUIRE(msg);
+        REQUIRE(!fty_proto_is(msg));
+        zmsg_addstr(msg, "hello");
+        REQUIRE(!fty_proto_is(msg));
+        zmsg_destroy(&msg);
+        REQUIRE(!msg);
+    }
+    {
+        zhash_t* aux = zhash_new();
+        REQUIRE(aux);
+        zhash_autofree(aux);
+        zhash_update(aux, "aux1", const_cast<char*>("aux1"));
+        zmsg_t* msg = fty_proto_encode_metric(aux, 42, 60, "type", "name", "value", "unit");
+        zhash_destroy(&aux);
+        REQUIRE(msg);
+        REQUIRE(fty_proto_is(msg));
+        zmsg_destroy(&msg);
+        REQUIRE(!msg);
     }
 }
