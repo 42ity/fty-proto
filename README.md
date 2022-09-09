@@ -42,32 +42,9 @@ Zeromq community maintain packages [network:zeromq](https://download.opensuse.or
 
 Here's how to build CZMQ from GitHub (building from packages is very similar, you don't clone a repo but unpack a tarball), including the libzmq (ZeroMQ core) library (NOTE: skip ldconfig on OSX):
 
-    git clone git://github.com/zeromq/libzmq.git
-    cd libzmq
-    ./autogen.sh
-    # do not specify "--with-libsodium" if you prefer to use internal tweetnacl security implementation (recommended for development)
-    ./configure --with-libsodium
-    make check
-    sudo make install
-    sudo ldconfig
-    cd ..
-
-    git clone git://github.com/zeromq/czmq.git
-    cd czmq
-    ./autogen.sh && ./configure && make check
-    sudo make install
-    sudo ldconfig
-    cd ..
-
-Then build fty-proto itself
-
-    git clone git://github.com/42ity/fty-proto.git
-    cd fty-proto
-    cmake -B build && cd build
+    cmake -B build/
+    cd build
     make
-    sudo make install
-    sudo ldconfig
-    cd ..
 
 ## API summary
 
