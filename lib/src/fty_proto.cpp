@@ -180,30 +180,33 @@
 
 // create new array of unsigned char from properly encoded string
 // len of resulting array is strlen (str) / 2
-// caller is responsibe for freeing up the memory
+// caller is responsible for freeing up the memory
 #define BYTES_FROM_STR(dst, str)                                                                                       \
     {                                                                                                                  \
-        if (!str || (strlen(str) % 2) != 0)                                                                            \
-            return nullptr;                                                                                            \
+        if (!str || (strlen(str) % 2) != 0) {                                                                          \
+            dst = nullptr;                                                                                             \
+        } else {                                                                                                       \
+            char* str_ = str;                                                                                          \
+            size_t strlen_2 = strlen(str_) / 2;                                                                        \
+            byte*  mem      = static_cast<byte*>(zmalloc(strlen_2));                                                   \
+            assert(mem);                                                                                               \
+            size_t i;                                                                                                  \
                                                                                                                        \
-        size_t strlen_2 = strlen(str) / 2;                                                                             \
-        byte*  mem      = static_cast<byte*>(zmalloc(strlen_2));                                                       \
-        size_t i;                                                                                                      \
-                                                                                                                       \
-        for (i = 0; i != strlen_2; i++) {                                                                              \
-            char buff[3] = {0x0, 0x0, 0x0};                                                                            \
-            strncpy(buff, str, 2);                                                                                     \
-            unsigned int _uint;                                                                                        \
-            sscanf(buff, "%x", &_uint);                                                                                \
-            assert(_uint <= 0xff);                                                                                     \
-            mem[i] = static_cast<byte>(0xff & _uint);                                                                  \
-            str += 2;                                                                                                  \
+            for (i = 0; i != strlen_2; i++) {                                                                          \
+                char buff[3] = {0x0, 0x0, 0x0};                                                                        \
+                strncpy(buff, str_, 2);                                                                                \
+                unsigned int _uint;                                                                                    \
+                sscanf(buff, "%x", &_uint);                                                                            \
+                assert(_uint <= 0xff);                                                                                 \
+                mem[i] = static_cast<byte>(0xff & _uint);                                                              \
+                str_ += 2;                                                                                             \
+            }                                                                                                          \
+            dst = mem;                                                                                                 \
         }                                                                                                              \
-        dst = mem;                                                                                                     \
     }
 
 // convert len bytes to hex string
-// caller is responsibe for freeing up the memory
+// caller is responsible for freeing up the memory
 #define STR_FROM_BYTES(dst, _mem, _len)                                                                                \
     {                                                                                                                  \
         byte*  mem = _mem;                                                                                             \
@@ -225,7 +228,10 @@
 fty_proto_t* fty_proto_new(int id)
 {
     fty_proto_t* self = static_cast<fty_proto_t*>(zmalloc(sizeof(fty_proto_t)));
-    self->id          = id;
+    if (!self) return NULL;
+
+    memset(self, 0, sizeof(*self));
+    self->id = id;
     return self;
 }
 
@@ -235,13 +241,13 @@ fty_proto_t* fty_proto_new(int id)
 fty_proto_t* fty_proto_new_zpl(zconfig_t* config)
 {
     assert(config);
-    fty_proto_t* self    = nullptr;
-    char*        message = zconfig_get(config, "message", nullptr);
+    char* message = zconfig_get(config, "message", nullptr);
     if (!message) {
         zsys_error("Can't find 'message' section");
         return nullptr;
     }
 
+    fty_proto_t* self = nullptr;
     if (streq("FTY_PROTO_METRIC", message))
         self = fty_proto_new(FTY_PROTO_METRIC);
     else if (streq("FTY_PROTO_ALERT", message))
@@ -455,7 +461,6 @@ fty_proto_t* fty_proto_new_zpl(zconfig_t* config)
                 }
                 self->aux = hash;
             }
-
             {
                 char* s = zconfig_get(content, "name", nullptr);
                 if (!s) {
@@ -537,6 +542,7 @@ bool fty_proto_is(zmsg_t* msg)
     fty_proto_t* self = fty_proto_new(0);
     self->needle      = zframe_data(frame);
     self->ceiling     = self->needle + zframe_size(frame);
+
     uint16_t signature;
     GET_NUMBER2(signature);
     if (signature != (0xAAA0 | 1))
@@ -971,7 +977,7 @@ zmsg_t* fty_proto_encode(fty_proto_t** self_p)
             break;
     }
     //  Now send the data frame
-    if (zmsg_append(msg, &frame)) {
+    if (zmsg_append(msg, &frame) != 0) {
         zmsg_destroy(&msg);
         fty_proto_destroy(self_p);
         return nullptr;

@@ -72,6 +72,7 @@ static void s_test_metrics()
 
     zmsg_t* msg = fty_proto_encode_metric(aux, 30, 10, "TYPE", "ELEMENT_SRC", "VALUE", "UNITS");
     REQUIRE(msg);
+    REQUIRE(fty_proto_is(msg));
     zhash_destroy(&aux);
 
     r = mlm_client_send(producer, "TYPE@ELEMENT_SRC", &msg);
@@ -80,6 +81,7 @@ static void s_test_metrics()
     // recv
     msg = mlm_client_recv(consumer);
     REQUIRE(msg);
+    REQUIRE(fty_proto_is(msg));
 
     const char* subject = mlm_client_subject(consumer);
     CHECK(streq(subject, "TYPE@ELEMENT_SRC"));
