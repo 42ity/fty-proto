@@ -32,6 +32,19 @@
 
 #include "fty_proto.h"
 
+#ifdef COVERITY_STUB
+    #pragma  ================================ COVERITY_STUB DEFINED ===============================
+
+    // Stub for coverity memory leak detection in zeromq/czmq library
+    // https://github.com/zeromq/czmq/blob/master/src/zstr.c
+    inline void zstr_free(char **s) {
+        if (s && (*s)) {
+            free(*s);
+            *s = NULL;
+        }
+    }
+#endif
+
 
 //  --------------------------------------------------------------------------
 //  Network data encoding macros
