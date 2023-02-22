@@ -24,7 +24,7 @@
 
 */
 
-@Library('etn-ipm2-jenkins@coverity_stub') _
+@Library('etn-ipm2-jenkins') _
 
 //import params.CmakePipelineParams
 //CmakePipelineParams parameters = new CmakePipelineParams()
