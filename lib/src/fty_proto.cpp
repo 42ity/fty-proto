@@ -147,6 +147,7 @@
         if (self->needle + string_size > (self->ceiling))                                                              \
             goto malformed;                                                                                            \
         (host) = static_cast<char*>(malloc(string_size + 1));                                                          \
+        if (!(host)) goto malformed;                                                                                   \
         memcpy((host), self->needle, string_size);                                                                     \
         (host)[string_size] = 0;                                                                                       \
         self->needle += string_size;                                                                                   \
@@ -169,6 +170,7 @@
         if (self->needle + string_size > (self->ceiling))                                                              \
             goto malformed;                                                                                            \
         (host) = static_cast<char*>(malloc(string_size + 1));                                                          \
+        if (!(host)) goto malformed;                                                                                   \
         memcpy((host), self->needle, string_size);                                                                     \
         (host)[string_size] = 0;                                                                                       \
         self->needle += string_size;                                                                                   \
@@ -194,7 +196,7 @@
             for (i = 0; i != strlen_2; i++) {                                                                          \
                 char buff[3] = {0x0, 0x0, 0x0};                                                                        \
                 strncpy(buff, str_, 2);                                                                                \
-                unsigned int _uint;                                                                                    \
+                unsigned int _uint = 0;                                                                                    \
                 sscanf(buff, "%x", &_uint);                                                                            \
                 assert(_uint <= 0xff);                                                                                 \
                 mem[i] = static_cast<byte>(0xff & _uint);                                                              \
@@ -214,7 +216,7 @@
         char*  aux = ret;                                                                                              \
         size_t i;                                                                                                      \
         for (i = 0; i != len; i++) {                                                                                   \
-            sprintf(aux, "%02x", mem[i]);                                                                              \
+            snprintf(aux, 3, "%02x", mem[i]);                                                                          \
             aux += 2;                                                                                                  \
         }                                                                                                              \
         dst = ret;                                                                                                     \
@@ -259,7 +261,7 @@ fty_proto_t* fty_proto_new_zpl(zconfig_t* config)
     }
 
     if (char* s = zconfig_get(config, "routing_id", nullptr)) {
-        byte* bvalue;
+        byte* bvalue = NULL;
         BYTES_FROM_STR(bvalue, s);
         if (!bvalue) {
             fty_proto_destroy(&self);
@@ -504,18 +506,17 @@ void fty_proto_destroy(fty_proto_t** self_p)
         //  Free class properties
         zframe_destroy(&self->routing_id);
         zhash_destroy(&self->aux);
-        free(self->type);
-        free(self->name);
-        free(self->value);
-        free(self->unit);
-        free(self->rule);
-        free(self->state);
-        free(self->severity);
-        free(self->description);
+        zstr_free(&self->type);
+        zstr_free(&self->name);
+        zstr_free(&self->value);
+        zstr_free(&self->unit);
+        zstr_free(&self->rule);
+        zstr_free(&self->state);
+        zstr_free(&self->severity);
+        zstr_free(&self->description);
         zstr_free(&self->metadata);
-        if (self->action)
-            zlist_destroy(&self->action);
-        free(self->operation);
+        zstr_free(&self->operation);
+        zlist_destroy(&self->action);
         zhash_destroy(&self->ext);
 
         //  Free object itself
@@ -577,6 +578,8 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
     if (msg == nullptr)
         return nullptr;
 
+    char *key = NULL, *value = NULL;
+
     fty_proto_t* self = fty_proto_new(0);
     //  Read and parse command in frame
     zframe_t* frame = zmsg_pop(msg);
@@ -596,17 +599,17 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
 
     switch (self->id) {
         case FTY_PROTO_METRIC: {
-            size_t hash_size;
+            size_t hash_size = 0;
             GET_NUMBER4(hash_size);
             self->aux = zhash_new();
             zhash_autofree(self->aux);
             while (hash_size--) {
-                char *key, *value;
+                key = value = NULL;
                 GET_STRING(key);
                 GET_LONGSTR(value);
                 zhash_insert(self->aux, key, value);
-                free(key);
-                free(value);
+                zstr_free(&key);
+                zstr_free(&value);
             }
         }
             GET_NUMBER8(self->time);
@@ -618,17 +621,17 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
             break;
 
         case FTY_PROTO_ALERT: {
-            size_t hash_size;
+            size_t hash_size = 0;
             GET_NUMBER4(hash_size);
             self->aux = zhash_new();
             zhash_autofree(self->aux);
             while (hash_size--) {
-                char *key, *value;
+                key = value = NULL;
                 GET_STRING(key);
                 GET_LONGSTR(value);
                 zhash_insert(self->aux, key, value);
-                free(key);
-                free(value);
+                zstr_free(&key);
+                zstr_free(&value);
             }
         }
             GET_NUMBER8(self->time);
@@ -639,15 +642,15 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
             GET_STRING(self->severity);
             GET_STRING(self->description);
             {
-                size_t list_size;
+                size_t list_size = 0;
                 GET_NUMBER4(list_size);
                 self->action = zlist_new();
                 zlist_autofree(self->action);
                 while (list_size--) {
-                    char* string;
-                    GET_LONGSTR(string);
-                    zlist_append(self->action, string);
-                    free(string);
+                    value = NULL;
+                    GET_LONGSTR(value);
+                    zlist_append(self->action, value);
+                    zstr_free(&value);
                 }
             }
 
@@ -661,33 +664,33 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
             break;
 
         case FTY_PROTO_ASSET: {
-            size_t hash_size;
+            size_t hash_size = 0;
             GET_NUMBER4(hash_size);
             self->aux = zhash_new();
             zhash_autofree(self->aux);
             while (hash_size--) {
-                char *key, *value;
+                key = value = NULL;
                 GET_STRING(key);
                 GET_LONGSTR(value);
                 zhash_insert(self->aux, key, value);
-                free(key);
-                free(value);
+                zstr_free(&key);
+                zstr_free(&value);
             }
         }
             GET_STRING(self->name);
             GET_STRING(self->operation);
             {
-                size_t hash_size;
+                size_t hash_size = 0;
                 GET_NUMBER4(hash_size);
                 self->ext = zhash_new();
                 zhash_autofree(self->ext);
                 while (hash_size--) {
-                    char *key, *value;
+                    key = value = NULL;
                     GET_STRING(key);
                     GET_LONGSTR(value);
                     zhash_insert(self->ext, key, value);
-                    free(key);
-                    free(value);
+                    zstr_free(&key);
+                    zstr_free(&value);
                 }
             }
             break;
@@ -704,10 +707,12 @@ fty_proto_t* fty_proto_decode(zmsg_t** msg_p)
 malformed:
     zsys_error("malformed message '%d'\n", self->id);
 empty:
+    zstr_free(&key);
+    zstr_free(&value);
     zframe_destroy(&frame);
     zmsg_destroy(msg_p);
     fty_proto_destroy(&self);
-    return (nullptr);
+    return nullptr;
 }
 
 
