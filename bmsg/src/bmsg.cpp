@@ -31,12 +31,30 @@
 #include <fty_log.h>
 #include <malamute.h>
 
-#define die(format, ...)                                                                                               \
-    do {                                                                                                               \
-        log_error(format, __VA_ARGS__);                                                                                \
-        ret = EXIT_FAILURE;                                                                                            \
-        goto exit;                                                                                                     \
-    } while (0);
+static void print_error(const char* fmt, ...)
+{
+    if (fmt) {
+        char* aux = nullptr;
+        va_list args;
+        va_start(args, fmt);
+        int r = vasprintf(&aux, fmt, args);
+        va_end(args);
+        if ((r > 0) && aux) {
+            log_error("%s", aux);
+        }
+        if (aux) {
+            free(aux);
+        }
+    }
+}
+
+#define die(format, ...)                   \
+    do {                                   \
+        print_error(format, __VA_ARGS__);  \
+        ret = EXIT_FAILURE;                \
+        goto exit;                         \
+    } while (0)
+
 
 /* asprintf() */
 #ifndef _GNU_SOURCE
@@ -51,8 +69,10 @@ static const int64_t STAT_INTERVAL = 10000; // we'll count messages in 10 second
 
 static void s_number_destructor(void** item_p)
 {
-    free(*item_p);
-    *item_p = NULL;
+    if (item_p && (*item_p)) {
+        free(*item_p);
+        *item_p = NULL;
+    }
 }
 
 static void s_add_cnt(zlistx_t* stat_list, size_t cnt)
@@ -61,6 +81,7 @@ static void s_add_cnt(zlistx_t* stat_list, size_t cnt)
     size_t* item_p = static_cast<size_t*>(zmalloc(sizeof(size_t)));
     *item_p        = cnt;
     zlistx_add_end(stat_list, item_p);
+    // coverity[leaked_storage:FALSE]
 }
 
 static void s_print_stats(zlistx_t* stat_list)
@@ -96,14 +117,13 @@ static void s_do_monitor(mlm_client_t* client, bool stats)
     zlistx_t* stat_list = zlistx_new();
     zlistx_set_destructor(stat_list, s_number_destructor);
     size_t     cnt      = 0;
-    int64_t    interval = STAT_INTERVAL;
     int64_t    start    = zclock_mono();
     zpoller_t* poller   = zpoller_new(mlm_client_msgpipe(client), NULL);
 
     while (!zsys_interrupted) {
 
         if (stats) {
-            interval = STAT_INTERVAL - (zclock_mono() - start);
+            int64_t interval = STAT_INTERVAL - (zclock_mono() - start);
 
             if (interval > 100)
                 zpoller_wait(poller, int(interval));
@@ -334,13 +354,13 @@ int main(int argc, char* argv[])
             verbose = true;
         else if (streq(argv[argn], "--timeout") || streq(argv[argn], "-t")) {
             if (argn + 1 == argc)
-                die("value after --timeout / -t expected", "");
+                die("%s", "value after --timeout / -t expected");
             timeout = atoi(argv[argn + 1]) * 1000;
             log_debug("cli specified timeout: %i", timeout);
             argn++;
         } else if (streq(argv[argn], "--endpoint") || streq(argv[argn], "-e")) {
             if (argn + 1 == argc)
-                die("value after --endpoint / -e expected", "");
+                die("%s", "value after --endpoint / -e expected");
             endpoint = argv[argn + 1];
             log_debug("cli specified endpoint: %s", endpoint);
             argn++;
@@ -370,7 +390,7 @@ int main(int argc, char* argv[])
         else
             die("Unknown command %s", argv[argn]);
         if (argn + 1 == argc)
-            die("too few arguments", "");
+            die("%s", "too few arguments");
         ++argn;
     }
 
@@ -388,7 +408,7 @@ int main(int argc, char* argv[])
     r = mlm_client_connect(client, endpoint, 5000, address);
     zstr_free(&address);
     if (r == -1)
-        die("mlm_client_connect failed", NULL);
+        die("%s", "mlm_client_connect failed");
 
     // set monitor
     if (streq(bmsg_command, "monitor")) {
@@ -399,15 +419,15 @@ int main(int argc, char* argv[])
                       ", " FTY_PROTO_STREAM_METRICS);
             r = mlm_client_set_consumer(client, FTY_PROTO_STREAM_METRICS, ".*");
             if (r == -1)
-                die("set consumer on" FTY_PROTO_STREAM_METRICS " failed", NULL);
+                die("%s", "set consumer on" FTY_PROTO_STREAM_METRICS " failed");
 
             r = mlm_client_set_consumer(client, FTY_PROTO_STREAM_ASSETS, ".*");
             if (r == -1)
-                die("set consumer on" FTY_PROTO_STREAM_ASSETS " failed", NULL);
+                die("%s", "set consumer on" FTY_PROTO_STREAM_ASSETS " failed");
 
             r = mlm_client_set_consumer(client, FTY_PROTO_STREAM_ALERTS, ".*");
             if (r == -1)
-                die("set consumer on" FTY_PROTO_STREAM_ALERTS " failed", NULL);
+                die("%s", "set consumer on" FTY_PROTO_STREAM_ALERTS " failed");
         }
 
         while (argv[argn]) {
@@ -432,45 +452,48 @@ int main(int argc, char* argv[])
             }
             char* rule = argv[++argn];
             if (!rule)
-                die("missing rule", NULL);
+                die("%s", "missing rule");
 
             char* element_src = argv[++argn];
             if (!element_src)
-                die("missing element_src", NULL);
+                die("%s", "missing element_src");
 
             char* state = argv[++argn];
             if (!state)
-                die("missing state", NULL);
+                die("%s", "missing state");
             if (streq(argv[argn], "alertsys") && (!streq(state, "ACTIVE") && !streq(state, "RESOLVED")))
-                die("restrictions not met for alertsys: only ACTIVE/RESOLVED", "NULL");
+                die("%s", "restrictions not met for alertsys: only ACTIVE/RESOLVED");
 
             char* severity = argv[++argn];
             if (!severity)
-                die("missing severity", NULL);
+                die("%s", "missing severity");
 
             char* description = argv[++argn];
             if (!description)
-                die("missing description", NULL);
+                die("%s", "missing description");
 
             char*    s_time = argv[++argn];
-            uint64_t time;
             if (!s_time)
-                die("missing time", NULL);
+                die("%s", "missing time");
+            uint64_t time = 0;
             int r1 = sscanf(s_time, "%" SCNu64, &time);
             if (r1 < 1)
                 die("time %s is not a number", s_time);
 
             zlist_t* action = zlist_new();
             if (!action)
-                die("zlist_new: %s", strerror(errno)) for (++argn; argv[argn]; ++argn)
-                {
-                    if (strchr(argv[argn], '='))
-                        break;
-                    if (zlist_append(action, argv[argn]) < 0)
-                        die("zlist_append: %s", strerror(errno))
-                }
+                die("zlist_new: %s", strerror(errno));
+
+            for (++argn; argv[argn]; ++argn)
+            {
+                if (strchr(argv[argn], '='))
+                    break;
+                if (zlist_append(action, argv[argn]) < 0)
+                    die("zlist_append: %s", strerror(errno));
+            }
+
             if (!zlist_size(action))
-                die("missing action", NULL);
+                die("%s", "missing action");
 
             zhash_t* aux = s_parse_aux(argc, argn, argv);
 
@@ -497,23 +520,23 @@ int main(int argc, char* argv[])
             }
             char* quantity = argv[++argn];
             if (!quantity)
-                die("missing quantity", NULL);
+                die("%s", "missing quantity");
 
             char* element_src = argv[++argn];
             if (!element_src)
-                die("missing element_src", NULL);
+                die("%s", "missing element_src");
 
             char* value = argv[++argn];
             if (!value)
-                die("missing value", NULL);
+                die("%s", "missing value");
 
             char* unit = argv[++argn];
             if (!unit)
-                die("missing unit", NULL);
+                die("%s", "missing unit");
 
             char* s_ttl = argv[++argn];
             if (!s_ttl)
-                die("missing TTL", NULL);
+                die("%s", "missing TTL");
             uint32_t ttl;
             int      r1 = sscanf(s_ttl, "%" SCNu32, &ttl);
             if (r1 < 1)
@@ -521,7 +544,7 @@ int main(int argc, char* argv[])
 
             char* s_time = argv[++argn];
             if (!s_time)
-                die("missing time", NULL);
+                die("%s", "missing time");
 
             uint32_t time_m;
             r = sscanf(s_time, "%" SCNu32, &time_m);
@@ -550,11 +573,11 @@ int main(int argc, char* argv[])
 
             char* name = argv[++argn];
             if (!name)
-                die("missing name", NULL);
+                die("%s", "missing name");
 
             char* operation = argv[++argn];
             if (!operation)
-                die("missing operation", NULL);
+                die("%s", "missing operation");
 
             zhash_t* aux = s_parse_aux(argc, argn + 1, argv);
             zhash_t* ext = s_parse_ext(argc, argn + 1, argv);
@@ -580,7 +603,7 @@ int main(int argc, char* argv[])
 
             char* metric_topic = argv[++argn];
             if (!metric_topic)
-                die("missing metric_topic", NULL);
+                die("%s", "missing metric_topic");
 
             zmsg_t* msg = zmsg_new();
             zmsg_addstr(msg, "METRIC_UNAVAILABLE");
@@ -598,7 +621,7 @@ int main(int argc, char* argv[])
 
             char* state = argv[++argn];
             if (!state)
-                die("missing EULA state", NULL);
+                die("%s", "missing EULA state");
 
             zmsg_t* msg = zmsg_new();
             zmsg_addstr(msg, "EULA");
@@ -616,18 +639,16 @@ int main(int argc, char* argv[])
 
             char* quantity = argv[++argn];
             if (!quantity)
-                die("missing quantity", NULL);
+                die("%s", "missing quantity");
 
             char* value = argv[++argn];
             if (!value)
-                die("missing value", NULL);
+                die("%s", "missing value");
 
             char* unit = argv[++argn];
-            if (!unit)
-                unit = strdup("");
 
             zmsg_t* msg = fty_proto_encode_metric(
-                NULL, uint64_t(time(NULL)), 24 * 60 * 60, quantity, "rackcontroller-0", value, unit);
+                NULL, uint64_t(time(NULL)), 24 * 60 * 60, quantity, "rackcontroller-0", value, (unit ? unit : ""));
 
             if (verbose)
                 zmsg_print(msg);
@@ -641,12 +662,12 @@ int main(int argc, char* argv[])
     } else if (streq(bmsg_command, "request")) {
         char* agent_name = argv[argn];
         if (!agent_name)
-            die("missing agent name", NULL);
+            die("%s", "missing agent name");
 
         argn++;
         char* subject = argv[argn];
         if (!subject)
-            die("missing subject", NULL);
+            die("%s", "missing subject");
 
         argn++;
         zmsg_t* request = zmsg_new();
@@ -659,7 +680,7 @@ int main(int argc, char* argv[])
         }
         int rv = mlm_client_sendto(client, agent_name, subject, NULL, 5000, &request);
         if (rv != 0)
-            die("Request failed", NULL);
+            die("%s", "Request failed");
 
         zmsg_destroy(&request);
 
@@ -700,7 +721,7 @@ int main(int argc, char* argv[])
         // printf ("do %s %s %s %s\n",FTY_ALERT_LIST, RFC_ALERTS_LIST, "LIST", state);
         int rv = mlm_client_sendto(client, FTY_ALERT_LIST, RFC_ALERTS_LIST, NULL, 5000, &request);
         if (rv != 0)
-            die("Request failed", NULL);
+            die("%s", "Request failed");
         zmsg_destroy(&request);
         // Listen for the result
         zpoller_t* poller = zpoller_new(mlm_client_msgpipe(client), NULL);
