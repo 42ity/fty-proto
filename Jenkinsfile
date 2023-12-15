@@ -26,7 +26,7 @@
 
 @Library('etn-ipm2-jenkins@featureimage/fix-build-2.8-CI') _
 
-//import params.CmakePipelineParams
+import params.CmakePipelineParams
 CmakePipelineParams parameters = new CmakePipelineParams()
 parameters.debugBuildRunTests = false
 //parameters.debugBuildRunMemcheck = false
