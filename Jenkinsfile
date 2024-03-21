@@ -24,7 +24,7 @@
 
 */
 
-@Library('etn-ipm2-jenkins') _
+@Library('etn-ipm2-jenkins@featureimage/get-FI-release-from-obs') _
 
 //import params.CmakePipelineParams
 //CmakePipelineParams parameters = new CmakePipelineParams()
