@@ -86,12 +86,5 @@ Always ask - can I make it simpler?
 
 ## How to compile and test projects using fty-proto by 42ITy standards
 
-### zproject
-Add this block in the project.xml file :
-````
-    <use project = "fty-proto" libname = "libfty_proto" header = "fty_proto.h" prefix = "fty_proto"
-        min_major = "1"
-        repository = "https://github.com/42ity/fty-proto.git" />
-````
 ### CMake/ CMakeLists.txt
 Make your target depends on `fty_proto`.
