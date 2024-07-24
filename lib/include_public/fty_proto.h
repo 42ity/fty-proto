@@ -128,14 +128,13 @@
 
 */
 
-#define FTY_PROTO_STREAM_METRICS                 "METRICS"
 #define FTY_PROTO_STREAM_ALERTS                  "ALERTS"
 #define FTY_PROTO_STREAM_ASSETS                  "ASSETS"
 #define FTY_PROTO_STREAM_ALERTS_SYS              "_ALERTS_SYS"
 #define FTY_PROTO_STREAM_METRICS_SENSOR          "_METRICS_SENSOR"
-#define FTY_PROTO_STREAM_METRICS_UNAVAILABLE     "_METRICS_UNAVAILABLE"
 #define FTY_PROTO_STREAM_EULA                    "_EULA"
 #define FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS "LICENSING-ANNOUNCEMENTS"
+
 #define FTY_PROTO_ASSET_TYPE                     "type"
 #define FTY_PROTO_ASSET_SUBTYPE                  "subtype"
 #define FTY_PROTO_ASSET_STATUS                   "status"

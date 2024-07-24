@@ -294,9 +294,8 @@ int main(int argc, char* argv[])
             puts("  --timeout / -t         timeout (seconds) when waiting for reply");
             puts("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS
-                 ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS ", " FTY_PROTO_STREAM_METRICS
-                 ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_METRICS_UNAVAILABLE
-                 ", " FTY_PROTO_STREAM_EULA ", " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS ")");
+                 ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS
+                 ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_EULA ", " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS ")");
             puts(
                 "  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> "
                 "<action>");
@@ -314,12 +313,8 @@ int main(int argc, char* argv[])
             puts("                         <operation> has possible values create, update, delete, inventory");
             puts("                         Auxilary data:");
             puts("                             priority=X where X in[1,5]");
-            puts("  publish metric_unavailable <metric topic>");
-            puts("                         publish information on stream " FTY_PROTO_STREAM_METRICS_UNAVAILABLE
-                 " that this metric is no longer  monitored by system");
-            puts("  publish (metric|metricsensor) <quantity> <element_src> <value> <units> <ttl> <time>");
-            puts("                         publish metric on stream " FTY_PROTO_STREAM_METRICS
-                 " or " FTY_PROTO_STREAM_METRICS_SENSOR);
+            puts("  publish metricsensor <quantity> <element_src> <value> <units> <ttl> <time>");
+            puts("                         publish metric on stream " FTY_PROTO_STREAM_METRICS_SENSOR);
             puts("                         <quantity> a string name for the metric type");
             puts("                         <element_src> a string name for asset where metric was detected");
             puts(
@@ -415,11 +410,7 @@ int main(int argc, char* argv[])
 
         if (!argv[argn]) {
             // set all streams
-            log_trace("setting consumer on " FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ASSETS
-                      ", " FTY_PROTO_STREAM_METRICS);
-            r = mlm_client_set_consumer(client, FTY_PROTO_STREAM_METRICS, ".*");
-            if (r == -1)
-                die("%s", "set consumer on" FTY_PROTO_STREAM_METRICS " failed");
+            log_trace("setting consumer on " FTY_PROTO_STREAM_ALERTS ", " FTY_PROTO_STREAM_ASSETS);
 
             r = mlm_client_set_consumer(client, FTY_PROTO_STREAM_ASSETS, ".*");
             if (r == -1)
@@ -512,12 +503,10 @@ int main(int argc, char* argv[])
             zstr_free(&subject);
             // to get all the threads behind enough time to send it
             zclock_sleep(500);
-        } else if (streq(argv[argn], "metric") || streq(argv[argn], "metricsensor")) {
-            if (streq(argv[argn], "metric")) {
-                mlm_client_set_producer(client, FTY_PROTO_STREAM_METRICS);
-            } else {
-                mlm_client_set_producer(client, FTY_PROTO_STREAM_METRICS_SENSOR);
-            }
+        } else if (streq(argv[argn], "metricsensor")) {
+
+            mlm_client_set_producer(client, FTY_PROTO_STREAM_METRICS_SENSOR);
+
             char* quantity = argv[++argn];
             if (!quantity)
                 die("%s", "missing quantity");
@@ -537,7 +526,7 @@ int main(int argc, char* argv[])
             char* s_ttl = argv[++argn];
             if (!s_ttl)
                 die("%s", "missing TTL");
-            uint32_t ttl;
+            uint32_t ttl = 0;
             int      r1 = sscanf(s_ttl, "%" SCNu32, &ttl);
             if (r1 < 1)
                 die("TTL %s is not a number", s_ttl);
@@ -546,14 +535,14 @@ int main(int argc, char* argv[])
             if (!s_time)
                 die("%s", "missing time");
 
-            uint32_t time_m;
+            uint32_t time_m = 0;
             r = sscanf(s_time, "%" SCNu32, &time_m);
             if (r < 1)
                 die("time %s is not a number", s_time);
 
             zhash_t* aux = s_parse_aux(argc, argn + 1, argv);
 
-            char* subject;
+            char* subject = NULL;
             r = asprintf(&subject, "%s@%s", quantity, element_src);
             assert(r > 0);
 
@@ -595,24 +584,6 @@ int main(int argc, char* argv[])
             zhash_destroy(&aux);
             zhash_destroy(&ext);
             zstr_free(&subject);
-            // to get all the threads behind enough time to send it
-            zclock_sleep(500);
-        } else if (streq(argv[argn], "metric_unavailable")) {
-
-            mlm_client_set_producer(client, FTY_PROTO_STREAM_METRICS_UNAVAILABLE);
-
-            char* metric_topic = argv[++argn];
-            if (!metric_topic)
-                die("%s", "missing metric_topic");
-
-            zmsg_t* msg = zmsg_new();
-            zmsg_addstr(msg, "METRIC_UNAVAILABLE");
-            zmsg_addstr(msg, metric_topic);
-
-            if (verbose)
-                zmsg_print(msg);
-
-            mlm_client_send(client, metric_topic, &msg);
             // to get all the threads behind enough time to send it
             zclock_sleep(500);
         } else if (streq(argv[argn], "eula")) {

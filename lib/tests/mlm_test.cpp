@@ -51,17 +51,18 @@ Copyright (C) 2014 - 2020 Eaton
 
 static const char* endpoint = "inproc://@/malamute";
 
-static void s_test_metrics()
+static void s_test_produce_consume()
 {
+    const char* STREAM_NAME = "test_stream_produce_consume";
     int r = 0;
 
     mlm_client_t* producer = mlm_client_new();
     mlm_client_connect(producer, endpoint, 5000, "producer");
-    mlm_client_set_producer(producer, "METRICS");
+    mlm_client_set_producer(producer, STREAM_NAME);
 
     mlm_client_t* consumer = mlm_client_new();
     mlm_client_connect(consumer, endpoint, 5000, "consumer");
-    mlm_client_set_consumer(consumer, "METRICS", ".*");
+    mlm_client_set_consumer(consumer, STREAM_NAME, ".*");
 
     // METRICS stream: Test case: send all values
     // send
@@ -75,10 +76,11 @@ static void s_test_metrics()
     REQUIRE(fty_proto_is(msg));
     zhash_destroy(&aux);
 
+    // send the metric on stream
     r = mlm_client_send(producer, "TYPE@ELEMENT_SRC", &msg);
     REQUIRE(r == 0);
 
-    // recv
+    // recv from stream
     msg = mlm_client_recv(consumer);
     REQUIRE(msg);
     REQUIRE(fty_proto_is(msg));
@@ -102,6 +104,6 @@ TEST_CASE("mlm test")
     zactor_t* server = zactor_new(mlm_server, const_cast<char*>("Malamute"));
     REQUIRE(server);
     zstr_sendx(server, "BIND", endpoint, NULL);
-    s_test_metrics();
+    s_test_produce_consume();
     zactor_destroy(&server);
 }
