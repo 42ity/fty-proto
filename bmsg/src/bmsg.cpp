@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
             puts("  monitor [stream1 [pattern1 ...] monitor given stream/pattern. Pattern is .* by default");
             puts("  publish type     publish given message type on respective stream (" FTY_PROTO_STREAM_ALERTS
                  ", " FTY_PROTO_STREAM_ALERTS_SYS ", " FTY_PROTO_STREAM_ASSETS
-                 ", " FTY_PROTO_STREAM_METRICS_SENSOR ", " FTY_PROTO_STREAM_EULA ", " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS ")");
+                 ", " FTY_PROTO_STREAM_EULA ", " FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS ")");
             puts(
                 "  publish (alert|alertsys) <rule_name> <element_src> <state> <severity> <description> <time> "
                 "<action>");
@@ -313,18 +313,6 @@ int main(int argc, char* argv[])
             puts("                         <operation> has possible values create, update, delete, inventory");
             puts("                         Auxilary data:");
             puts("                             priority=X where X in[1,5]");
-            puts("  publish metricsensor <quantity> <element_src> <value> <units> <ttl> <time>");
-            puts("                         publish metric on stream " FTY_PROTO_STREAM_METRICS_SENSOR);
-            puts("                         <quantity> a string name for the metric type");
-            puts("                         <element_src> a string name for asset where metric was detected");
-            puts(
-                "                         <value> a string value of the metric (for now only values convertable to "
-                "double should be used");
-            puts("                         <units> a string like %, W, days");
-            puts("                         <ttl>   a number time to leave [s]");
-            puts("                         <time>  an UNIX timestamp when metric was detected");
-            puts("                         Auxilary data:");
-            puts("                             quantity=Y, where Y is value");
             puts("  publish eula <state>");
             puts("                         publish <state> of EULA on stream " FTY_PROTO_STREAM_EULA);
             puts("                         Currently the only state used by the system is ACCEPTED.");
@@ -497,59 +485,6 @@ int main(int argc, char* argv[])
 
             if (verbose)
                 s_print_bmsg("alert", subject, msg);
-
-            mlm_client_send(client, subject, &msg);
-            zhash_destroy(&aux);
-            zstr_free(&subject);
-            // to get all the threads behind enough time to send it
-            zclock_sleep(500);
-        } else if (streq(argv[argn], "metricsensor")) {
-
-            mlm_client_set_producer(client, FTY_PROTO_STREAM_METRICS_SENSOR);
-
-            char* quantity = argv[++argn];
-            if (!quantity)
-                die("%s", "missing quantity");
-
-            char* element_src = argv[++argn];
-            if (!element_src)
-                die("%s", "missing element_src");
-
-            char* value = argv[++argn];
-            if (!value)
-                die("%s", "missing value");
-
-            char* unit = argv[++argn];
-            if (!unit)
-                die("%s", "missing unit");
-
-            char* s_ttl = argv[++argn];
-            if (!s_ttl)
-                die("%s", "missing TTL");
-            uint32_t ttl = 0;
-            int      r1 = sscanf(s_ttl, "%" SCNu32, &ttl);
-            if (r1 < 1)
-                die("TTL %s is not a number", s_ttl);
-
-            char* s_time = argv[++argn];
-            if (!s_time)
-                die("%s", "missing time");
-
-            uint32_t time_m = 0;
-            r = sscanf(s_time, "%" SCNu32, &time_m);
-            if (r < 1)
-                die("time %s is not a number", s_time);
-
-            zhash_t* aux = s_parse_aux(argc, argn + 1, argv);
-
-            char* subject = NULL;
-            r = asprintf(&subject, "%s@%s", quantity, element_src);
-            assert(r > 0);
-
-            zmsg_t* msg = fty_proto_encode_metric(aux, time_m, ttl, quantity, element_src, value, unit);
-
-            if (verbose)
-                s_print_bmsg("metric", subject, msg);
 
             mlm_client_send(client, subject, &msg);
             zhash_destroy(&aux);
