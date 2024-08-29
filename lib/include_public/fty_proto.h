@@ -131,7 +131,6 @@
 #define FTY_PROTO_STREAM_ALERTS                  "ALERTS"
 #define FTY_PROTO_STREAM_ASSETS                  "ASSETS"
 #define FTY_PROTO_STREAM_ALERTS_SYS              "_ALERTS_SYS"
-#define FTY_PROTO_STREAM_METRICS_SENSOR          "_METRICS_SENSOR"
 #define FTY_PROTO_STREAM_EULA                    "_EULA"
 #define FTY_PROTO_STREAM_LICENSING_ANNOUNCEMENTS "LICENSING-ANNOUNCEMENTS"
 
@@ -153,9 +152,6 @@
 #define FTY_PROTO_ASSET_EXT_DEVICE_PART          "device.part"
 #define FTY_PROTO_RULE_CLASS                     "rule_class"
 #define FTY_PROTO_METRIC_ELEMENT_DEST            "element-dest"
-#define FTY_PROTO_METRICS_AUX_PORT               "port"
-#define FTY_PROTO_METRICS_SENSOR_AUX_SNAME       "sname"
-#define FTY_PROTO_METRICS_SENSOR_AUX_PORT        "port"
 
 #define FTY_PROTO_METRIC 1
 #define FTY_PROTO_ALERT  2
