@@ -222,6 +222,15 @@
         dst = ret;                                                                                                     \
     }
 
+//  --------------------------------------------------------------------------
+
+#ifdef __COVERITY__
+fty_proto_t* fty_proto_new(int id) { __coverity_alloc_nosize__(); }
+fty_proto_t* fty_proto_new_zpl(zconfig_t* c) { __coverity_alloc_nosize__(); }
+void fty_proto_destroy(fty_proto_t** p) { __coverity_free__(*p); }
+fty_proto_t* fty_proto_dup(fty_proto_t* p) { __coverity_alloc_nosize__(); }
+void zstr_free(char** p) { __coverity_free__(*p); }
+#endif
 
 //  --------------------------------------------------------------------------
 //  Create a new fty_proto
